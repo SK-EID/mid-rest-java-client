@@ -1,0 +1,9 @@
+{
+  "relyingPartyUUID": "00000000-0000-0000-0000-000000000000",
+  "relyingPartyName": "DEMO",
+  "phoneNumber": "+37200000766",
+  "nationalIdentityNumber": "60001019906",
+  "hash": "kc42j4tGXa1Pc2LdMcJCKAgpOk9RCQgrBogF6fHA40VSPw1qITw8zQ8g5ZaLcW5jSlq67ehG3uSvQAWIFs3TOw==",
+  "hashType": "SHA512",
+  "language": "EST"
+}

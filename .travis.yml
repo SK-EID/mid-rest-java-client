@@ -1,0 +1,11 @@
+language: java
+
+sudo: false
+
+before_install:
+  - pip install --user codecov
+
+install: true
+
+after_success:
+  - codecov
