@@ -1,0 +1,15 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} %-5p [%thread] [%logger{36}.%method:%line] - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ee.sk.mid" level="DEBUG"/>
+    <logger name="ee.sk.mid.rest.LoggingFilter" level="TRACE"/>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

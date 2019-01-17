@@ -1,0 +1,10 @@
+{
+  "relyingPartyUUID": "00000000-0000-0000-0000-000000000000",
+  "relyingPartyName": "DEMO",
+  "phoneNumber": "+37200000766",
+  "nationalIdentityNumber": "60001019906",
+  "hash": "AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=",
+  "hashType": "SHA256",
+  "language": "EST",
+  "displayText": "Log into internet banking system"
+}
