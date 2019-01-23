@@ -11,6 +11,7 @@
 
     <name>Mobile-ID Java client</name>
     <description>Mobile-ID Java client is a Java library that can be used for easy integration with MID REST interface (https://github.com/SK-EID/MID) of the Mobile-ID</description>
+    <url>https://github.com/SK-EID/mid-rest-java-client</url>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -28,6 +29,11 @@
             <organizationUrl>http://www.nortal.com</organizationUrl>
         </developer>
     </developers>
+    <scm>
+        <connection>scm:git:git@github.com:SK-EID/mid-rest-java-client.git</connection>
+        <developerConnection>scm:git:git@github.com:SK-EID/mid-rest-java-client.git</developerConnection>
+        <url>https://github.com/SK-EID/mid-rest-java-client.git</url>
+    </scm>
 
     <properties>
         <skip.integration.tests>true</skip.integration.tests>
