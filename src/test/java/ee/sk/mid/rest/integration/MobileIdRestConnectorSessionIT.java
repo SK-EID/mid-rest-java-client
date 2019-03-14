@@ -26,8 +26,20 @@ package ee.sk.mid.rest.integration;
  * #L%
  */
 
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectAuthenticationRequestMade;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectSignatureRequestMade;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidAuthenticationRequest;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidSignatureRequest;
+import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertAuthenticationPolled;
+import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertSignaturePolled;
+import static ee.sk.mid.mock.TestData.DEMO_HOST_URL;
+import static ee.sk.mid.mock.TestData.SESSION_ID;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+
 import ee.sk.mid.categories.IntegrationTest;
-import ee.sk.mid.exception.SessionNotFoundException;
+import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.rest.MobileIdConnector;
 import ee.sk.mid.rest.MobileIdRestConnector;
 import ee.sk.mid.rest.SessionStatusPoller;
@@ -41,14 +53,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.*;
-import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.*;
-import static ee.sk.mid.mock.TestData.DEMO_HOST_URL;
-import static ee.sk.mid.mock.TestData.SESSION_ID;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-
 @Category({IntegrationTest.class})
 public class MobileIdRestConnectorSessionIT {
 
@@ -56,7 +60,9 @@ public class MobileIdRestConnectorSessionIT {
 
     @Before
     public void setUp() {
-        connector = new MobileIdRestConnector(DEMO_HOST_URL);
+        connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(DEMO_HOST_URL)
+            .build();
     }
 
     @Test
@@ -68,7 +74,10 @@ public class MobileIdRestConnectorSessionIT {
         assertThat(signatureResponse.getSessionID(), not(isEmptyOrNullString()));
 
         SessionStatusRequest sessionStatusRequest = new SessionStatusRequest(signatureResponse.getSessionID());
-        SessionStatusPoller poller = new SessionStatusPoller(connector);
+        SessionStatusPoller poller = SessionStatusPoller.newBuilder()
+            .withConnector(connector)
+            .build();
+
         SessionStatus sessionStatus = poller.fetchFinalSignatureSessionStatus(sessionStatusRequest.getSessionID());
         assertSignaturePolled(sessionStatus);
     }
@@ -82,18 +91,21 @@ public class MobileIdRestConnectorSessionIT {
         assertThat(authenticationResponse.getSessionID(), not(isEmptyOrNullString()));
 
         SessionStatusRequest sessionStatusRequest = new SessionStatusRequest(authenticationResponse.getSessionID());
-        SessionStatusPoller poller = new SessionStatusPoller(connector);
+        SessionStatusPoller poller = SessionStatusPoller.newBuilder()
+            .withConnector(connector)
+            .build();
+
         SessionStatus sessionStatus = poller.fetchFinalAuthenticationSessionStatus(sessionStatusRequest.getSessionID());
         assertAuthenticationPolled(sessionStatus);
     }
 
-    @Test(expected = SessionNotFoundException.class)
+    @Test(expected = MidSessionNotFoundException.class)
     public void getSessionStatus_whenSessionStatusNotExists_shouldThrowException() {
         SessionStatusRequest request = new SessionStatusRequest(SESSION_ID);
         connector.getAuthenticationSessionStatus(request);
     }
 
-    @Test(expected = SessionNotFoundException.class)
+    @Test(expected = MidSessionNotFoundException.class)
     public void getSessionStatus_whenSessionStatusNotFound_shouldThrowException() {
         SignatureRequest signatureRequest = createValidSignatureRequest();
         assertCorrectSignatureRequestMade(signatureRequest);

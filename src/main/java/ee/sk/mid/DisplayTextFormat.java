@@ -1,4 +1,4 @@
-package ee.sk.mid.exception;
+package ee.sk.mid;
 
 /*-
  * #%L
@@ -26,12 +26,14 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class ParameterMissingException extends MobileIdException {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    public ParameterMissingException() {
-    }
+public enum DisplayTextFormat {
 
-    public ParameterMissingException(String message) {
-        super(message);
-    }
+  @JsonProperty("GSM-7")
+  GSM7,
+
+  @JsonProperty("UCS-2")
+  UCS2;
+
 }

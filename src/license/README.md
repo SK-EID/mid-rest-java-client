@@ -1,6 +1,6 @@
-### License management
-
 _The following information is for maintainers of this project._
+
+### License management
 
 * Add license to header of each source code file of this project:
 
@@ -19,3 +19,9 @@ _The following information is for maintainers of this project._
   `mvn license:download-licenses`
 
   NB! Before you commit - remove duplicates and check the quality of license file contents.
+  
+### Check library dependencies for vulnerabilities
+
+Before releasing a new version check all library dependencies for vulnerabilities
+
+  `mvn dependency-check:check`

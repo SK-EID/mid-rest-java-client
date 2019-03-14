@@ -26,12 +26,12 @@ package ee.sk.mid.rest.dao.request;
  * #L%
  */
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
 import ee.sk.mid.exception.MobileIdException;
-import ee.sk.mid.exception.ParameterMissingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class CertificateRequestBuilder {
 
@@ -74,17 +74,9 @@ public class CertificateRequestBuilder {
     }
 
     private void validateParameters() {
-        if (isBlank(relyingPartyUUID)) {
-            logger.error("Relying Party UUID parameter must be set");
-            throw new ParameterMissingException("Relying Party UUID parameter must be set");
-        }
-        if (isBlank(relyingPartyName)) {
-            logger.error("Relying Party Name parameter must be set");
-            throw new ParameterMissingException("Relying Party Name parameter must be set");
-        }
         if (isBlank(phoneNumber) || isBlank(nationalIdentityNumber)) {
             logger.error("Phone number and national identity must be set");
-            throw new ParameterMissingException("Phone number and national identity must be set");
+            throw new MissingOrInvalidParameterException("Phone number and national identity must be set");
         }
     }
 }

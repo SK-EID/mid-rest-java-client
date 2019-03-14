@@ -28,6 +28,8 @@ package ee.sk.mid.rest.dao.request;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class CertificateRequest extends AbstractRequest {
 
     @NotNull
@@ -56,10 +58,12 @@ public class CertificateRequest extends AbstractRequest {
 
     @Override
     public String toString() {
-        return "CertificateRequest{" +
-                "phoneNumber='" + phoneNumber + '\'' +
-                ", nationalIdentityNumber='" + nationalIdentityNumber + '\'' +
-                '}';
+        return new ToStringBuilder(this)
+            .append("phoneNumber", phoneNumber)
+            .append("nationalIdentityNumber", nationalIdentityNumber)
+            .append("relyingPartyUUID", getRelyingPartyUUID())
+            .append("relyingPartyName", getRelyingPartyName())
+            .toString();
     }
 
     public static CertificateRequestBuilder newBuilder() {

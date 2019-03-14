@@ -1,4 +1,4 @@
-package ee.sk.mid.exception;
+package ee.sk.mid;
 
 /*-
  * #%L
@@ -26,5 +26,39 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class ResponseRetrievingException extends MobileIdException {
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
+import static ee.sk.mid.mock.TestData.VALID_PHONE;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import ee.sk.mid.exception.InvalidPhoneNumberException;
+import org.junit.Test;
+
+public class MidInputUtilTest {
+
+    @Test
+    public void validateUserInput_validPhone_shouldRemoveSpaces()
+    {
+        String phoneNumber = MidInputUtil.getValidatedPhoneNumber(" +372 00000 766 ");
+
+        assertThat(phoneNumber, is(equalTo("+37200000766")));
+    }
+
+    @Test(expected = InvalidPhoneNumberException.class)
+    public void validateUserInput_invalidPhone_shouldThrowException()
+    {
+        MidInputUtil.getValidatedPhoneNumber("123");
+    }
+
+
+    @Test
+    public void validateUserInput_withValidData()
+    {
+        MidInputUtil.getValidatedPhoneNumber(VALID_PHONE);
+        MidInputUtil.getValidatedNationalIdentityNumber(VALID_NAT_IDENTITY);
+
+    }
+
+
 }

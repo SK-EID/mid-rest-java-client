@@ -27,4 +27,8 @@ package ee.sk.mid.exception;
  */
 
 public class UserCancellationException extends MobileIdException {
+
+    public UserCancellationException() {
+        super("User cancelled the operation.");
+    }
 }

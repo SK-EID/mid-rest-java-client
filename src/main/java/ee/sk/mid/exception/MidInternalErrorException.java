@@ -26,12 +26,14 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class InvalidBase64CharacterException extends MobileIdException {
+public class MidInternalErrorException extends MobileIdException {
 
-    public InvalidBase64CharacterException() {
-    }
-
-    public InvalidBase64CharacterException(String message) {
+    public MidInternalErrorException(String message) {
         super(message);
     }
+
+    public MidInternalErrorException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

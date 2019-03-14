@@ -26,18 +26,17 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.InvalidBase64CharacterException;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.nio.charset.StandardCharsets;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.nio.charset.StandardCharsets;
+
+import ee.sk.mid.exception.MidInternalErrorException;
+import org.junit.Test;
+
 public class MobileIdSignatureTest {
 
-    @Test(expected = InvalidBase64CharacterException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void setInvalidValueInBase64_shouldThrowException() {
 
         MobileIdSignature signature = MobileIdSignature.newBuilder()

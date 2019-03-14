@@ -26,29 +26,64 @@ package ee.sk.mid;
  * #L%
  */
 
-import java.security.SecureRandom;
-
 import static ee.sk.mid.HashType.SHA256;
 
-public class MobileIdAuthenticationHash extends SignableHash {
+import java.security.SecureRandom;
+
+public class MobileIdAuthenticationHashToSign extends HashToSign {
+
+    private MobileIdAuthenticationHashToSign(MobileIdAuthenticationHashToSignBuilder builder) {
+        super(builder);
+    }
 
     private static HashType DEFAULT_HASH_TYPE = SHA256;
 
-    public static MobileIdAuthenticationHash generateRandomHashOfDefaultType() {
+    public static MobileIdAuthenticationHashToSign generateRandomHashOfDefaultType() {
         return generateRandomHashOfType(DEFAULT_HASH_TYPE);
     }
 
-    public static MobileIdAuthenticationHash generateRandomHashOfType(HashType hashType) {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = new MobileIdAuthenticationHash();
-        byte[] randomHash = getRandomBytes(hashType.getLengthInBytes());
-        mobileIdAuthenticationHash.setHash(randomHash);
-        mobileIdAuthenticationHash.setHashType(hashType);
-        return mobileIdAuthenticationHash;
+    public static MobileIdAuthenticationHashToSign generateRandomHashOfType(HashType hashType) {
+        return MobileIdAuthenticationHashToSign.newBuilder()
+            .withHash(getRandomBytes(hashType.getLengthInBytes()))
+            .withHashType(hashType)
+            .build();
     }
+
+    public static MobileIdAuthenticationHashToSignBuilder newBuilder() {
+        return new MobileIdAuthenticationHashToSignBuilder();
+    }
+
 
     private static byte[] getRandomBytes(int lengthInBytes) {
         byte[] randomBytes = new byte[lengthInBytes];
         new SecureRandom().nextBytes(randomBytes);
         return randomBytes;
+    }
+
+    public static class MobileIdAuthenticationHashToSignBuilder extends HashToSignBuilder {
+
+        @Override
+        public MobileIdAuthenticationHashToSignBuilder withHash(byte[] hash) {
+            super.withHash(hash);
+            return this;
+        }
+
+        @Override
+        public MobileIdAuthenticationHashToSignBuilder withHashInBase64(String hashInBase64) {
+            super.withHashInBase64(hashInBase64);
+            return this;
+        }
+
+        @Override
+        public MobileIdAuthenticationHashToSignBuilder withHashType(HashType hashType) {
+            super.withHashType(hashType);
+            return this;
+        }
+
+        @Override
+        public MobileIdAuthenticationHashToSign build() {
+            validateFields();
+            return new MobileIdAuthenticationHashToSign(this);
+        }
     }
 }

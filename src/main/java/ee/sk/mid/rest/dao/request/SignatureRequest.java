@@ -26,11 +26,13 @@ package ee.sk.mid.rest.dao.request;
  * #L%
  */
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
+import ee.sk.mid.DisplayTextFormat;
 import ee.sk.mid.HashType;
 import ee.sk.mid.Language;
-
-import javax.validation.constraints.NotNull;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SignatureRequest extends AbstractRequest {
 
@@ -51,6 +53,9 @@ public class SignatureRequest extends AbstractRequest {
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String displayText;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private DisplayTextFormat displayTextFormat;
 
     @NotNull
     public String getPhoneNumber() {
@@ -105,16 +110,27 @@ public class SignatureRequest extends AbstractRequest {
         this.displayText = displayText;
     }
 
+    public DisplayTextFormat getDisplayTextFormat() {
+        return displayTextFormat;
+    }
+
+    public void setDisplayTextFormat(DisplayTextFormat displayTextFormat) {
+        this.displayTextFormat = displayTextFormat;
+    }
+
     @Override
     public String toString() {
-        return "SignatureRequest{" +
-                "phoneNumber='" + phoneNumber + '\'' +
-                ", nationalIdentityNumber='" + nationalIdentityNumber + '\'' +
-                ", hash='" + hash + '\'' +
-                ", hashType=" + hashType +
-                ", language=" + language +
-                ", displayText='" + displayText + '\'' +
-                '}';
+        return new ToStringBuilder(this)
+            .append("phoneNumber", phoneNumber)
+            .append("nationalIdentityNumber", nationalIdentityNumber)
+            .append("hash", hash)
+            .append("hashType", hashType)
+            .append("language", language)
+            .append("displayText", displayText)
+            .append("displayTextFormat", displayTextFormat)
+            .append("relyingPartyUUID", getRelyingPartyUUID())
+            .append("relyingPartyName", getRelyingPartyName())
+            .toString();
     }
 
     public static SignatureRequestBuilder newBuilder() {

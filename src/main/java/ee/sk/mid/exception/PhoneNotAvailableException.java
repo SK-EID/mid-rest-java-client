@@ -26,12 +26,9 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class ExpiredException extends MobileIdException {
+public class PhoneNotAvailableException extends MobileIdException {
 
-    public ExpiredException() {
-    }
-
-    public ExpiredException(String message) {
-        super(message);
+    public PhoneNotAvailableException() {
+        super("Unable to reach phone or SIM card");
     }
 }

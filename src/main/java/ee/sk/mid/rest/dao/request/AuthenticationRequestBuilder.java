@@ -26,51 +26,58 @@ package ee.sk.mid.rest.dao.request;
  * #L%
  */
 
+import ee.sk.mid.DisplayTextFormat;
+import ee.sk.mid.HashToSign;
 import ee.sk.mid.Language;
-import ee.sk.mid.MobileIdAuthenticationHash;
-import ee.sk.mid.SignableData;
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
 import ee.sk.mid.exception.MobileIdException;
-import ee.sk.mid.exception.ParameterMissingException;
 
 public class AuthenticationRequestBuilder extends AbstractAuthSignRequestBuilder {
 
+    @Override
     public AuthenticationRequestBuilder withRelyingPartyUUID(String relyingPartyUUID) {
         super.withRelyingPartyUUID(relyingPartyUUID);
         return this;
     }
 
+    @Override
     public AuthenticationRequestBuilder withRelyingPartyName(String relyingPartyName) {
         super.withRelyingPartyName(relyingPartyName);
         return this;
     }
 
+    @Override
     public AuthenticationRequestBuilder withPhoneNumber(String phoneNumber) {
         super.withPhoneNumber(phoneNumber);
         return this;
     }
 
+    @Override
     public AuthenticationRequestBuilder withNationalIdentityNumber(String nationalIdentityNumber) {
         super.withNationalIdentityNumber(nationalIdentityNumber);
         return this;
     }
 
-    public AuthenticationRequestBuilder withSignableData(SignableData dataToSign) {
-        super.withSignableData(dataToSign);
+    public AuthenticationRequestBuilder withHashToSign(HashToSign mobileIdAuthenticationHash) {
+        super.withHashToSign(mobileIdAuthenticationHash);
         return this;
     }
 
-    public AuthenticationRequestBuilder withAuthenticationHash(MobileIdAuthenticationHash mobileIdAuthenticationHash) {
-        super.withSignableHash(mobileIdAuthenticationHash);
-        return this;
-    }
-
+    @Override
     public AuthenticationRequestBuilder withLanguage(Language language) {
         super.withLanguage(language);
         return this;
     }
 
+    @Override
     public AuthenticationRequestBuilder withDisplayText(String displayText) {
         super.withDisplayText(displayText);
+        return this;
+    }
+
+    @Override
+    public AuthenticationRequestBuilder withDisplayTextFormat(DisplayTextFormat displayTextFormat) {
+        super.withDisplayTextFormat(displayTextFormat);
         return this;
     }
 
@@ -81,18 +88,19 @@ public class AuthenticationRequestBuilder extends AbstractAuthSignRequestBuilder
 
     private AuthenticationRequest createAuthenticationRequest() {
         AuthenticationRequest request = new AuthenticationRequest();
-        request.setRelyingPartyUUID(getRelyingPartyUUID());
-        request.setRelyingPartyName(getRelyingPartyName());
-        request.setPhoneNumber(getPhoneNumber());
-        request.setNationalIdentityNumber(getNationalIdentityNumber());
+        request.setRelyingPartyUUID(this.relyingPartyUUID);
+        request.setRelyingPartyName(this.relyingPartyName);
+        request.setPhoneNumber(this.phoneNumber);
+        request.setNationalIdentityNumber(this.nationalIdentityNumber);
         request.setHash(getHashInBase64());
         request.setHashType(getHashType());
-        request.setLanguage(getLanguage());
-        request.setDisplayText(getDisplayText());
+        request.setLanguage(this.language);
+        request.setDisplayText(this.displayText);
+        request.setDisplayTextFormat(this.displayTextFormat);
         return request;
     }
 
-    protected void validateParameters() throws ParameterMissingException {
+    protected void validateParameters() throws MissingOrInvalidParameterException {
         super.validateParameters();
         super.validateExtraParameters();
     }

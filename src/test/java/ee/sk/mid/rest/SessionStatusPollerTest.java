@@ -26,17 +26,35 @@ package ee.sk.mid.rest;
  * #L%
  */
 
-import ee.sk.mid.exception.*;
-import ee.sk.mid.mock.MobileIdConnectorStub;
-import ee.sk.mid.rest.dao.SessionStatus;
-import org.junit.Before;
-import org.junit.Test;
-
-import static ee.sk.mid.mock.SessionStatusDummy.*;
+import static ee.sk.mid.mock.SessionStatusDummy.assertCompleteSessionStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createDeliveryErrorStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createInvalidCardResponseStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createMIDNotReadyStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createMSSPTransactionExpiredStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createNotMIDClientStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createResponseRetrievingErrorStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createRunningSessionStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createSignatureHashMismatchStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createSimNotAvailableStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createSuccessfulSessionStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createTimeoutSessionStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createUserCancellationStatus;
 import static ee.sk.mid.mock.TestData.AUTHENTICATION_SESSION_PATH;
 import static ee.sk.mid.mock.TestData.SESSION_ID;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+
+import ee.sk.mid.exception.DeliveryException;
+import ee.sk.mid.exception.InvalidUserConfigurationException;
+import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.NotMidClientException;
+import ee.sk.mid.exception.PhoneNotAvailableException;
+import ee.sk.mid.exception.UserCancellationException;
+import ee.sk.mid.mock.MobileIdConnectorStub;
+import ee.sk.mid.rest.dao.SessionStatus;
+import org.junit.Before;
+import org.junit.Test;
 
 public class SessionStatusPollerTest {
 
@@ -46,8 +64,11 @@ public class SessionStatusPollerTest {
     @Before
     public void setUp() {
         connector = new MobileIdConnectorStub();
-        poller = new SessionStatusPoller(connector);
-        poller.setPollingSleepTimeSeconds(1);
+        poller = SessionStatusPoller.newBuilder()
+            .withConnector(connector)
+            .withPollingSleepTimeoutSeconds(1)
+            .withLongPollingTimeoutSeconds(0)
+            .build();
     }
 
     @Test
@@ -73,7 +94,13 @@ public class SessionStatusPollerTest {
 
     @Test
     public void setPollingSleepTime() {
-        poller.setPollingSleepTimeSeconds(2);
+
+        poller = SessionStatusPoller.newBuilder()
+            .withConnector(connector)
+            .withPollingSleepTimeoutSeconds(2)
+            .withLongPollingTimeoutSeconds(0)
+            .build();
+
         addMultipleRunningSessionResponses();
         connector.getResponses().add(createSuccessfulSessionStatus());
         long duration = measurePollingDuration();
@@ -83,25 +110,25 @@ public class SessionStatusPollerTest {
         assertThat(duration < 10100L, is(true));
     }
 
-    @Test(expected = SessionTimeoutException.class)
+    @Test(expected = MidSessionTimeoutException.class)
     public void getUserTimeoutResponse_shouldThrowException() {
         connector.getResponses().add(createTimeoutSessionStatus());
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = ResponseRetrievingException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void getResponseRetrievingErrorResponse_shouldThrowException() {
         connector.getResponses().add(createResponseRetrievingErrorStatus());
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = NotMIDClientException.class)
+    @Test(expected = NotMidClientException.class)
     public void getNotMIDClientResponse_shouldThrowException() {
         connector.getResponses().add(createNotMIDClientStatus());
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = ExpiredException.class)
+    @Test(expected = MidSessionTimeoutException.class)
     public void getMSSSPTransactionExpiredResponse_shouldThrowException() {
         connector.getResponses().add(createMSSPTransactionExpiredStatus());
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
@@ -113,13 +140,13 @@ public class SessionStatusPollerTest {
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = MIDNotReadyException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void getMIDNotReadyResponse_shouldThrowException() {
         connector.getResponses().add(createMIDNotReadyStatus());
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = SimNotAvailableException.class)
+    @Test(expected = PhoneNotAvailableException.class)
     public void getSimNotAvailableResponse_shouldThrowException() {
         connector.getResponses().add(createSimNotAvailableStatus());
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
@@ -131,19 +158,19 @@ public class SessionStatusPollerTest {
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = InvalidCardResponseException.class)
+    @Test(expected = DeliveryException.class)
     public void getInvalidCardResponse_shouldThrowException() {
         connector.getResponses().add(createInvalidCardResponseStatus());
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = SignatureHashMismatchException.class)
+    @Test(expected = InvalidUserConfigurationException.class)
     public void getSignatureHashMismatchResponse_shouldThrowException() {
         connector.getResponses().add(createSignatureHashMismatchStatus());
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void getUnknownResult_shouldThrowException() {
         SessionStatus sessionStatus = createSuccessfulSessionStatus();
         sessionStatus.setResult("HACKERMAN");
@@ -151,7 +178,7 @@ public class SessionStatusPollerTest {
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void getMissingResult_shouldThrowException() {
         SessionStatus sessionStatus = createSuccessfulSessionStatus();
         sessionStatus.setResult(null);

@@ -1,4 +1,4 @@
-package ee.sk.mid;
+package ee.sk.mid.rest;
 
 /*-
  * #%L
@@ -26,48 +26,35 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.InvalidBase64CharacterException;
-import org.apache.commons.codec.binary.Base64;
+import org.glassfish.jersey.client.ClientConfig;
 
-import java.io.Serializable;
+public class MobileIdRestConnectorBuilder {
+  String endpointUrl;
+  ClientConfig clientConfig;
+  String relyingPartyUUID;
+  String relyingPartyName;
 
-import static org.apache.commons.codec.binary.Base64.isBase64;
+  public MobileIdRestConnectorBuilder withEndpointUrl(String endpointUrl) {
+    this.endpointUrl = endpointUrl;
+    return this;
+  }
 
-public class SignableHash implements Serializable {
+  public MobileIdRestConnectorBuilder withClientConfig(ClientConfig clientConfig) {
+    this.clientConfig = clientConfig;
+    return this;
+  }
 
-    private byte[] hash;
-    private HashType hashType;
+  public MobileIdRestConnectorBuilder withRelyingPartyUUID(String relyingPartyUUID) {
+    this.relyingPartyUUID = relyingPartyUUID;
+    return this;
+  }
 
-    void setHash(byte[] hash) {
-        this.hash = hash;
+  public MobileIdRestConnectorBuilder withRelyingPartyName(String relyingPartyName) {
+    this.relyingPartyName = relyingPartyName;
+    return this;
+  }
 
-    }
-
-    public String getHashInBase64() {
-        return Base64.encodeBase64String(hash);
-    }
-
-    public void setHashInBase64(String hashInBase64) throws InvalidBase64CharacterException {
-        if (isBase64(hashInBase64)) {
-            hash = Base64.decodeBase64(hashInBase64);
-        } else {
-            throw new InvalidBase64CharacterException();
-        }
-    }
-
-    public HashType getHashType() {
-        return hashType;
-    }
-
-    public void setHashType(HashType hashType) {
-        this.hashType = hashType;
-    }
-
-    public String calculateVerificationCode() {
-        return VerificationCodeCalculator.calculateMobileIdVerificationCode(hash);
-    }
-
-    public boolean areFieldsFilled() {
-        return hashType != null && hash != null && hash.length > 0;
-    }
+  public MobileIdRestConnector build() {
+    return new MobileIdRestConnector(this);
+  }
 }

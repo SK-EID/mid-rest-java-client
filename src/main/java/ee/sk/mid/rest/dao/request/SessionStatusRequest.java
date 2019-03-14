@@ -26,20 +26,38 @@ package ee.sk.mid.rest.dao.request;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serializable;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SessionStatusRequest implements Serializable {
 
-    @JsonProperty(value = "sessionId")
     private String sessionID;
+
+    private int timeoutMs = 0;
 
     public SessionStatusRequest(String sessionID) {
         this.sessionID = sessionID;
     }
 
+    public SessionStatusRequest(String sessionID, int timeoutSeconds) {
+        this.sessionID = sessionID;
+        this.timeoutMs = timeoutSeconds * 1000;
+    }
+
     public String getSessionID() {
         return sessionID;
+    }
+
+    public int getTimeoutMs() {
+        return timeoutMs;
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("sessionID", sessionID)
+            .append("timeoutMs", timeoutMs)
+            .toString();
     }
 }

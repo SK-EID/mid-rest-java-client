@@ -26,5 +26,8 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class SignatureHashMismatchException extends MobileIdException {
+public class InvalidNationalIdentityNumberException extends MissingOrInvalidParameterException {
+    public InvalidNationalIdentityNumberException(String nationalIdentityNumber) {
+        super("Invalid national identity number " + nationalIdentityNumber);
+    }
 }

@@ -26,7 +26,7 @@ package ee.sk.mid.rest;
  * #L%
  */
 
-import ee.sk.mid.exception.SessionNotFoundException;
+import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.rest.dao.SessionStatus;
 import ee.sk.mid.rest.dao.request.AuthenticationRequest;
 import ee.sk.mid.rest.dao.request.CertificateRequest;
@@ -44,9 +44,9 @@ public interface MobileIdConnector {
 
     AuthenticationResponse authenticate(AuthenticationRequest request);
 
-    SessionStatus getSessionStatus(SessionStatusRequest request, String path) throws SessionNotFoundException;
+    SessionStatus getSessionStatus(SessionStatusRequest request, String path) throws MidSessionNotFoundException;
 
-    SessionStatus getAuthenticationSessionStatus(SessionStatusRequest request) throws SessionNotFoundException;
+    SessionStatus getAuthenticationSessionStatus(SessionStatusRequest request) throws MidSessionNotFoundException;
 
-    SessionStatus getSignatureSessionStatus(SessionStatusRequest request) throws SessionNotFoundException;
+    SessionStatus getSignatureSessionStatus(SessionStatusRequest request) throws MidSessionNotFoundException;
 }

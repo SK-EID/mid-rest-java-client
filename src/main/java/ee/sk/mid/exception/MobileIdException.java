@@ -26,10 +26,7 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class MobileIdException extends RuntimeException {
-
-    MobileIdException() {
-    }
+public abstract class MobileIdException extends RuntimeException {
 
     MobileIdException(String message) {
         super(message);

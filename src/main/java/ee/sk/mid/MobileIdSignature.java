@@ -26,7 +26,7 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.InvalidBase64CharacterException;
+import ee.sk.mid.exception.MidInternalErrorException;
 import org.apache.commons.codec.binary.Base64;
 
 public class MobileIdSignature {
@@ -34,16 +34,18 @@ public class MobileIdSignature {
     private String valueInBase64;
     private String algorithmName;
 
-    public byte[] getValue() throws InvalidBase64CharacterException {
-        if (!Base64.isBase64(valueInBase64)) {
-            throw new InvalidBase64CharacterException("Failed to parse signature value in base64. Probably incorrectly encoded base64 string: '" + valueInBase64 + "'");
-        }
+    public byte[] getValue() {
         return Base64.decodeBase64(valueInBase64);
     }
 
     private MobileIdSignature(MobileIdSignatureBuilder builder) {
         this.valueInBase64 = builder.valueInBase64;
         this.algorithmName = builder.algorithmName;
+
+        if (!Base64.isBase64(valueInBase64)) {
+            throw new MidInternalErrorException("Returned signature value is not a base64 string.");
+        }
+
     }
 
     public String getValueInBase64() {

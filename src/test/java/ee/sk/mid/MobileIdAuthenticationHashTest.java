@@ -26,16 +26,21 @@ package ee.sk.mid;
  * #L%
  */
 
-import org.junit.Test;
-
+import static ee.sk.mid.mock.TestData.SHA512_HASH_IN_BASE64;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
+import java.security.SecureRandom;
+
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
+import org.junit.Test;
 
 public class MobileIdAuthenticationHashTest {
 
     @Test
     public void shouldGenerateRandomHashOfDefaultType_hasSHA256HashType() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfDefaultType();
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         assertThat(mobileIdAuthenticationHash.getHashType(), is(HashType.SHA256));
         assertThat(mobileIdAuthenticationHash.getHashInBase64().length(), is(44));
@@ -43,7 +48,7 @@ public class MobileIdAuthenticationHashTest {
 
     @Test
     public void shouldGenerateRandomHashOfType_SHA256_hashHasCorrectTypeAndLength() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfType(HashType.SHA256);
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfType(HashType.SHA256);
 
         assertThat(mobileIdAuthenticationHash.getHashType(), is(HashType.SHA256));
         assertThat(mobileIdAuthenticationHash.getHashInBase64().length(), is(44));
@@ -51,7 +56,7 @@ public class MobileIdAuthenticationHashTest {
 
     @Test
     public void shouldGenerateRandomHashOfType_SHA384_hashHasCorrectTypeAndLength() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfType(HashType.SHA384);
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfType(HashType.SHA384);
 
         assertThat(mobileIdAuthenticationHash.getHashType(), is(HashType.SHA384));
         assertThat(mobileIdAuthenticationHash.getHashInBase64().length(), is(64));
@@ -59,10 +64,44 @@ public class MobileIdAuthenticationHashTest {
 
     @Test
     public void shouldGenerateRandomHashOfType_SHA512_hashHasCorrectTypeAndLength() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfType(HashType.SHA512);
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfType(HashType.SHA512);
 
         assertThat(mobileIdAuthenticationHash.getHashType(), is(HashType.SHA512));
         assertThat(mobileIdAuthenticationHash.getHashInBase64().length(), is(88));
+    }
+
+    @Test(expected = MissingOrInvalidParameterException.class)
+    public void authenticate_withHashType_withoutHash_shouldThrowException() {
+        MobileIdAuthenticationHashToSign.newBuilder()
+            .withHashType(HashType.SHA512)
+            .build();
+    }
+
+    @Test(expected = MissingOrInvalidParameterException.class)
+    public void authenticate_withHashInBase64_withoutHashType_shouldThrowException() {
+        MobileIdAuthenticationHashToSign.newBuilder()
+            .withHashInBase64(SHA512_HASH_IN_BASE64)
+            .build();
+    }
+
+    @Test(expected = MissingOrInvalidParameterException.class)
+    public void authenticate_withHash_withoutHashType_shouldThrowException() {
+        byte[] randomBytes = new byte[HashType.SHA256.getLengthInBytes()];
+        new SecureRandom().nextBytes(randomBytes);
+
+        MobileIdAuthenticationHashToSign.newBuilder()
+            .withHash(randomBytes)
+            .build();
+    }
+
+    @Test
+    public void calculateVerificationCode_notNull() {
+        MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.newBuilder()
+            .withHashInBase64(SHA512_HASH_IN_BASE64)
+            .withHashType(HashType.SHA512)
+            .build();
+
+        assertThat(authenticationHash.calculateVerificationCode(), is(notNullValue()));
     }
 
 }

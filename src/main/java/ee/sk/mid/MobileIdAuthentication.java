@@ -26,11 +26,11 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.InvalidBase64CharacterException;
-import org.apache.commons.codec.binary.Base64;
-
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
+
+import ee.sk.mid.exception.MidInternalErrorException;
+import org.apache.commons.codec.binary.Base64;
 
 public class MobileIdAuthentication implements Serializable {
 
@@ -48,12 +48,13 @@ public class MobileIdAuthentication implements Serializable {
         this.signatureValueInBase64 = builder.signatureValueInBase64;
         this.algorithmName = builder.algorithmName;
         this.certificate = builder.certificate;
+
+        if (!Base64.isBase64(signatureValueInBase64)) {
+            throw new MidInternalErrorException("Returned signature value is not a valid Base64 string.");
+        }
     }
 
-    public byte[] getSignatureValue() throws InvalidBase64CharacterException {
-        if (!Base64.isBase64(signatureValueInBase64)) {
-            throw new InvalidBase64CharacterException("Failed to parse signature value in base64. Probably incorrectly encoded base64 string: '" + signatureValueInBase64 + "'");
-        }
+    public byte[] getSignatureValue() {
         return Base64.decodeBase64(signatureValueInBase64);
     }
 

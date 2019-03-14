@@ -26,13 +26,34 @@ package ee.sk.mid.rest;
  * #L%
  */
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidAuthenticationRequest;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
+import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
+import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
+import static ee.sk.mid.mock.TestData.LOCALHOST_URL;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
+import static ee.sk.mid.mock.TestData.VALID_PHONE;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.ClientRequestHeaderFilter;
 import ee.sk.mid.HashType;
 import ee.sk.mid.Language;
-import ee.sk.mid.exception.ParameterMissingException;
-import ee.sk.mid.exception.ResponseNotFoundException;
-import ee.sk.mid.exception.ResponseRetrievingException;
+import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
 import ee.sk.mid.exception.UnauthorizedException;
 import ee.sk.mid.rest.dao.request.AuthenticationRequest;
 import ee.sk.mid.rest.dao.response.AuthenticationResponse;
@@ -41,18 +62,6 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidAuthenticationRequest;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.*;
-import static ee.sk.mid.mock.TestData.*;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 public class MobileIdRestConnectorAuthenticationTest {
 
@@ -63,12 +72,14 @@ public class MobileIdRestConnectorAuthenticationTest {
 
     @Before
     public void setUp() {
-        connector = new MobileIdRestConnector(LOCALHOST_URL);
+        connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .build();
     }
 
     @Test
-    public void authenticate() throws IOException {
-        stubRequestWithResponse("/mid-api/authentication", "requests/authenticationRequest.json", "responses/authenticationResponse.json");
+    public void authenticate() {
+        stubRequestWithResponse("/authentication", "requests/authenticationRequest.json", "responses/authenticationResponse.json");
         AuthenticationRequest request = createValidAuthenticationRequest();
         AuthenticationResponse response = connector.authenticate(request);
 
@@ -77,12 +88,12 @@ public class MobileIdRestConnectorAuthenticationTest {
     }
 
     @Test
-    public void authenticate_withDisplayText() throws IOException {
-        stubRequestWithResponse("/mid-api/authentication", "requests/authenticationRequestWithDisplayText.json", "responses/authenticationResponse.json");
+    public void authenticate_withDisplayText() {
+        stubRequestWithResponse("/authentication", "requests/authenticationRequestWithDisplayText.json", "responses/authenticationResponse.json");
 
         AuthenticationRequest request = new AuthenticationRequest();
-        request.setRelyingPartyUUID(VALID_RELYING_PARTY_UUID);
-        request.setRelyingPartyName(VALID_RELYING_PARTY_NAME);
+        request.setRelyingPartyUUID(DEMO_RELYING_PARTY_UUID);
+        request.setRelyingPartyName(DEMO_RELYING_PARTY_NAME);
         request.setPhoneNumber(VALID_PHONE);
         request.setNationalIdentityNumber(VALID_NAT_IDENTITY);
         request.setHash("AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=");
@@ -96,47 +107,50 @@ public class MobileIdRestConnectorAuthenticationTest {
         assertThat(response.getSessionID(), is("1dcc1600-29a6-4e95-a95c-d69b31febcfb"));
     }
 
-    @Test(expected = ResponseRetrievingException.class)
-    public void authenticate_whenGettingResponseFailed_shouldThrowException() throws IOException {
-        stubInternalServerErrorResponse("/mid-api/authentication", "requests/authenticationRequest.json");
+    @Test(expected = MidInternalErrorException.class)
+    public void authenticate_whenGettingResponseFailed_shouldThrowException() {
+        stubInternalServerErrorResponse("/authentication", "requests/authenticationRequest.json");
         AuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
     }
 
-    @Test(expected = ResponseNotFoundException.class)
-    public void authenticate_whenResponseNotFound_shouldThrowException() throws IOException {
-        stubNotFoundResponse("/mid-api/authentication", "requests/authenticationRequest.json");
+    @Test(expected = MidInternalErrorException.class)
+    public void authenticate_whenResponseNotFound_shouldThrowException() {
+        stubNotFoundResponse("/authentication", "requests/authenticationRequest.json");
         AuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
-    public void authenticate_withWrongRequestParams_shouldThrowException() throws IOException {
-        stubBadRequestResponse("/mid-api/authentication", "requests/authenticationRequest.json");
+    @Test(expected = MissingOrInvalidParameterException.class)
+    public void authenticate_withWrongRequestParams_shouldThrowException() {
+        stubBadRequestResponse("/authentication", "requests/authenticationRequest.json");
         AuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
     }
 
     @Test(expected = UnauthorizedException.class)
-    public void authenticate_withWrongAuthenticationParams_shouldThrowException() throws IOException {
-        stubUnauthorizedResponse("/mid-api/authentication", "requests/authenticationRequest.json");
+    public void authenticate_withWrongAuthenticationParams_shouldThrowException() {
+        stubUnauthorizedResponse("/authentication", "requests/authenticationRequest.json");
         AuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
     }
 
     @Test
-    public void verifyCustomRequestHeaderPresent_whenAuthenticating() throws IOException {
+    public void verifyCustomRequestHeaderPresent_whenAuthenticating() {
         String headerName = "custom-header";
         String headerValue = "Auth";
 
         Map<String, String> headers = new HashMap<>();
         headers.put(headerName, headerValue);
-        connector = new MobileIdRestConnector("http://localhost:18089", getClientConfigWithCustomRequestHeader(headers));
-        stubRequestWithResponse("/mid-api/authentication", "requests/authenticationRequest.json", "responses/authenticationResponse.json");
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withClientConfig(getClientConfigWithCustomRequestHeader(headers))
+            .build();
+        stubRequestWithResponse("/authentication", "requests/authenticationRequest.json", "responses/authenticationResponse.json");
         AuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
 
-        verify(postRequestedFor(urlEqualTo("/mid-api/authentication"))
+        verify(postRequestedFor(urlEqualTo("/authentication"))
                 .withHeader(headerName, equalTo(headerValue)));
     }
 

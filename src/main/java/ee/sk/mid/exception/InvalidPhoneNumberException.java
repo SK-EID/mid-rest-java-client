@@ -26,13 +26,8 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class TechnicalErrorException extends MobileIdException {
-
-    public TechnicalErrorException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public TechnicalErrorException(String message) {
-        super(message);
+public class InvalidPhoneNumberException extends MissingOrInvalidParameterException {
+    public InvalidPhoneNumberException(String phoneNumber) {
+        super("Invalid phone number " + phoneNumber);
     }
 }

@@ -26,21 +26,21 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.InvalidBase64CharacterException;
-import org.apache.commons.codec.binary.Base64;
-import org.junit.Test;
-
-import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateEncodingException;
-
 import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_EE;
 import static ee.sk.mid.mock.TestData.SIGNED_HASH_IN_BASE64;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateEncodingException;
+
+import ee.sk.mid.exception.MidInternalErrorException;
+import org.apache.commons.codec.binary.Base64;
+import org.junit.Test;
+
 public class MobileIdAuthenticationTest {
 
-    @Test(expected = InvalidBase64CharacterException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void setInvalidValueInBase64_shouldThrowException() {
 
         MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()

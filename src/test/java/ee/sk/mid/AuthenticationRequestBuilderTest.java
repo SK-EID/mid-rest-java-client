@@ -26,7 +26,33 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.*;
+import static ee.sk.mid.mock.SessionStatusDummy.createDeliveryErrorStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createInvalidCardResponseStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createMIDNotReadyStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createMSSPTransactionExpiredStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createNotMIDClientStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createResponseRetrievingErrorStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createSignatureHashMismatchStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createSimNotAvailableStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createTimeoutSessionStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createUserCancellationStatus;
+import static ee.sk.mid.mock.TestData.AUTHENTICATION_SESSION_PATH;
+import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_EE;
+import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
+import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
+import static ee.sk.mid.mock.TestData.LOCALHOST_URL;
+import static ee.sk.mid.mock.TestData.SESSION_ID;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
+import static ee.sk.mid.mock.TestData.VALID_PHONE;
+
+import ee.sk.mid.exception.DeliveryException;
+import ee.sk.mid.exception.InvalidUserConfigurationException;
+import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
+import ee.sk.mid.exception.NotMidClientException;
+import ee.sk.mid.exception.PhoneNotAvailableException;
+import ee.sk.mid.exception.UserCancellationException;
 import ee.sk.mid.mock.MobileIdConnectorSpy;
 import ee.sk.mid.rest.MobileIdConnector;
 import ee.sk.mid.rest.MobileIdRestConnector;
@@ -37,9 +63,6 @@ import ee.sk.mid.rest.dao.request.AuthenticationRequest;
 import ee.sk.mid.rest.dao.response.AuthenticationResponse;
 import org.junit.Before;
 import org.junit.Test;
-
-import static ee.sk.mid.mock.SessionStatusDummy.*;
-import static ee.sk.mid.mock.TestData.*;
 
 public class AuthenticationRequestBuilderTest {
 
@@ -52,157 +75,138 @@ public class AuthenticationRequestBuilderTest {
         connector.setSessionStatusToRespond(createDummyAuthenticationSessionStatus());
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void authenticate_withoutRelyingPartyUUID_shouldThrowException() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfDefaultType();
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         AuthenticationRequest request = AuthenticationRequest.newBuilder()
-            .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-            .withAuthenticationHash(mobileIdAuthenticationHash)
+            .withHashToSign(mobileIdAuthenticationHash)
             .withLanguage(Language.EST)
             .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .build();
+
         connector.authenticate(request);
 
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void authenticate_withoutRelyingPartyName_shouldThrowException() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfDefaultType();
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         AuthenticationRequest request = AuthenticationRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withAuthenticationHash(mobileIdAuthenticationHash)
-                .withLanguage(Language.EST)
-                .build();
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(mobileIdAuthenticationHash)
+            .withLanguage(Language.EST)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .build();
+
         connector.authenticate(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void authenticate_withoutPhoneNumber_shouldThrowException() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfDefaultType();
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         AuthenticationRequest request = AuthenticationRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withAuthenticationHash(mobileIdAuthenticationHash)
-                .withLanguage(Language.EST)
-                .build();
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(mobileIdAuthenticationHash)
+            .withLanguage(Language.EST)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
         connector.authenticate(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void authenticate_withoutNationalIdentityNumber_shouldThrowException() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfDefaultType();
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         AuthenticationRequest request = AuthenticationRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withAuthenticationHash(mobileIdAuthenticationHash)
-                .withLanguage(Language.EST)
-                .build();
+            .withPhoneNumber(VALID_PHONE)
+            .withHashToSign(mobileIdAuthenticationHash)
+            .withLanguage(Language.EST)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
+
         connector.authenticate(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
-    public void authenticate_withoutHash_andWithoutSignableData_shouldThrowException() {
+    @Test(expected = MissingOrInvalidParameterException.class)
+    public void authenticate_withoutHashToSign_shouldThrowException() {
 
         AuthenticationRequest request = AuthenticationRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withLanguage(Language.EST)
-                .build();
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withLanguage(Language.EST)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
+
         connector.authenticate(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
-    public void authenticate_withHash_withoutHashType_shouldThrowException() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = new MobileIdAuthenticationHash();
-        mobileIdAuthenticationHash.setHashInBase64(SHA512_HASH_IN_BASE64);
-
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withAuthenticationHash(mobileIdAuthenticationHash)
-                .withLanguage(Language.EST)
-                .build();
-
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
-        connector.authenticate(request);
-    }
-
-    @Test(expected = ParameterMissingException.class)
-    public void authenticate_withHashType_withoutHash_shouldThrowException() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = new MobileIdAuthenticationHash();
-        mobileIdAuthenticationHash.setHashType(HashType.SHA512);
-
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withAuthenticationHash(mobileIdAuthenticationHash)
-                .withLanguage(Language.EST)
-                .build();
-
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
-        connector.authenticate(request);
-    }
-
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void authenticate_withoutLanguage_shouldThrowException() {
-        MobileIdAuthenticationHash mobileIdAuthenticationHash = MobileIdAuthenticationHash.generateRandomHashOfDefaultType();
+        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         AuthenticationRequest request = AuthenticationRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withAuthenticationHash(mobileIdAuthenticationHash)
-                .build();
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(mobileIdAuthenticationHash)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
+
         connector.authenticate(request);
     }
 
-    @Test(expected = SessionTimeoutException.class)
+    @Test(expected = MidSessionTimeoutException.class)
     public void authenticate_withTimeout_shouldThrowException() {
         connector.setSessionStatusToRespond(createTimeoutSessionStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = ResponseRetrievingException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void authenticate_withResponseRetrievingError_shouldThrowException() {
         connector.setSessionStatusToRespond(createResponseRetrievingErrorStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = NotMIDClientException.class)
+    @Test(expected = NotMidClientException.class)
     public void authenticate_withNotMIDClient_shouldThrowException() {
         connector.setSessionStatusToRespond(createNotMIDClientStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = ExpiredException.class)
+    @Test(expected = MidSessionTimeoutException.class)
     public void authenticate_withMSSPTransactionExpired_shouldThrowException() {
         connector.setSessionStatusToRespond(createMSSPTransactionExpiredStatus());
         makeAuthenticationRequest(connector);
@@ -214,13 +218,13 @@ public class AuthenticationRequestBuilderTest {
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = MIDNotReadyException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void authenticate_withMIDNotReady_shouldThrowException() {
         connector.setSessionStatusToRespond(createMIDNotReadyStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = SimNotAvailableException.class)
+    @Test(expected = PhoneNotAvailableException.class)
     public void authenticate_withSimNotAvailable_shouldThrowException() {
         connector.setSessionStatusToRespond(createSimNotAvailableStatus());
         makeAuthenticationRequest(connector);
@@ -232,72 +236,73 @@ public class AuthenticationRequestBuilderTest {
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = InvalidCardResponseException.class)
+    @Test(expected = DeliveryException.class)
     public void authenticate_withInvalidCardResponse_shouldThrowException() {
         connector.setSessionStatusToRespond(createInvalidCardResponseStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = SignatureHashMismatchException.class)
+    @Test(expected = InvalidUserConfigurationException.class)
     public void authenticate_withSignatureHashMismatch_shouldThrowException() {
         connector.setSessionStatusToRespond(createSignatureHashMismatchStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void authenticate_withResultMissingInResponse_shouldThrowException() {
         connector.getSessionStatusToRespond().setResult(null);
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void authenticate_withResultBlankInResponse_shouldThrowException() {
         connector.getSessionStatusToRespond().setResult("");
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void authenticate_withSignatureMissingInResponse_shouldThrowException() {
         connector.getSessionStatusToRespond().setSignature(null);
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void authenticate_withCertificateBlankInResponse_shouldThrowException() {
         connector.getSessionStatusToRespond().setCert("");
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void authenticate_withCertificateMissingInResponse_shouldThrowException() {
         connector.getSessionStatusToRespond().setCert(null);
         makeAuthenticationRequest(connector);
     }
 
     private void makeAuthenticationRequest(MobileIdConnector connector) {
-        MobileIdAuthenticationHash authenticationHash = MobileIdAuthenticationHash.generateRandomHashOfDefaultType();
+        MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         AuthenticationRequest request = AuthenticationRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withAuthenticationHash(authenticationHash)
-                .withLanguage(Language.EST)
-                .build();
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(authenticationHash)
+            .withLanguage(Language.EST)
+            .build();
 
         AuthenticationResponse response = connector.authenticate(request);
 
-        SessionStatusPoller poller = new SessionStatusPoller(connector);
+        SessionStatusPoller poller = SessionStatusPoller.newBuilder()
+            .withConnector(connector)
+            .build();
+
         SessionStatus sessionStatus = poller.fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
 
         MobileIdClient client = MobileIdClient.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(LOCALHOST_URL)
                 .build();
 
-        client.createMobileIdAuthentication(sessionStatus, authenticationHash.getHashInBase64(), authenticationHash.getHashType());
+        client.createMobileIdAuthentication(sessionStatus, authenticationHash);
     }
 
     public static SessionStatus createDummyAuthenticationSessionStatus() {

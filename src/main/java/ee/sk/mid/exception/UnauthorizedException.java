@@ -27,4 +27,9 @@ package ee.sk.mid.exception;
  */
 
 public class UnauthorizedException extends MobileIdException {
+
+    public UnauthorizedException(String message) {
+        super(message);
+    }
+
 }
