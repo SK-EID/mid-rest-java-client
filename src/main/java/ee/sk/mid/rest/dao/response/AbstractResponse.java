@@ -26,15 +26,16 @@ package ee.sk.mid.rest.dao.response;
  * #L%
  */
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AbstractResponse implements Serializable {
 
-    @JsonProperty(value = "sessionId")
+    @JsonProperty(value = "sessionID")
     private String sessionID;
 
     public AbstractResponse() {
@@ -49,6 +50,12 @@ public class AbstractResponse implements Serializable {
     }
 
     public void setSessionID(String sessionID) {
+        this.sessionID = sessionID;
+    }
+
+    @Deprecated
+    @JsonSetter("sessionId")
+    public void setSessionId(String sessionID) {
         this.sessionID = sessionID;
     }
 

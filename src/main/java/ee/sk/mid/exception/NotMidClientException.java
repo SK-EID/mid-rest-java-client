@@ -26,5 +26,10 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class InvalidCardResponseException extends MobileIdException {
+public class NotMidClientException extends MobileIdException {
+
+
+    public NotMidClientException() {
+        super("User has no active certificates, and thus is not Mobile-ID client");
+    }
 }

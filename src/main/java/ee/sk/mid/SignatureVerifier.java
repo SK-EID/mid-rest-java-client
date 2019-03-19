@@ -26,7 +26,14 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.TechnicalErrorException;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.GeneralSecurityException;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.Signature;
+
+import ee.sk.mid.exception.MidInternalErrorException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -37,18 +44,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.GeneralSecurityException;
-import java.security.PublicKey;
-import java.security.Security;
-import java.security.Signature;
-
 public class SignatureVerifier {
 
     private static final Logger logger = LoggerFactory.getLogger(SignatureVerifier.class);
 
-    public static boolean verifyWithRSA(PublicKey signersPublicKey, MobileIdAuthentication authentication) throws TechnicalErrorException {
+    public static boolean verifyWithRSA(PublicKey signersPublicKey, MobileIdAuthentication authentication) {
         try {
             Signature signature = Signature.getInstance("NONEwithRSA");
             signature.initVerify(signersPublicKey);
@@ -58,7 +58,7 @@ public class SignatureVerifier {
             return signature.verify(authentication.getSignatureValue());
         } catch (GeneralSecurityException e) {
             logger.error("Signature verification with RSA failed");
-            throw new TechnicalErrorException("Signature verification with RSA failed", e);
+            throw new MidInternalErrorException("Signature verification with RSA failed", e);
         }
     }
 
@@ -66,7 +66,7 @@ public class SignatureVerifier {
         return ArrayUtils.addAll(digestInfoPrefix, digest);
     }
 
-    public static boolean verifyWithECDSA(PublicKey signersPublicKey, MobileIdAuthentication authentication) throws TechnicalErrorException {
+    public static boolean verifyWithECDSA(PublicKey signersPublicKey, MobileIdAuthentication authentication) {
         try {
             Security.addProvider(new BouncyCastleProvider());
             Signature signature = Signature.getInstance("NONEwithECDSA", "BC");
@@ -76,7 +76,7 @@ public class SignatureVerifier {
             return signature.verify(fromCVCEncoding(authentication.getSignatureValue()));
         } catch (GeneralSecurityException e) {
             logger.error("Signature verification with ECDSA failed");
-            throw new TechnicalErrorException("Signature verification with ECDSA failed", e);
+            throw new MidInternalErrorException("Signature verification with ECDSA failed", e);
         }
     }
 

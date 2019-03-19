@@ -26,20 +26,28 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.TechnicalErrorException;
-import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.security.cert.X509Certificate;
-import java.util.Date;
-
-import static ee.sk.mid.mock.TestData.*;
+import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_EE;
+import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_LT;
+import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_LV;
+import static ee.sk.mid.mock.TestData.ECC_CERTIFICATE;
+import static ee.sk.mid.mock.TestData.INVALID_SIGNATURE_IN_BASE64;
+import static ee.sk.mid.mock.TestData.SIGNED_ECC_HASH_IN_BASE64;
+import static ee.sk.mid.mock.TestData.SIGNED_HASH_IN_BASE64;
+import static ee.sk.mid.mock.TestData.VALID_ECC_SIGNATURE_IN_BASE64;
+import static ee.sk.mid.mock.TestData.VALID_SIGNATURE_IN_BASE64;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+
+import java.security.cert.X509Certificate;
+import java.util.Date;
+
+import ee.sk.mid.exception.MidInternalErrorException;
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 public class AuthenticationResponseValidatorTest {
 
@@ -122,7 +130,7 @@ public class AuthenticationResponseValidatorTest {
         assertThat(authenticationResult.getAuthenticationIdentity().getCountry(), is("EE"));
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void validate_whenCertificateIsNull_shouldThrowException() {
         MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
                 .withResult("OK")
@@ -135,7 +143,7 @@ public class AuthenticationResponseValidatorTest {
         validator.validate(authentication);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void validate_whenSignatureIsEmpty_shouldThrowException() {
         MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
                 .withResult("OK")
@@ -148,7 +156,7 @@ public class AuthenticationResponseValidatorTest {
         validator.validate(authentication);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void validate_whenHashTypeIsNull_shouldThrowException() {
         MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
                 .withResult("OK")

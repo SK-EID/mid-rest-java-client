@@ -26,16 +26,16 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.TechnicalErrorException;
-import org.apache.commons.codec.binary.Base64;
-import org.junit.Test;
+import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_EE;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
-import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_EE;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import ee.sk.mid.exception.MidInternalErrorException;
+import org.apache.commons.codec.binary.Base64;
+import org.junit.Test;
 
 public class CertificateParserTest {
 
@@ -45,7 +45,7 @@ public class CertificateParserTest {
         assertThat(Base64.encodeBase64String(x509Certificate.getEncoded()), is(AUTH_CERTIFICATE_EE));
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void parseInvalidCertificate_shouldThrowException() {
         CertificateParser.parseX509Certificate("HACKERMAN");
     }

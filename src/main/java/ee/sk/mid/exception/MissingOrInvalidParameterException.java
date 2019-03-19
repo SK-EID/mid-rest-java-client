@@ -1,4 +1,4 @@
-package ee.sk.mid;
+package ee.sk.mid.exception;
 
 /*-
  * #%L
@@ -26,12 +26,9 @@ package ee.sk.mid;
  * #L%
  */
 
-import org.apache.commons.codec.digest.DigestUtils;
+public class MissingOrInvalidParameterException extends MobileIdException {
 
-public class DigestCalculator {
-
-    public static byte[] calculateDigest(byte[] dataToDigest, HashType hashType) {
-        String algorithmName = hashType.getAlgorithmName();
-        return DigestUtils.getDigest(algorithmName).digest(dataToDigest);
+    public MissingOrInvalidParameterException(String message) {
+        super(message);
     }
 }

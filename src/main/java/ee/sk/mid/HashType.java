@@ -28,6 +28,8 @@ package ee.sk.mid;
 
 import java.util.Arrays;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 public enum HashType {
 
     SHA256("SHA-256", "SHA256", 256, new byte[]{0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, (byte) 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20}),
@@ -60,5 +62,9 @@ public enum HashType {
 
     public byte[] getDigestInfoPrefix() {
         return Arrays.copyOf(digestInfoPrefix, digestInfoPrefix.length);
+    }
+
+    public byte[] calculateDigest(byte[] dataToDigest) {
+        return DigestUtils.getDigest(this.algorithmName).digest(dataToDigest);
     }
 }

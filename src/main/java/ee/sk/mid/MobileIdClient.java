@@ -26,7 +26,14 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import java.security.cert.X509Certificate;
+
+import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
+import ee.sk.mid.exception.MobileIdException;
+import ee.sk.mid.exception.NotMidClientException;
 import ee.sk.mid.rest.MobileIdConnector;
 import ee.sk.mid.rest.MobileIdRestConnector;
 import ee.sk.mid.rest.SessionStatusPoller;
@@ -37,11 +44,6 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.cert.X509Certificate;
-
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 public class MobileIdClient {
 
     private static final Logger logger = LoggerFactory.getLogger(MobileIdClient.class);
@@ -50,7 +52,6 @@ public class MobileIdClient {
     private String relyingPartyName;
     private String hostUrl;
     private ClientConfig networkConnectionConfig;
-    private int pollingSleepTimeoutSeconds;
     private MobileIdConnector connector;
     private SessionStatusPoller sessionStatusPoller;
 
@@ -59,15 +60,23 @@ public class MobileIdClient {
         this.relyingPartyName = builder.relyingPartyName;
         this.hostUrl = builder.hostUrl;
         this.networkConnectionConfig = builder.networkConnectionConfig;
-        this.pollingSleepTimeoutSeconds = builder.pollingSleepTimeoutSeconds;
         this.connector = builder.connector;
 
-        this.createSessionStatusPoller();
+        this.sessionStatusPoller = SessionStatusPoller.newBuilder()
+            .withConnector(this.getMobileIdConnector())
+            .withPollingSleepTimeoutSeconds(builder.pollingSleepTimeoutSeconds)
+            .withLongPollingTimeoutSeconds(builder.longPollingTimeoutSeconds)
+            .build();
     }
 
     public MobileIdConnector getMobileIdConnector() {
         if (null == connector) {
-            this.connector = new MobileIdRestConnector(hostUrl, networkConnectionConfig);
+            this.connector = MobileIdRestConnector.newBuilder()
+                .withEndpointUrl(hostUrl)
+                .withClientConfig(networkConnectionConfig)
+                .withRelyingPartyUUID(relyingPartyUUID)
+                .withRelyingPartyName(relyingPartyName)
+                .build();
         }
         return connector;
     }
@@ -75,7 +84,6 @@ public class MobileIdClient {
     public SessionStatusPoller getSessionStatusPoller() {
         return sessionStatusPoller;
     }
-
 
     public String getRelyingPartyUUID() {
         return relyingPartyUUID;
@@ -85,13 +93,6 @@ public class MobileIdClient {
         return relyingPartyName;
     }
 
-
-    private SessionStatusPoller createSessionStatusPoller() {
-        SessionStatusPoller sessionStatusPoller = new SessionStatusPoller(this.getMobileIdConnector());
-        sessionStatusPoller.setPollingSleepTimeSeconds(pollingSleepTimeoutSeconds);
-        this.sessionStatusPoller = sessionStatusPoller;
-        return sessionStatusPoller;
-    }
 
     public X509Certificate createMobileIdCertificate(CertificateChoiceResponse certificateChoiceResponse) {
         validateCertificateResult(certificateChoiceResponse.getResult());
@@ -109,7 +110,7 @@ public class MobileIdClient {
                 .build();
     }
 
-    public MobileIdAuthentication createMobileIdAuthentication(SessionStatus sessionStatus, String hashInBase64, HashType hashType) {
+    public MobileIdAuthentication createMobileIdAuthentication(SessionStatus sessionStatus, HashToSign hashSigned) {
         validateResponse(sessionStatus);
         SessionSignature sessionSignature = sessionStatus.getSignature();
         X509Certificate certificate = CertificateParser.parseX509Certificate(sessionStatus.getCert());
@@ -119,35 +120,32 @@ public class MobileIdClient {
             .withSignatureValueInBase64(sessionSignature.getValue())
             .withAlgorithmName(sessionSignature.getAlgorithm())
             .withCertificate(certificate)
-            .withSignedHashInBase64(hashInBase64)
-            .withHashType(hashType)
+            .withSignedHashInBase64(hashSigned.getHashInBase64())
+            .withHashType(hashSigned.getHashType())
             .build();
     }
 
     private void validateCertificateResult(String result) throws MobileIdException {
-        if (equalsIgnoreCase(result, "NOT_FOUND")) {
-            logger.error("No certificate for the user was found");
-            throw new CertificateNotPresentException("No certificate for the user was found");
-        } else if (equalsIgnoreCase(result, "NOT_ACTIVE")) {
-            logger.error("Inactive certificate found");
-            throw new ExpiredException("Inactive certificate found");
-        } else if (!equalsIgnoreCase(result, "OK")) {
+        if ( "NOT_FOUND".equalsIgnoreCase(result) || "NOT_ACTIVE".equalsIgnoreCase(result)) {
+            throw new NotMidClientException();
+        }
+        else if (!"OK".equalsIgnoreCase(result)) {
             logger.error("Session status end result is '" + result + "'");
-            throw new TechnicalErrorException("Session status end result is '" + result + "'");
+            throw new MidInternalErrorException("Session status end result is '" + result + "'");
         }
     }
 
-    private void validateCertificateResponse(CertificateChoiceResponse certificateChoiceResponse) throws TechnicalErrorException {
+    private void validateCertificateResponse(CertificateChoiceResponse certificateChoiceResponse) {
         if (certificateChoiceResponse.getCert() == null || isBlank(certificateChoiceResponse.getCert())) {
             logger.error("Certificate was not present in the session status response");
-            throw new TechnicalErrorException("Certificate was not present in the session status response");
+            throw new MidInternalErrorException("Certificate was not present in the session status response");
         }
     }
 
-    private void validateResponse(SessionStatus sessionStatus) throws TechnicalErrorException {
+    private void validateResponse(SessionStatus sessionStatus) {
         if (sessionStatus.getSignature() == null || isBlank(sessionStatus.getSignature().getValue())) {
             logger.error("Signature was not present in the response");
-            throw new TechnicalErrorException("Signature was not present in the response");
+            throw new MidInternalErrorException("Signature was not present in the response");
         }
     }
 
@@ -160,7 +158,8 @@ public class MobileIdClient {
         private String relyingPartyName;
         private String hostUrl;
         private ClientConfig networkConnectionConfig;
-        private int pollingSleepTimeoutSeconds = 1;
+        private int pollingSleepTimeoutSeconds;
+        private int longPollingTimeoutSeconds;
         private MobileIdConnector connector;
 
         private MobileIdClientBuilder() {}
@@ -190,13 +189,28 @@ public class MobileIdClient {
             return this;
         }
 
+        public MobileIdClientBuilder withLongPollingTimeoutSeconds(int longPollingTimeoutSeconds) {
+            this.longPollingTimeoutSeconds = longPollingTimeoutSeconds;
+            return this;
+        }
+
         public MobileIdClientBuilder withMobileIdConnector(MobileIdConnector mobileIdConnector) {
             this.connector = mobileIdConnector;
             return this;
         }
 
         public MobileIdClient build() {
+            validateFileds();
             return new MobileIdClient(this);
+        }
+
+        private void validateFileds() {
+            if (this.pollingSleepTimeoutSeconds < 0) {
+                throw new MissingOrInvalidParameterException("pollingSleepTimeoutSeconds must be non-negative number");
+            }
+            if (this.longPollingTimeoutSeconds < 0) {
+                throw new MissingOrInvalidParameterException("longPollingTimeoutSeconds must be non-negative number");
+            }
         }
     }
 }

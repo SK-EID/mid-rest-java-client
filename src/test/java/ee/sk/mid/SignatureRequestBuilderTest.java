@@ -26,7 +26,33 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.*;
+import static ee.sk.mid.mock.SessionStatusDummy.createDeliveryErrorStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createInvalidCardResponseStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createMIDNotReadyStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createMSSPTransactionExpiredStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createNotMIDClientStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createResponseRetrievingErrorStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createSignatureHashMismatchStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createSimNotAvailableStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createTimeoutSessionStatus;
+import static ee.sk.mid.mock.SessionStatusDummy.createUserCancellationStatus;
+import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
+import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
+import static ee.sk.mid.mock.TestData.LOCALHOST_URL;
+import static ee.sk.mid.mock.TestData.SESSION_ID;
+import static ee.sk.mid.mock.TestData.SHA256_HASH_IN_BASE64;
+import static ee.sk.mid.mock.TestData.SIGNATURE_SESSION_PATH;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
+import static ee.sk.mid.mock.TestData.VALID_PHONE;
+
+import ee.sk.mid.exception.DeliveryException;
+import ee.sk.mid.exception.InvalidUserConfigurationException;
+import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
+import ee.sk.mid.exception.NotMidClientException;
+import ee.sk.mid.exception.PhoneNotAvailableException;
+import ee.sk.mid.exception.UserCancellationException;
 import ee.sk.mid.mock.MobileIdConnectorSpy;
 import ee.sk.mid.rest.MobileIdConnector;
 import ee.sk.mid.rest.MobileIdRestConnector;
@@ -37,9 +63,6 @@ import ee.sk.mid.rest.dao.request.SignatureRequest;
 import ee.sk.mid.rest.dao.response.SignatureResponse;
 import org.junit.Before;
 import org.junit.Test;
-
-import static ee.sk.mid.mock.SessionStatusDummy.*;
-import static ee.sk.mid.mock.TestData.*;
 
 public class SignatureRequestBuilderTest {
 
@@ -52,165 +75,153 @@ public class SignatureRequestBuilderTest {
         connector.setSessionStatusToRespond(createDummySignatureSessionStatus());
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withoutRelyingPartyUUID_shouldThrowException() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
-        hashToSign.setHashType(HashType.SHA256);
+        HashToSign hashToSign = HashToSign.newBuilder()
+            .withHashInBase64(SHA256_HASH_IN_BASE64)
+            .withHashType(HashType.SHA256)
+            .build();
 
         SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withSignableHash(hashToSign)
-                .withLanguage(Language.EST)
-                .build();
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(hashToSign)
+            .withLanguage(Language.EST)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
+
         connector.sign(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withoutRelyingPartyName_shouldThrowException() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
-        hashToSign.setHashType(HashType.SHA256);
+        HashToSign hashToSign = HashToSign.newBuilder()
+            .withHashInBase64(SHA256_HASH_IN_BASE64)
+            .withHashType(HashType.SHA256)
+            .build();
 
         SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withSignableHash(hashToSign)
-                .withLanguage(Language.EST)
-                .build();
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(hashToSign)
+            .withLanguage(Language.EST)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .build();
+        
         connector.sign(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withoutPhoneNumber_shouldThrowException() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
-        hashToSign.setHashType(HashType.SHA256);
+        HashToSign hashToSign = HashToSign.newBuilder()
+            .withHashInBase64(SHA256_HASH_IN_BASE64)
+            .withHashType(HashType.SHA256)
+            .build();
 
         SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withSignableHash(hashToSign)
-                .withLanguage(Language.EST)
-                .build();
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(hashToSign)
+            .withLanguage(Language.EST)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
+
         connector.sign(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withoutNationalIdentityNumber_shouldThrowException() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
-        hashToSign.setHashType(HashType.SHA256);
+        HashToSign hashToSign = HashToSign.newBuilder()
+            .withHashInBase64(SHA256_HASH_IN_BASE64)
+            .withHashType(HashType.SHA256)
+            .build();
 
         SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withSignableHash(hashToSign)
-                .withLanguage(Language.EST)
-                .build();
+            .withPhoneNumber(VALID_PHONE)
+            .withHashToSign(hashToSign)
+            .withLanguage(Language.EST)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
+
         connector.sign(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
-    public void sign_withoutSignableHash_andWithoutSignableData_shouldThrowException() {
+    @Test(expected = MissingOrInvalidParameterException.class)
+    public void sign_withoutHashToSign_shouldThrowException() {
         SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withLanguage(Language.EST)
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withLanguage(Language.EST)
                 .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
+
         connector.sign(request);
     }
 
-    @Test(expected = ParameterMissingException.class)
-    public void sign_withSignableHash_withoutHashType_shouldThrowException() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
 
-        SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withSignableHash(hashToSign)
-                .withLanguage(Language.EST)
-                .build();
-
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
-        connector.sign(request);
-    }
-
-    @Test(expected = ParameterMissingException.class)
-    public void sign_withSignableHash_withoutHash_shouldThrowException() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashType(HashType.SHA256);
-
-        SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withSignableHash(hashToSign)
-                .withLanguage(Language.EST)
-                .build();
-
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
-        connector.sign(request);
-    }
-
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withoutLanguage_shouldThrowException() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
-        hashToSign.setHashType(HashType.SHA256);
+        HashToSign hashToSign = HashToSign.newBuilder()
+            .withHashInBase64(SHA256_HASH_IN_BASE64)
+            .withHashType(HashType.SHA256)
+            .build();
 
         SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withPhoneNumber(VALID_PHONE)
-                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withSignableHash(hashToSign)
-                .build();
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(hashToSign)
+            .build();
 
-        MobileIdConnector connector = new MobileIdRestConnector(LOCALHOST_URL);
+        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .build();
+
         connector.sign(request);
     }
 
-    @Test(expected = SessionTimeoutException.class)
+    @Test(expected = MidSessionTimeoutException.class)
     public void sign_withTimeout_shouldThrowException() {
         connector.setSessionStatusToRespond(createTimeoutSessionStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = ResponseRetrievingException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void sign_withResponseRetrievingError_shouldThrowException() {
         connector.setSessionStatusToRespond(createResponseRetrievingErrorStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = NotMIDClientException.class)
+    @Test(expected = NotMidClientException.class)
     public void sign_withNotMIDClient_shouldThrowException() {
         connector.setSessionStatusToRespond(createNotMIDClientStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = ExpiredException.class)
+    @Test(expected = MidSessionTimeoutException.class)
     public void sign_withMSSPTransactionExpired_shouldThrowException() {
         connector.setSessionStatusToRespond(createMSSPTransactionExpiredStatus());
         makeSignatureRequest(connector);
@@ -222,13 +233,13 @@ public class SignatureRequestBuilderTest {
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = MIDNotReadyException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void sign_withMIDNotReady_shouldThrowException() {
         connector.setSessionStatusToRespond(createMIDNotReadyStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = SimNotAvailableException.class)
+    @Test(expected = PhoneNotAvailableException.class)
     public void sign_withSimNotAvailable_shouldThrowException() {
         connector.setSessionStatusToRespond(createSimNotAvailableStatus());
         makeSignatureRequest(connector);
@@ -240,31 +251,31 @@ public class SignatureRequestBuilderTest {
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = InvalidCardResponseException.class)
+    @Test(expected = DeliveryException.class)
     public void sign_withInvalidCardResponse_shouldThrowException() {
         connector.setSessionStatusToRespond(createInvalidCardResponseStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = SignatureHashMismatchException.class)
+    @Test(expected = InvalidUserConfigurationException.class)
     public void sign_withSignatureHashMismatch_shouldThrowException() {
         connector.setSessionStatusToRespond(createSignatureHashMismatchStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void sign_withResultMissingInResponse_shouldThrowException() {
         connector.getSessionStatusToRespond().setResult(null);
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void sign_withResultBlankInResponse_shouldThrowException() {
         connector.getSessionStatusToRespond().setResult("");
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = TechnicalErrorException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void sign_withSignatureMissingInResponse_shouldThrowException() {
         connector.getSessionStatusToRespond().setSignature(null);
         makeSignatureRequest(connector);
@@ -282,27 +293,31 @@ public class SignatureRequestBuilderTest {
     }
 
     private void makeSignatureRequest(MobileIdConnector connector) {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
-        hashToSign.setHashType(HashType.SHA256);
+        HashToSign hashToSign = HashToSign.newBuilder()
+            .withHashInBase64(SHA256_HASH_IN_BASE64)
+            .withHashType(HashType.SHA256)
+            .build();
 
         SignatureRequest request = SignatureRequest.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withPhoneNumber(VALID_PHONE)
                 .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withSignableHash(hashToSign)
+                .withHashToSign(hashToSign)
                 .withLanguage(Language.EST)
                 .build();
 
         SignatureResponse response = connector.sign(request);
 
-        SessionStatusPoller poller = new SessionStatusPoller(connector);
+        SessionStatusPoller poller = SessionStatusPoller.newBuilder()
+            .withConnector(connector)
+            .build();
+
         SessionStatus sessionStatus = poller.fetchFinalSessionStatus(response.getSessionID(), SIGNATURE_SESSION_PATH);
 
         MobileIdClient client = MobileIdClient.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(LOCALHOST_URL)
                 .build();
 

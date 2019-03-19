@@ -26,19 +26,20 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.TechnicalErrorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static ee.sk.mid.SignatureVerifier.verifyWithECDSA;
+import static ee.sk.mid.SignatureVerifier.verifyWithRSA;
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
-import static ee.sk.mid.SignatureVerifier.verifyWithECDSA;
-import static ee.sk.mid.SignatureVerifier.verifyWithRSA;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+
+import ee.sk.mid.exception.MidInternalErrorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AuthenticationResponseValidator {
 
@@ -64,22 +65,22 @@ public class AuthenticationResponseValidator {
         return authenticationResult;
     }
 
-    private void validateAuthentication(MobileIdAuthentication authentication) throws TechnicalErrorException {
+    private void validateAuthentication(MobileIdAuthentication authentication) {
         if (authentication.getCertificate() == null) {
             logger.error("Certificate is not present in the authentication response");
-            throw new TechnicalErrorException("Certificate is not present in the authentication response");
+            throw new MidInternalErrorException("Certificate is not present in the authentication response");
         }
         if (authentication.getSignatureValueInBase64().isEmpty()) {
             logger.error("Signature is not present in the authentication response");
-            throw new TechnicalErrorException("Signature is not present in the authentication response");
+            throw new MidInternalErrorException("Signature is not present in the authentication response");
         }
         if (authentication.getHashType() == null) {
             logger.error("Hash type is not present in the authentication response");
-            throw new TechnicalErrorException("Hash type is not present in the authentication response");
+            throw new MidInternalErrorException("Hash type is not present in the authentication response");
         }
     }
 
-    AuthenticationIdentity constructAuthenticationIdentity(X509Certificate certificate) throws TechnicalErrorException {
+    AuthenticationIdentity constructAuthenticationIdentity(X509Certificate certificate) {
         AuthenticationIdentity identity = new AuthenticationIdentity();
         try {
             LdapName ln = new LdapName(certificate.getSubjectDN().getName());
@@ -105,7 +106,7 @@ public class AuthenticationResponseValidator {
             return identity;
         } catch (InvalidNameException e) {
             logger.error("Error getting authentication identity from the certificate", e);
-            throw new TechnicalErrorException("Error getting authentication identity from the certificate", e);
+            throw new MidInternalErrorException("Error getting authentication identity from the certificate", e);
         }
     }
 

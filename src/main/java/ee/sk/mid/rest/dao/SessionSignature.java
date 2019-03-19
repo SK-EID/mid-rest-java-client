@@ -26,9 +26,10 @@ package ee.sk.mid.rest.dao;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SessionSignature implements Serializable {
@@ -54,9 +55,9 @@ public class SessionSignature implements Serializable {
 
     @Override
     public String toString() {
-        return "SessionSignature{" +
-                "algorithm='" + algorithm + '\'' +
-                ", value='" + value + '\'' +
-                '}';
+        return new ToStringBuilder(this)
+            .append("algorithm", algorithm)
+            .append("value", value)
+            .toString();
     }
 }

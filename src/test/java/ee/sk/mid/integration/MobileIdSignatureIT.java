@@ -26,32 +26,78 @@ package ee.sk.mid.integration;
  * #L%
  */
 
-import ee.sk.mid.*;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectSignatureRequestMade;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertSignatureCreated;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidSignature;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeSignatureRequest;
+import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertSignaturePolled;
+import static ee.sk.mid.mock.TestData.DEMO_HOST_URL;
+import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
+import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
+import static ee.sk.mid.mock.TestData.SHA256_HASH_IN_BASE64;
+import static ee.sk.mid.mock.TestData.SIGNATURE_SESSION_PATH;
+import static ee.sk.mid.mock.TestData.UNKNOWN_RELYING_PARTY_NAME;
+import static ee.sk.mid.mock.TestData.UNKNOWN_RELYING_PARTY_UUID;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY_ABSENT;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY_DELIVERY_ERROR;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY_EXPIRED_TRANSACTION;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY_NOT_MID_CLIENT;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY_SIGNATURE_HASH_MISMATCH;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY_SIM_ERROR;
+import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY_USER_CANCELLED;
+import static ee.sk.mid.mock.TestData.VALID_PHONE;
+import static ee.sk.mid.mock.TestData.VALID_PHONE_ABSENT;
+import static ee.sk.mid.mock.TestData.VALID_PHONE_DELIVERY_ERROR;
+import static ee.sk.mid.mock.TestData.VALID_PHONE_EXPIRED_TRANSACTION;
+import static ee.sk.mid.mock.TestData.VALID_PHONE_NOT_MID_CLIENT;
+import static ee.sk.mid.mock.TestData.VALID_PHONE_SIGNATURE_HASH_MISMATCH;
+import static ee.sk.mid.mock.TestData.VALID_PHONE_SIM_ERROR;
+import static ee.sk.mid.mock.TestData.VALID_PHONE_USER_CANCELLED;
+import static ee.sk.mid.mock.TestData.WRONG_NAT_IDENTITY;
+import static ee.sk.mid.mock.TestData.WRONG_PHONE;
+import static ee.sk.mid.mock.TestData.WRONG_RELYING_PARTY_NAME;
+import static ee.sk.mid.mock.TestData.WRONG_RELYING_PARTY_UUID;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+
+import ee.sk.mid.HashToSign;
+import ee.sk.mid.HashType;
+import ee.sk.mid.Language;
+import ee.sk.mid.MobileIdClient;
+import ee.sk.mid.MobileIdSignature;
 import ee.sk.mid.categories.IntegrationTest;
-import ee.sk.mid.exception.*;
+import ee.sk.mid.exception.DeliveryException;
+import ee.sk.mid.exception.InvalidUserConfigurationException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
+import ee.sk.mid.exception.NotMidClientException;
+import ee.sk.mid.exception.PhoneNotAvailableException;
+import ee.sk.mid.exception.UnauthorizedException;
+import ee.sk.mid.exception.UserCancellationException;
 import ee.sk.mid.rest.dao.SessionStatus;
 import ee.sk.mid.rest.dao.request.SignatureRequest;
 import ee.sk.mid.rest.dao.response.SignatureResponse;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.*;
-import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertSignaturePolled;
-import static ee.sk.mid.mock.TestData.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import org.junit.rules.ExpectedException;
 
 @Category({IntegrationTest.class})
 public class MobileIdSignatureIT {
 
     private MobileIdClient client;
 
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
+
     @Before
     public void setUp() {
         client = MobileIdClient.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
                 .build();
     }
@@ -65,16 +111,17 @@ public class MobileIdSignatureIT {
 
     @Test
     public void signHash_withDisplayText() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
-        hashToSign.setHashType(HashType.SHA256);
+        HashToSign hashToSign = HashToSign.newBuilder()
+            .withHashInBase64(SHA256_HASH_IN_BASE64)
+            .withHashType(HashType.SHA256)
+            .build();
 
         SignatureRequest request = SignatureRequest.newBuilder()
                 .withRelyingPartyUUID(client.getRelyingPartyUUID())
                 .withRelyingPartyName(client.getRelyingPartyName())
                 .withPhoneNumber(VALID_PHONE)
                 .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-                .withSignableHash(hashToSign)
+                .withHashToSign(hashToSign)
                 .withLanguage(Language.EST)
                 .withDisplayText("Authorize transfer of 10 euros")
                 .build();
@@ -91,23 +138,32 @@ public class MobileIdSignatureIT {
         assertSignatureCreated(signature);
     }
 
-    @Test(expected = NotMIDClientException.class)
+    @Test(expected = NotMidClientException.class)
     public void sign_whenNotMIDClient_shouldThrowException() {
         makeSignatureRequest(client, VALID_PHONE_NOT_MID_CLIENT, VALID_NAT_IDENTITY_NOT_MID_CLIENT);
     }
 
-    @Test(expected = ExpiredException.class)
+    @Test
+    public void sign_invalidPhoneNumber_shouldThrowException() {
+        expectedEx.expect(MissingOrInvalidParameterException.class);
+        expectedEx.expectMessage("phoneNumber must contain of + and numbers(8-30)");
+
+        makeSignatureRequest(client, "222", VALID_NAT_IDENTITY_NOT_MID_CLIENT);
+    }
+
+    @Test(expected = MidSessionTimeoutException.class)
     public void sign_whenMSSPTransactionExpired_shouldThrowException() {
-        SignableHash hashToSign = new SignableHash();
-        hashToSign.setHashInBase64(SHA256_HASH_IN_BASE64);
-        hashToSign.setHashType(HashType.SHA256);
+        HashToSign hashToSign = HashToSign.newBuilder()
+            .withHashInBase64(SHA256_HASH_IN_BASE64)
+            .withHashType(HashType.SHA256)
+            .build();
 
         SignatureRequest request = SignatureRequest.newBuilder()
                 .withRelyingPartyUUID(client.getRelyingPartyUUID())
                 .withRelyingPartyName(client.getRelyingPartyName())
                 .withPhoneNumber(VALID_PHONE_EXPIRED_TRANSACTION)
                 .withNationalIdentityNumber(VALID_NAT_IDENTITY_EXPIRED_TRANSACTION)
-                .withSignableHash(hashToSign)
+                .withHashToSign(hashToSign)
                 .withLanguage(Language.LIT)
                 .build();
 
@@ -121,7 +177,7 @@ public class MobileIdSignatureIT {
         makeSignatureRequest(client, VALID_PHONE_USER_CANCELLED, VALID_NAT_IDENTITY_USER_CANCELLED);
     }
 
-    @Test(expected = SimNotAvailableException.class)
+    @Test(expected = PhoneNotAvailableException.class)
     public void sign_whenSimNotAvailable_shouldThrowException() {
         makeSignatureRequest(client, VALID_PHONE_ABSENT, VALID_NAT_IDENTITY_ABSENT);
     }
@@ -131,44 +187,44 @@ public class MobileIdSignatureIT {
         makeSignatureRequest(client, VALID_PHONE_DELIVERY_ERROR, VALID_NAT_IDENTITY_DELIVERY_ERROR);
     }
 
-    @Test(expected = InvalidCardResponseException.class)
+    @Test(expected = DeliveryException.class)
     public void sign_whenInvalidCardResponse_shouldThrowException() {
         makeSignatureRequest(client, VALID_PHONE_SIM_ERROR, VALID_NAT_IDENTITY_SIM_ERROR);
     }
 
-    @Test(expected = SignatureHashMismatchException.class)
+    @Test(expected = InvalidUserConfigurationException.class)
     public void authenticate_whenSignatureHashMismatch_shouldThrowException() {
         makeSignatureRequest(client, VALID_PHONE_SIGNATURE_HASH_MISMATCH, VALID_NAT_IDENTITY_SIGNATURE_HASH_MISMATCH);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withWrongPhoneNumber_shouldThrowException() {
         makeSignatureRequest(client, WRONG_PHONE, VALID_NAT_IDENTITY);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withWrongNationalIdentityNumber_shouldThrowException() {
         makeSignatureRequest(client, VALID_PHONE, WRONG_NAT_IDENTITY);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withWrongRelyingPartyUUID_shouldThrowException() {
         MobileIdClient client = MobileIdClient.newBuilder()
-                .withRelyingPartyUUID(WRONG_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withHostUrl(DEMO_HOST_URL)
-                .build();
+            .withRelyingPartyUUID(WRONG_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withHostUrl(DEMO_HOST_URL)
+            .build();
 
         makeSignatureRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
 
-    @Test(expected = ParameterMissingException.class)
+    @Test(expected = MissingOrInvalidParameterException.class)
     public void sign_withWrongRelyingPartyName_shouldThrowException() {
         MobileIdClient client = MobileIdClient.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(WRONG_RELYING_PARTY_NAME)
-                .withHostUrl(DEMO_HOST_URL)
-                .build();
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(WRONG_RELYING_PARTY_NAME)
+            .withHostUrl(DEMO_HOST_URL)
+            .build();
 
         makeSignatureRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
@@ -176,10 +232,10 @@ public class MobileIdSignatureIT {
     @Test(expected = UnauthorizedException.class)
     public void sign_withUnknownRelyingPartyUUID_shouldThrowException() {
         MobileIdClient client = MobileIdClient.newBuilder()
-                .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
-                .withRelyingPartyName(VALID_RELYING_PARTY_NAME)
-                .withHostUrl(DEMO_HOST_URL)
-                .build();
+            .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withHostUrl(DEMO_HOST_URL)
+            .build();
 
         makeSignatureRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
@@ -187,10 +243,10 @@ public class MobileIdSignatureIT {
     @Test(expected = UnauthorizedException.class)
     public void sign_withUnknownRelyingPartyName_shouldThrowException() {
         MobileIdClient client = MobileIdClient.newBuilder()
-                .withRelyingPartyUUID(VALID_RELYING_PARTY_UUID)
-                .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
-                .withHostUrl(DEMO_HOST_URL)
-                .build();
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
+            .withHostUrl(DEMO_HOST_URL)
+            .build();
 
         makeSignatureRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }

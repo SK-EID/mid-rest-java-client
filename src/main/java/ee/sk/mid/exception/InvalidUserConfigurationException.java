@@ -26,9 +26,10 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class CertificateNotPresentException extends MobileIdException {
+public class InvalidUserConfigurationException extends MobileIdException {
 
-    public CertificateNotPresentException(String message) {
-        super(message);
+    public InvalidUserConfigurationException() {
+        super("Mobile-ID configuration on user's SIM card differs from what is configured on service provider side. User needs to contact his/her mobile operator.");
     }
+
 }

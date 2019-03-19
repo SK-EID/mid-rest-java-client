@@ -26,9 +26,10 @@ package ee.sk.mid.rest.dao;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SessionStatus implements Serializable {
@@ -72,11 +73,11 @@ public class SessionStatus implements Serializable {
 
     @Override
     public String toString() {
-        return "SessionStatus{" +
-                "state='" + state + '\'' +
-                ", result='" + result + '\'' +
-                ", signature='" + signature + '\'' +
-                ", cert='" + cert + '\'' +
-                '}';
+        return new ToStringBuilder(this)
+            .append("state", state)
+            .append("result", result)
+            .append("signature",signature)
+            .append("cert", cert)
+            .toString();
     }
 }

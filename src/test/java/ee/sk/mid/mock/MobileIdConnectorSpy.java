@@ -26,7 +26,7 @@ package ee.sk.mid.mock;
  * #L%
  */
 
-import ee.sk.mid.exception.SessionNotFoundException;
+import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.rest.MobileIdConnector;
 import ee.sk.mid.rest.SessionStatusPoller;
 import ee.sk.mid.rest.dao.SessionStatus;
@@ -45,10 +45,6 @@ public class MobileIdConnectorSpy implements MobileIdConnector {
     private AuthenticationResponse authenticationResponseToRespond;
     private SignatureResponse signatureResponseToRespond;
 
-    private String sessionIdUsed;
-    private CertificateRequest certificateRequestUsed;
-    private AuthenticationRequest authenticationRequestUsed;
-    private SignatureRequest signatureRequestUsed;
 
     public SessionStatus getSessionStatusToRespond() {
         return sessionStatusToRespond;
@@ -74,43 +70,23 @@ public class MobileIdConnectorSpy implements MobileIdConnector {
         this.signatureResponseToRespond = signatureResponseToRespond;
     }
 
-    public String getSessionIdUsed() {
-        return sessionIdUsed;
-    }
-
-    public CertificateRequest getCertificateRequestUsed() {
-        return certificateRequestUsed;
-    }
-
-    public AuthenticationRequest getAuthenticationRequestUsed() {
-        return authenticationRequestUsed;
-    }
-
-    public SignatureRequest getSignatureRequestUsed() {
-        return signatureRequestUsed;
-    }
-
     @Override
     public CertificateChoiceResponse getCertificate(CertificateRequest request) {
-        certificateRequestUsed = request;
         return certificateChoiceResponseToRespond;
     }
 
     @Override
     public SignatureResponse sign(SignatureRequest request) {
-        signatureRequestUsed = request;
         return signatureResponseToRespond;
     }
 
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationRequestUsed = request;
         return authenticationResponseToRespond;
     }
 
-
     @Override
-    public SessionStatus getAuthenticationSessionStatus(SessionStatusRequest request) throws SessionNotFoundException {
+    public SessionStatus getAuthenticationSessionStatus(SessionStatusRequest request) throws MidSessionNotFoundException {
         return getSessionStatus(request, SessionStatusPoller.AUTHENTICATION_SESSION_PATH);
     }
 
@@ -120,8 +96,7 @@ public class MobileIdConnectorSpy implements MobileIdConnector {
     }
 
     @Override
-    public SessionStatus getSessionStatus(SessionStatusRequest request, String path) throws SessionNotFoundException {
-        sessionIdUsed = request.getSessionID();
+    public SessionStatus getSessionStatus(SessionStatusRequest request, String path) throws MidSessionNotFoundException {
         return sessionStatusToRespond;
     }
 }

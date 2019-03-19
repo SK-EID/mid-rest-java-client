@@ -26,28 +26,28 @@ package ee.sk.mid.rest.dao.request;
  * #L%
  */
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import ee.sk.mid.DisplayTextFormat;
+import ee.sk.mid.HashToSign;
 import ee.sk.mid.HashType;
 import ee.sk.mid.Language;
-import ee.sk.mid.SignableData;
-import ee.sk.mid.SignableHash;
-import ee.sk.mid.exception.ParameterMissingException;
+import ee.sk.mid.exception.MissingOrInvalidParameterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public abstract class AbstractAuthSignRequestBuilder {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractAuthSignRequestBuilder.class);
 
-    private String relyingPartyName;
-    private String relyingPartyUUID;
-    private String phoneNumber;
-    private String nationalIdentityNumber;
-    private SignableData dataToSign;
-    private SignableHash hashToSign;
-    private Language language;
-    private String displayText;
+    String relyingPartyName;
+    String relyingPartyUUID;
+    String phoneNumber;
+    String nationalIdentityNumber;
+    HashToSign hashToSign;
+    Language language;
+    String displayText;
+    DisplayTextFormat displayTextFormat;
 
     protected AbstractAuthSignRequestBuilder withRelyingPartyUUID(String relyingPartyUUID) {
         this.relyingPartyUUID = relyingPartyUUID;
@@ -69,12 +69,7 @@ public abstract class AbstractAuthSignRequestBuilder {
         return this;
     }
 
-    protected AbstractAuthSignRequestBuilder withSignableData(SignableData dataToSign) {
-        this.dataToSign = dataToSign;
-        return this;
-    }
-
-    protected AbstractAuthSignRequestBuilder withSignableHash(SignableHash hashToSign) {
+    protected AbstractAuthSignRequestBuilder withHashToSign(HashToSign hashToSign) {
         this.hashToSign = hashToSign;
         return this;
     }
@@ -89,79 +84,32 @@ public abstract class AbstractAuthSignRequestBuilder {
         return this;
     }
 
-    protected String getRelyingPartyUUID() {
-        return relyingPartyUUID;
-    }
-
-    protected String getRelyingPartyName() {
-        return relyingPartyName;
-    }
-
-    protected String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    protected String getNationalIdentityNumber() {
-        return nationalIdentityNumber;
+    public AbstractAuthSignRequestBuilder withDisplayTextFormat(DisplayTextFormat displayTextFormat) {
+        this.displayTextFormat = displayTextFormat;
+        return this;
     }
 
     protected HashType getHashType() {
-        if (hashToSign != null) {
-            return hashToSign.getHashType();
-        }
-        return dataToSign.getHashType();
+        return hashToSign.getHashType();
     }
 
     protected String getHashInBase64() {
-        if (hashToSign != null) {
-            return hashToSign.getHashInBase64();
-        }
-        return dataToSign.calculateHashInBase64();
+        return hashToSign.getHashInBase64();
     }
 
-    protected Language getLanguage() {
-        return language;
-    }
-
-    protected String getDisplayText() {
-        return displayText;
-    }
-
-    protected boolean isSignableHashSet() {
-        return hashToSign == null || !hashToSign.areFieldsFilled();
-    }
-
-    protected boolean isSignableDataSet() {
-        return dataToSign == null;
-    }
-
-    protected boolean isLanguageSet() {
-        return language == null;
-    }
-
-    protected void validateParameters() throws ParameterMissingException {
-        if (isBlank(relyingPartyUUID)) {
-            logger.error("Relying Party UUID parameter must be set");
-            throw new ParameterMissingException("Relying Party UUID parameter must be set");
-        }
-        if (isBlank(relyingPartyName)) {
-            logger.error("Relying Party Name parameter must be set");
-            throw new ParameterMissingException("Relying Party Name parameter must be set");
-        }
+    protected void validateParameters() throws MissingOrInvalidParameterException {
         if (isBlank(phoneNumber) || isBlank(nationalIdentityNumber)) {
             logger.error("Phone number and national identity must be set");
-            throw new ParameterMissingException("Phone number and national identity must be set");
+            throw new MissingOrInvalidParameterException("Phone number and national identity must be set");
         }
     }
 
-    protected void validateExtraParameters() throws ParameterMissingException {
-        if (isSignableHashSet() && isSignableDataSet()) {
-            logger.error("Signable data or hash with hash type must be set");
-            throw new ParameterMissingException("Signable data or hash with hash type must be set");
+    protected void validateExtraParameters() throws MissingOrInvalidParameterException {
+        if (hashToSign == null) {
+            throw new MissingOrInvalidParameterException("hashToSign must be set");
         }
-        if (isLanguageSet()) {
-            logger.error("Language for user dialog in mobile phone must be set");
-            throw new ParameterMissingException("Language for user dialog in mobile phone must be set");
+        if (language == null) {
+            throw new MissingOrInvalidParameterException("Language for user dialog in mobile phone must be set");
         }
     }
 }

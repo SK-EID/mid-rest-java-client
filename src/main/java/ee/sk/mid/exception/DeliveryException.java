@@ -27,4 +27,9 @@ package ee.sk.mid.exception;
  */
 
 public class DeliveryException extends MobileIdException {
+
+    public DeliveryException() {
+        super("SMS sending error");
+    }
+
 }

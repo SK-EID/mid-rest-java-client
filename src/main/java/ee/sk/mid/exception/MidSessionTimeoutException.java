@@ -26,5 +26,9 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class MIDNotReadyException extends MobileIdException {
+public class MidSessionTimeoutException extends MobileIdException {
+
+    public MidSessionTimeoutException() {
+        super("User didn't enter PIN code or communication error.");
+    }
 }

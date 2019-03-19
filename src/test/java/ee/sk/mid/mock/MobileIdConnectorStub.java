@@ -26,7 +26,10 @@ package ee.sk.mid.mock;
  * #L%
  */
 
-import ee.sk.mid.exception.SessionNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+
+import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.rest.MobileIdConnector;
 import ee.sk.mid.rest.SessionStatusPoller;
 import ee.sk.mid.rest.dao.SessionStatus;
@@ -38,22 +41,14 @@ import ee.sk.mid.rest.dao.response.AuthenticationResponse;
 import ee.sk.mid.rest.dao.response.CertificateChoiceResponse;
 import ee.sk.mid.rest.dao.response.SignatureResponse;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MobileIdConnectorStub implements MobileIdConnector {
 
     private String sessionIdUsed;
-    private SessionStatusRequest requestUsed;
     private List<SessionStatus> responses = new ArrayList<>();
     private int responseNumber = 0;
 
     public String getSessionIdUsed() {
         return sessionIdUsed;
-    }
-
-    public SessionStatusRequest getRequestUsed() {
-        return requestUsed;
     }
 
     public List<SessionStatus> getResponses() {
@@ -80,7 +75,7 @@ public class MobileIdConnectorStub implements MobileIdConnector {
     }
 
     @Override
-    public SessionStatus getAuthenticationSessionStatus(SessionStatusRequest request) throws SessionNotFoundException {
+    public SessionStatus getAuthenticationSessionStatus(SessionStatusRequest request) throws MidSessionNotFoundException {
         return getSessionStatus(request, SessionStatusPoller.AUTHENTICATION_SESSION_PATH);
     }
 
@@ -90,9 +85,8 @@ public class MobileIdConnectorStub implements MobileIdConnector {
     }
 
     @Override
-    public SessionStatus getSessionStatus(SessionStatusRequest request, String path) throws SessionNotFoundException {
+    public SessionStatus getSessionStatus(SessionStatusRequest request, String path) throws MidSessionNotFoundException {
         sessionIdUsed = request.getSessionID();
-        requestUsed = request;
         return responses.get(responseNumber++);
     }
 }

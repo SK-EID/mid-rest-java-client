@@ -28,6 +28,8 @@ package ee.sk.mid.rest.dao.request;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class AbstractRequest {
 
     @NotNull
@@ -56,9 +58,9 @@ public class AbstractRequest {
 
     @Override
     public String toString() {
-        return "AbstractRequest{" +
-                "relyingPartyUUID='" + relyingPartyUUID + '\'' +
-                "relyingPartyName='" + relyingPartyName + '\'' +
-                '}';
+        return new ToStringBuilder(this)
+            .append("relyingPartyUUID", getRelyingPartyUUID())
+            .append("relyingPartyName", getRelyingPartyName())
+            .toString();
     }
 }
