@@ -46,13 +46,13 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import ee.sk.mid.categories.IntegrationTest;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.UnauthorizedException;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.MobileIdRestConnector;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.SignatureRequest;
-import ee.sk.mid.rest.dao.response.SignatureResponse;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidUnauthorizedException;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidSignatureRequest;
+import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -62,78 +62,78 @@ public class MobileIdRestConnectorSignatureIT {
 
     private static final String SIGNATURE_SESSION_PATH = "/signature/session/{sessionId}";
 
-    private MobileIdConnector connector;
+    private MidConnector connector;
 
     @Before
     public void setUp() {
-        connector = MobileIdRestConnector.newBuilder()
+        connector = MidRestConnector.newBuilder()
             .withEndpointUrl(DEMO_HOST_URL)
             .build();
     }
 
     @Test
     public void sign() throws Exception {
-        SignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID,
+        MidSignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         assertCorrectSignatureRequestMade(request);
 
-        SignatureResponse response = connector.sign(request);
+        MidSignatureResponse response = connector.sign(request);
         assertThat(response.getSessionID(), not(isEmptyOrNullString()));
 
-        SessionStatus sessionStatus = pollSessionStatus(connector, response.getSessionID(), SIGNATURE_SESSION_PATH);
+        MidSessionStatus sessionStatus = pollSessionStatus(connector, response.getSessionID(), SIGNATURE_SESSION_PATH);
         assertSignaturePolled(sessionStatus);
     }
 
     @Test
     public void sign_withDisplayText() throws InterruptedException {
-        SignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID,
+        MidSignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         request.setDisplayText("Authorize transfer of 10 euros");
         assertCorrectSignatureRequestMade(request);
 
-        SignatureResponse response = connector.sign(request);
+        MidSignatureResponse response = connector.sign(request);
         assertThat(response.getSessionID(), not(isEmptyOrNullString()));
 
-        SessionStatus sessionStatus = pollSessionStatus(connector, response.getSessionID(), SIGNATURE_SESSION_PATH);
+        MidSessionStatus sessionStatus = pollSessionStatus(connector, response.getSessionID(), SIGNATURE_SESSION_PATH);
         assertSignaturePolled(sessionStatus);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withWrongPhoneNumber_shouldThrowException() {
-        SignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID,
+        MidSignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, WRONG_PHONE, VALID_NAT_IDENTITY);
         connector.sign(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withWrongNationalIdentityNumber_shouldThrowException() {
-        SignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID,
+        MidSignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, VALID_PHONE, WRONG_NAT_IDENTITY);
         connector.sign(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withWrongRelyingPartyUUID_shouldThrowException() {
-        SignatureRequest request = createSignatureRequest(WRONG_RELYING_PARTY_UUID,
+        MidSignatureRequest request = createSignatureRequest(WRONG_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         connector.sign(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withWrongRelyingPartyName_shouldThrowException() {
-        SignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID, WRONG_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
+        MidSignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID, WRONG_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         connector.sign(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void sign_withUnknownRelyingPartyUUID_shouldThrowException() {
-        SignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID, UNKNOWN_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
+        MidSignatureRequest request = createSignatureRequest(DEMO_RELYING_PARTY_UUID, UNKNOWN_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         connector.sign(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void sign_withUnknownRelyingPartyName_shouldThrowException() {
-        SignatureRequest request = createSignatureRequest(UNKNOWN_RELYING_PARTY_UUID,
+        MidSignatureRequest request = createSignatureRequest(UNKNOWN_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         connector.sign(request);
     }

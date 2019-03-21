@@ -37,42 +37,42 @@ public class NationalIdentificationCodeValidatorTest {
 
     @Test
     public void shouldConsiderValid() {
-        boolean isValid = NationalIdentificationCodeValidator.isValid("37605030299");
+        boolean isValid = MidNationalIdentificationCodeValidator.isValid("37605030299");
 
         assertThat(isValid, is(true));
     }
 
     @Test
     public void shouldConsiderInvalid_month13() {
-        boolean isValid = NationalIdentificationCodeValidator.isValid("60013019909");
+        boolean isValid = MidNationalIdentificationCodeValidator.isValid("60013019909");
 
         assertThat(isValid, is(false));
     }
 
     @Test
     public void shouldCalculateControlDigit() {
-        int controlDigit = NationalIdentificationCodeValidator.calculateControlDigit("3760503029");
+        int controlDigit = MidNationalIdentificationCodeValidator.calculateControlDigit("3760503029");
 
         assertThat(controlDigit, is(9));
     }
 
     @Test
     public void shouldGetBirthDate__year1800() {
-        LocalDate birthDate = NationalIdentificationCodeValidator.getBirthDate("17605030299");
+        LocalDate birthDate = MidNationalIdentificationCodeValidator.getBirthDate("17605030299");
 
         assertThat(birthDate, is(LocalDate.of(1876, 5, 3)));
     }
 
     @Test
     public void shouldGetBirthDate_year1900() {
-        LocalDate birthDate = NationalIdentificationCodeValidator.getBirthDate("37605030299");
+        LocalDate birthDate = MidNationalIdentificationCodeValidator.getBirthDate("37605030299");
 
         assertThat(birthDate, is(LocalDate.of(1976, 5, 3)));
     }
 
     @Test
     public void shouldGetBirthDate__year2000() {
-        LocalDate birthDate = NationalIdentificationCodeValidator.getBirthDate("60605030299");
+        LocalDate birthDate = MidNationalIdentificationCodeValidator.getBirthDate("60605030299");
 
         assertThat(birthDate, is(LocalDate.of(2006, 5, 3)));
     }

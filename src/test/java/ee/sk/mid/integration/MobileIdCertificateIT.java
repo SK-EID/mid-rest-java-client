@@ -44,11 +44,11 @@ import static ee.sk.mid.mock.TestData.WRONG_RELYING_PARTY_UUID;
 
 import java.security.cert.X509Certificate;
 
-import ee.sk.mid.MobileIdClient;
+import ee.sk.mid.MidClient;
 import ee.sk.mid.categories.IntegrationTest;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.NotMidClientException;
-import ee.sk.mid.exception.UnauthorizedException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.mock.MobileIdRestServiceRequestDummy;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -58,7 +58,7 @@ public class MobileIdCertificateIT {
 
     @Test
     public void getCertificate() {
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
@@ -69,9 +69,9 @@ public class MobileIdCertificateIT {
         assertCertificateCreated(certificate);
     }
 
-    @Test(expected = NotMidClientException.class)
+    @Test(expected = MidNotMidClientException.class)
     public void getCertificate_whenCertificateNotPresent_shouldThrowException() {
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
@@ -80,9 +80,9 @@ public class MobileIdCertificateIT {
         makeCertificateRequest(client, VALID_PHONE_NOT_MID_CLIENT, VALID_NAT_IDENTITY_NOT_MID_CLIENT);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withWrongPhoneNumber_shouldThrowException() {
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
@@ -91,9 +91,9 @@ public class MobileIdCertificateIT {
         makeCertificateRequest(client, WRONG_PHONE, VALID_NAT_IDENTITY);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withWrongNationalIdentityNumber_shouldThrowException() {
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
@@ -102,9 +102,9 @@ public class MobileIdCertificateIT {
         makeCertificateRequest(client, VALID_PHONE, WRONG_NAT_IDENTITY);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withWrongRelyingPartyUUID_shouldThrowException() {
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(WRONG_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
@@ -113,9 +113,9 @@ public class MobileIdCertificateIT {
         makeCertificateRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withWrongRelyingPartyName_shouldThrowException() {
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(WRONG_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
@@ -124,9 +124,9 @@ public class MobileIdCertificateIT {
         makeCertificateRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void getCertificate_withUnknownRelyingPartyUUID_shouldThrowException() {
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
@@ -135,9 +135,9 @@ public class MobileIdCertificateIT {
         makeCertificateRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void getCertificate_withUnknownRelyingPartyName_shouldThrowException() {
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)

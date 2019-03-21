@@ -41,12 +41,12 @@ public class CertificateParserTest {
 
     @Test
     public void parseCertificate() throws CertificateEncodingException {
-        X509Certificate x509Certificate = CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE);
+        X509Certificate x509Certificate = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE);
         assertThat(Base64.encodeBase64String(x509Certificate.getEncoded()), is(AUTH_CERTIFICATE_EE));
     }
 
     @Test(expected = MidInternalErrorException.class)
     public void parseInvalidCertificate_shouldThrowException() {
-        CertificateParser.parseX509Certificate("HACKERMAN");
+        MidCertificateParser.parseX509Certificate("HACKERMAN");
     }
 }

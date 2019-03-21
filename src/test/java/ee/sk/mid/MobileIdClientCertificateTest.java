@@ -47,9 +47,9 @@ import java.util.Map;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.NotMidClientException;
-import ee.sk.mid.exception.UnauthorizedException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.mock.MobileIdRestServiceRequestDummy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -62,11 +62,11 @@ public class MobileIdClientCertificateTest {
   @Rule
   public WireMockRule wireMockRule = new WireMockRule(18089);
 
-  private MobileIdClient client;
+  private MidClient client;
 
   @Before
   public void setUp() {
-    client = MobileIdClient.newBuilder()
+    client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
@@ -82,14 +82,14 @@ public class MobileIdClientCertificateTest {
     assertCertificateCreated(certificate);
   }
 
-  @Test(expected = NotMidClientException.class)
+  @Test(expected = MidNotMidClientException.class)
   public void getCertificate_whenCertificateNotPresent_shouldThrowException() {
     stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json",
         "responses/certificateChoiceResponseWhenCertificateNotFound.json");
     makeValidCertificateRequest(client);
   }
 
-  @Test(expected = NotMidClientException.class)
+  @Test(expected = MidNotMidClientException.class)
   public void getCertificate_whenInactiveCertificateFound_shouldThrowException() {
     stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json",
         "responses/certificateChoiceResponseWhenInactiveCertificateFound.json");
@@ -109,13 +109,13 @@ public class MobileIdClientCertificateTest {
     makeValidCertificateRequest(client);
   }
 
-  @Test(expected = MissingOrInvalidParameterException.class)
+  @Test(expected = MidMissingOrInvalidParameterException.class)
   public void getCertificate_withWrongRequestParams_shouldThrowException() {
     stubBadRequestResponse("/certificate", "requests/certificateChoiceRequest.json");
     makeValidCertificateRequest(client);
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test(expected = MidUnauthorizedException.class)
   public void getCertificate_withWrongAuthenticationParams_shouldThrowException()
       {
     stubUnauthorizedResponse("/certificate", "requests/certificateChoiceRequest.json");
@@ -131,7 +131,7 @@ public class MobileIdClientCertificateTest {
     headers.put(headerName, headerValue);
     ClientConfig clientConfig = getClientConfigWithCustomRequestHeaders(headers);
 
-    MobileIdClient client = MobileIdClient.newBuilder()
+    MidClient client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)

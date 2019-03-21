@@ -45,7 +45,7 @@ public class HashTypeTest {
 
     @Test
     public void calculateDigest_sha256() {
-        byte[] digest = HashType.SHA256.calculateDigest(input);
+        byte[] digest = MidHashType.SHA256.calculateDigest(input);
         String hex = Hex.encodeHexString(digest);
 
         assertThat(hex, is("5b50b91c0f65f22a788f4ce3a2559f973982f2b784979a06a0e3af341700bbbb"));
@@ -53,7 +53,7 @@ public class HashTypeTest {
 
     @Test
     public void calculateDigest_sha384() {
-        byte[] digest = HashType.SHA384.calculateDigest(input);
+        byte[] digest = MidHashType.SHA384.calculateDigest(input);
         String hex = Hex.encodeHexString(digest);
 
         assertThat(hex, is("df96084a8f69bb49d271239220d3ee4db0f6508c1c39366a411b924f678b015f14d72a2eed788c9161a8953bc73da24f"));
@@ -61,7 +61,7 @@ public class HashTypeTest {
 
     @Test
     public void calculateDigest_sha512() {
-        byte[] digest = HashType.SHA512.calculateDigest(input);
+        byte[] digest = MidHashType.SHA512.calculateDigest(input);
         String hex = Hex.encodeHexString(digest);
 
         assertThat(hex, is("a3bf80a6b4fd9060485cb5a585efd3813a93152f3e8a030b77e52860787b2a79aef6eb248d774d602ed886be0e53f494bd98b2cb6ceef32fdae7532bdc56e63f"));

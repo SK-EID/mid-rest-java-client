@@ -355,7 +355,7 @@ This library uses [Logback](https://logback.qos.ch/) for logging.
 To log incoming and outgoing requests made by the library set following class to log at 'trace' level:
 
 ```
-    <logger name="ee.sk.mid.rest.LoggingFilter" level="trace" additivity="false">
+    <logger name="ee.sk.mid.rest.MidLoggingFilter" level="trace" additivity="false">
         <appender-ref ref="Console" />
     </logger>
 ```

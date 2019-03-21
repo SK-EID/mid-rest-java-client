@@ -43,12 +43,12 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import ee.sk.mid.categories.IntegrationTest;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.UnauthorizedException;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.MobileIdRestConnector;
-import ee.sk.mid.rest.dao.request.CertificateRequest;
-import ee.sk.mid.rest.dao.response.CertificateChoiceResponse;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidUnauthorizedException;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.dao.request.MidCertificateRequest;
+import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -56,11 +56,11 @@ import org.junit.experimental.categories.Category;
 @Category({IntegrationTest.class})
 public class MobileIdRestConnectorCertificateIT {
 
-    private MobileIdConnector connector;
+    private MidConnector connector;
 
     @Before
     public void setUp() {
-        connector = MobileIdRestConnector.newBuilder()
+        connector = MidRestConnector.newBuilder()
             .withEndpointUrl(DEMO_HOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -69,22 +69,22 @@ public class MobileIdRestConnectorCertificateIT {
 
     @Test
     public void getCertificate() {
-        CertificateRequest request = new CertificateRequest();
+        MidCertificateRequest request = new MidCertificateRequest();
         request.setPhoneNumber(VALID_PHONE);
         request.setNationalIdentityNumber(VALID_NAT_IDENTITY);
 
         assertCorrectCertificateRequestMade(request);
 
-        CertificateChoiceResponse response = connector.getCertificate(request);
+        MidCertificateChoiceResponse response = connector.getCertificate(request);
 
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is("OK"));
         assertThat(response.getCert(), not(isEmptyOrNullString()));
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withWrongPhoneNumber_shouldThrowException() {
-        CertificateRequest request = new CertificateRequest();
+        MidCertificateRequest request = new MidCertificateRequest();
         request.setPhoneNumber(WRONG_PHONE);
         request.setNationalIdentityNumber(VALID_NAT_IDENTITY);
 
@@ -92,69 +92,69 @@ public class MobileIdRestConnectorCertificateIT {
         connector.getCertificate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withWrongNationalIdentityNumber_shouldThrowException() {
-        CertificateRequest request = new CertificateRequest();
+        MidCertificateRequest request = new MidCertificateRequest();
         request.setPhoneNumber(VALID_PHONE);
         request.setNationalIdentityNumber(WRONG_NAT_IDENTITY);
 
         connector.getCertificate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withWrongRelyingPartyUUID_shouldThrowException() {
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(DEMO_HOST_URL)
             .withRelyingPartyUUID("wrong_UUID")
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .build();
 
-        CertificateRequest request = new CertificateRequest();
+        MidCertificateRequest request = new MidCertificateRequest();
         request.setPhoneNumber(VALID_PHONE);
         request.setNationalIdentityNumber(VALID_NAT_IDENTITY);
 
         connector.getCertificate(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void getCertificate_withWrongRelyingPartyName_shouldThrowException() {
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(DEMO_HOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName("wrong name")
             .build();
 
-        CertificateRequest request = new CertificateRequest();
+        MidCertificateRequest request = new MidCertificateRequest();
         request.setPhoneNumber(VALID_PHONE);
         request.setNationalIdentityNumber(VALID_NAT_IDENTITY);
 
         connector.getCertificate(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void getCertificate_withUnknownRelyingPartyUUID_shouldThrowException() {
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(DEMO_HOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
             .build();
 
-        CertificateRequest request = new CertificateRequest();
+        MidCertificateRequest request = new MidCertificateRequest();
         request.setPhoneNumber(VALID_PHONE);
         request.setNationalIdentityNumber(VALID_NAT_IDENTITY);
 
         connector.getCertificate(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void getCertificate_withUnknownRelyingPartyName_shouldThrowException() {
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(DEMO_HOST_URL)
             .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .build();
 
-        CertificateRequest request = new CertificateRequest();
+        MidCertificateRequest request = new MidCertificateRequest();
         request.setPhoneNumber(VALID_PHONE);
         request.setNationalIdentityNumber(VALID_NAT_IDENTITY);
 

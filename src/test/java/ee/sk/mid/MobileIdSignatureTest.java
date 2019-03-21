@@ -39,7 +39,7 @@ public class MobileIdSignatureTest {
     @Test(expected = MidInternalErrorException.class)
     public void setInvalidValueInBase64_shouldThrowException() {
 
-        MobileIdSignature signature = MobileIdSignature.newBuilder()
+        MidSignature signature = MidSignature.newBuilder()
                 .withValueInBase64("!IsNotValidBase64Character")
                 .build();
 
@@ -49,7 +49,7 @@ public class MobileIdSignatureTest {
     @Test
     public void getSignatureValueInBase64() {
 
-        MobileIdSignature signature = MobileIdSignature.newBuilder()
+        MidSignature signature = MidSignature.newBuilder()
                 .withValueInBase64("SEFDS0VSTUFO")
                 .build();
 
@@ -58,7 +58,7 @@ public class MobileIdSignatureTest {
 
     @Test
     public void getSignatureValueInBytes() {
-        MobileIdSignature signature = MobileIdSignature.newBuilder()
+        MidSignature signature = MidSignature.newBuilder()
                 .withValueInBase64("SEFDS0VSTUFO")
                 .build();
 

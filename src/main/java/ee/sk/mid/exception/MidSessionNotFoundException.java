@@ -26,7 +26,7 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class MidSessionNotFoundException extends MobileIdException {
+public class MidSessionNotFoundException extends MidException {
 
     public MidSessionNotFoundException() {
         super("Mobile-ID session was not found. Sessions time out in ~5 minutes.");

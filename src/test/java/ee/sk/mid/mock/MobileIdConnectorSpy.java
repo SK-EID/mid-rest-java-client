@@ -27,76 +27,76 @@ package ee.sk.mid.mock;
  */
 
 import ee.sk.mid.exception.MidSessionNotFoundException;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.SessionStatusPoller;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.AuthenticationRequest;
-import ee.sk.mid.rest.dao.request.CertificateRequest;
-import ee.sk.mid.rest.dao.request.SessionStatusRequest;
-import ee.sk.mid.rest.dao.request.SignatureRequest;
-import ee.sk.mid.rest.dao.response.AuthenticationResponse;
-import ee.sk.mid.rest.dao.response.CertificateChoiceResponse;
-import ee.sk.mid.rest.dao.response.SignatureResponse;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidSessionStatusPoller;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
+import ee.sk.mid.rest.dao.request.MidCertificateRequest;
+import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
+import ee.sk.mid.rest.dao.request.MidSignatureRequest;
+import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
+import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
+import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 
-public class MobileIdConnectorSpy implements MobileIdConnector {
+public class MobileIdConnectorSpy implements MidConnector {
 
-    private SessionStatus sessionStatusToRespond;
-    private CertificateChoiceResponse certificateChoiceResponseToRespond;
-    private AuthenticationResponse authenticationResponseToRespond;
-    private SignatureResponse signatureResponseToRespond;
+    private MidSessionStatus sessionStatusToRespond;
+    private MidCertificateChoiceResponse certificateChoiceResponseToRespond;
+    private MidAuthenticationResponse authenticationResponseToRespond;
+    private MidSignatureResponse signatureResponseToRespond;
 
 
-    public SessionStatus getSessionStatusToRespond() {
+    public MidSessionStatus getSessionStatusToRespond() {
         return sessionStatusToRespond;
     }
 
-    public void setSessionStatusToRespond(SessionStatus sessionStatusToRespond) {
+    public void setSessionStatusToRespond(MidSessionStatus sessionStatusToRespond) {
         this.sessionStatusToRespond = sessionStatusToRespond;
     }
 
-    public CertificateChoiceResponse getCertificateChoiceResponseToRespond() {
+    public MidCertificateChoiceResponse getCertificateChoiceResponseToRespond() {
         return certificateChoiceResponseToRespond;
     }
 
-    public void setCertificateChoiceResponseToRespond(CertificateChoiceResponse certificateChoiceResponseToRespond) {
+    public void setCertificateChoiceResponseToRespond(MidCertificateChoiceResponse certificateChoiceResponseToRespond) {
         this.certificateChoiceResponseToRespond = certificateChoiceResponseToRespond;
     }
 
-    public void setAuthenticationResponseToRespond(AuthenticationResponse authenticationResponseToRespond) {
+    public void setAuthenticationResponseToRespond(MidAuthenticationResponse authenticationResponseToRespond) {
         this.authenticationResponseToRespond = authenticationResponseToRespond;
     }
 
-    public void setSignatureResponseToRespond(SignatureResponse signatureResponseToRespond) {
+    public void setSignatureResponseToRespond(MidSignatureResponse signatureResponseToRespond) {
         this.signatureResponseToRespond = signatureResponseToRespond;
     }
 
     @Override
-    public CertificateChoiceResponse getCertificate(CertificateRequest request) {
+    public MidCertificateChoiceResponse getCertificate(MidCertificateRequest request) {
         return certificateChoiceResponseToRespond;
     }
 
     @Override
-    public SignatureResponse sign(SignatureRequest request) {
+    public MidSignatureResponse sign(MidSignatureRequest request) {
         return signatureResponseToRespond;
     }
 
     @Override
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public MidAuthenticationResponse authenticate(MidAuthenticationRequest request) {
         return authenticationResponseToRespond;
     }
 
     @Override
-    public SessionStatus getAuthenticationSessionStatus(SessionStatusRequest request) throws MidSessionNotFoundException {
-        return getSessionStatus(request, SessionStatusPoller.AUTHENTICATION_SESSION_PATH);
+    public MidSessionStatus getAuthenticationSessionStatus(MidSessionStatusRequest request) throws MidSessionNotFoundException {
+        return getSessionStatus(request, MidSessionStatusPoller.AUTHENTICATION_SESSION_PATH);
     }
 
     @Override
-    public SessionStatus getSignatureSessionStatus(SessionStatusRequest request) {
-        return getSessionStatus(request, SessionStatusPoller.SIGNATURE_SESSION_PATH);
+    public MidSessionStatus getSignatureSessionStatus(MidSessionStatusRequest request) {
+        return getSessionStatus(request, MidSessionStatusPoller.SIGNATURE_SESSION_PATH);
     }
 
     @Override
-    public SessionStatus getSessionStatus(SessionStatusRequest request, String path) throws MidSessionNotFoundException {
+    public MidSessionStatus getSessionStatus(MidSessionStatusRequest request, String path) throws MidSessionNotFoundException {
         return sessionStatusToRespond;
     }
 }

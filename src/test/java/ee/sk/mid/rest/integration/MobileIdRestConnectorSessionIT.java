@@ -40,15 +40,15 @@ import static org.junit.Assert.assertThat;
 
 import ee.sk.mid.categories.IntegrationTest;
 import ee.sk.mid.exception.MidSessionNotFoundException;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.MobileIdRestConnector;
-import ee.sk.mid.rest.SessionStatusPoller;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.AuthenticationRequest;
-import ee.sk.mid.rest.dao.request.SessionStatusRequest;
-import ee.sk.mid.rest.dao.request.SignatureRequest;
-import ee.sk.mid.rest.dao.response.AuthenticationResponse;
-import ee.sk.mid.rest.dao.response.SignatureResponse;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.MidSessionStatusPoller;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
+import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
+import ee.sk.mid.rest.dao.request.MidSignatureRequest;
+import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
+import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -56,64 +56,64 @@ import org.junit.experimental.categories.Category;
 @Category({IntegrationTest.class})
 public class MobileIdRestConnectorSessionIT {
 
-    private MobileIdConnector connector;
+    private MidConnector connector;
 
     @Before
     public void setUp() {
-        connector = MobileIdRestConnector.newBuilder()
+        connector = MidRestConnector.newBuilder()
             .withEndpointUrl(DEMO_HOST_URL)
             .build();
     }
 
     @Test
     public void getSessionStatus_forSuccessfulSigningRequest() {
-        SignatureRequest signatureRequest = createValidSignatureRequest();
+        MidSignatureRequest signatureRequest = createValidSignatureRequest();
         assertCorrectSignatureRequestMade(signatureRequest);
 
-        SignatureResponse signatureResponse = connector.sign(signatureRequest);
+        MidSignatureResponse signatureResponse = connector.sign(signatureRequest);
         assertThat(signatureResponse.getSessionID(), not(isEmptyOrNullString()));
 
-        SessionStatusRequest sessionStatusRequest = new SessionStatusRequest(signatureResponse.getSessionID());
-        SessionStatusPoller poller = SessionStatusPoller.newBuilder()
+        MidSessionStatusRequest sessionStatusRequest = new MidSessionStatusRequest(signatureResponse.getSessionID());
+        MidSessionStatusPoller poller = MidSessionStatusPoller.newBuilder()
             .withConnector(connector)
             .build();
 
-        SessionStatus sessionStatus = poller.fetchFinalSignatureSessionStatus(sessionStatusRequest.getSessionID());
+        MidSessionStatus sessionStatus = poller.fetchFinalSignatureSessionStatus(sessionStatusRequest.getSessionID());
         assertSignaturePolled(sessionStatus);
     }
 
     @Test
     public void getSessionStatus_forSuccessfulAuthenticationRequest() {
-        AuthenticationRequest authenticationRequest = createValidAuthenticationRequest();
+        MidAuthenticationRequest authenticationRequest = createValidAuthenticationRequest();
         assertCorrectAuthenticationRequestMade(authenticationRequest);
 
-        AuthenticationResponse authenticationResponse = connector.authenticate(authenticationRequest);
+        MidAuthenticationResponse authenticationResponse = connector.authenticate(authenticationRequest);
         assertThat(authenticationResponse.getSessionID(), not(isEmptyOrNullString()));
 
-        SessionStatusRequest sessionStatusRequest = new SessionStatusRequest(authenticationResponse.getSessionID());
-        SessionStatusPoller poller = SessionStatusPoller.newBuilder()
+        MidSessionStatusRequest sessionStatusRequest = new MidSessionStatusRequest(authenticationResponse.getSessionID());
+        MidSessionStatusPoller poller = MidSessionStatusPoller.newBuilder()
             .withConnector(connector)
             .build();
 
-        SessionStatus sessionStatus = poller.fetchFinalAuthenticationSessionStatus(sessionStatusRequest.getSessionID());
+        MidSessionStatus sessionStatus = poller.fetchFinalAuthenticationSessionStatus(sessionStatusRequest.getSessionID());
         assertAuthenticationPolled(sessionStatus);
     }
 
     @Test(expected = MidSessionNotFoundException.class)
     public void getSessionStatus_whenSessionStatusNotExists_shouldThrowException() {
-        SessionStatusRequest request = new SessionStatusRequest(SESSION_ID);
+        MidSessionStatusRequest request = new MidSessionStatusRequest(SESSION_ID);
         connector.getAuthenticationSessionStatus(request);
     }
 
     @Test(expected = MidSessionNotFoundException.class)
     public void getSessionStatus_whenSessionStatusNotFound_shouldThrowException() {
-        SignatureRequest signatureRequest = createValidSignatureRequest();
+        MidSignatureRequest signatureRequest = createValidSignatureRequest();
         assertCorrectSignatureRequestMade(signatureRequest);
 
-        SignatureResponse signatureResponse = connector.sign(signatureRequest);
+        MidSignatureResponse signatureResponse = connector.sign(signatureRequest);
         assertThat(signatureResponse.getSessionID(), not(isEmptyOrNullString()));
 
-        SessionStatusRequest sessionStatusRequest = new SessionStatusRequest(signatureResponse.getSessionID());
+        MidSessionStatusRequest sessionStatusRequest = new MidSessionStatusRequest(signatureResponse.getSessionID());
         connector.getAuthenticationSessionStatus(sessionStatusRequest);
     }
 }

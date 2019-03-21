@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import ee.sk.mid.exception.InvalidPhoneNumberException;
+import ee.sk.mid.exception.MidInvalidPhoneNumberException;
 import org.junit.Test;
 
 public class MidInputUtilTest {
@@ -45,7 +45,7 @@ public class MidInputUtilTest {
         assertThat(phoneNumber, is(equalTo("+37200000766")));
     }
 
-    @Test(expected = InvalidPhoneNumberException.class)
+    @Test(expected = MidInvalidPhoneNumberException.class)
     public void validateUserInput_invalidPhone_shouldThrowException()
     {
         MidInputUtil.getValidatedPhoneNumber("123");
