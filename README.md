@@ -83,10 +83,10 @@ request to enter your PIN to phone.
 
 ## Client configuration
 ```java
-    MobileIdClient client = MobileIdClient.newBuilder()
+    MidClient client = MidClient.newBuilder()
+        .withHostUrl("https://tsp.demo.sk.ee/mid-api")
         .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
         .withRelyingPartyName("DEMO")
-        .withHostUrl("https://tsp.demo.sk.ee/mid-api")
         .build();
 ```
 
@@ -103,10 +103,10 @@ Session status request by default is a long poll method, meaning it might not re
 The caller can tune the request parameters inside the bounds set by a service operator by using the `withLongPollingTimeoutSeconds(int)`:
 
 ```java
-  MobileIdClient client = MobileIdClient.newBuilder()
-      // set hostUrl, hRelyingParty UUID & Name
-      .withLongPollingTimeoutSeconds(60)
-      .build();
+    MidClient client = MidClient.newBuilder()
+        // set hostUrl, hRelyingParty UUID & Name
+        .withLongPollingTimeoutSeconds(60)
+        .build();
 ```
 
 > Check [Long polling](https://github.com/SK-EID/MID#334-long-polling) documentation chapter for more information.
@@ -120,10 +120,10 @@ and if the session is not completed the client performs a sleep for configured a
 before making a new request.
 
 ```java
-  MobileIdClient client = MobileIdClient.newBuilder()
-      // set hostUrl, hRelyingParty UUID & Name
-      .withPollingSleepTimeoutSeconds(2)
-      .build();
+    MidClient client = MidClient.newBuilder()
+        // set hostUrl, hRelyingParty UUID & Name
+        .withPollingSleepTimeoutSeconds(2)
+        .build();
 ```
 
 If you don't set a positive value either to longPollingTimeoutSeconds or pollingSleepTimeoutSeconds
@@ -136,14 +136,14 @@ which can be obtained with a separate request:
  
 
 ```java
-  CertificateRequest request = CertificateRequest.newBuilder()
-      .withPhoneNumber("+37060000666")
-      .withNationalIdentityNumber("60001019906")
-      .build();
-
-  CertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
-
-  X509Certificate certificate = client.createMobileIdCertificate(response);
+    MidCertificateRequest request = MidCertificateRequest.newBuilder()
+        .withPhoneNumber("+37060000666")
+        .withNationalIdentityNumber("60001019906")
+        .build();
+    
+    MidCertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
+    
+    X509Certificate certificate =   client.createMobileIdCertificate(response);
 ```
 
 There are convenience methods to read and validate
@@ -156,30 +156,30 @@ See chapter [Validating user input](#validating-user-input).
 You can pass raw data to builder of SignableHash and it creates the hash itself internally:
 
 ```java
-  byte[] data = "MY_DATA".getBytes(StandardCharsets.UTF_8);
+    byte[] data = "MY_DATA".getBytes(StandardCharsets.UTF_8);
 
-  SignableHash hashToSign = SignableHash.newBuilder()
-      .withDataToHash(data)
-      .withHashType(HashType.SHA256)
-      .build();
-  
-  String verificationCode = hashToSign.calculateVerificationCode();
-  
-  SignatureRequest request = SignatureRequest.newBuilder()
-      .withPhoneNumber("+37200000766")
-      .withNationalIdentityNumber("60001019906")
-      .withHashToSign(hashToSign)
-      .withLanguage(Language.ENG)
-      .withDisplayText("Sign document?")
-      .withDisplayTextFormat(DisplayTextFormat.GSM7)
-      .build();
-  
-  SignatureResponse response = client.getMobileIdConnector().sign(request);
-  
-  SessionStatus sessionStatus = client.getSessionStatusPoller()
-           .fetchFinalSessionStatus(response.getSessionID(), "/signature/session/{sessionId}");
-  
-  MobileIdSignature signature = client.createMobileIdSignature(sessionStatus);
+    MidHashToSign hashToSign = MidHashToSign.newBuilder()
+        .withDataToHash(data)
+        .withHashType( MidHashType.SHA256)
+        .build();
+
+    String verificationCode = hashToSign.calculateVerificationCode();
+
+    MidSignatureRequest request = MidSignatureRequest.newBuilder()
+        .withPhoneNumber("+37200000766")
+        .withNationalIdentityNumber("60001019906")
+        .withHashToSign(hashToSign)
+        .withLanguage( MidLanguage.ENG)
+        .withDisplayText("Sign document?")
+        .withDisplayTextFormat( MidDisplayTextFormat.GSM7)
+        .build();
+
+    MidSignatureResponse response = client.getMobileIdConnector().sign(request);
+
+    MidSessionStatus sessionStatus = client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(),
+        "/signature/session/{sessionId}");
+
+    MidSignature signature = client.createMobileIdSignature(sessionStatus);
   
 ```
 
@@ -191,10 +191,10 @@ demonstrates how to create and sign a container with Mobile-ID and
 
 ### Creating the signature from existing hash
 ```java
-SignableHash hashToSign = SignableHash.newBuilder()
-    .withHashInBase64("AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=")
-    .withHashType(HashType.SHA256)
-    .build();
+    MidHashToSign hashToSign = MidHashToSign.newBuilder()
+        .withHashInBase64("AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=")
+        .withHashType( MidHashType.SHA256)
+        .build();
 
 ```
 
@@ -205,25 +205,25 @@ SignableHash hashToSign = SignableHash.newBuilder()
 For security reasons, a new hash value must be created for each new authentication request.
 
 ```java
-  MobileIdAuthenticationHash authenticationHash = MobileIdAuthenticationHash.generateRandomHashOfDefaultType();
+    MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
-  String verificationCode = authenticationHash.calculateVerificationCode();
+    String verificationCode = authenticationHash.calculateVerificationCode();
 
-  AuthenticationRequest request = AuthenticationRequest.newBuilder()
-      .withPhoneNumber("+37200000766")
-      .withNationalIdentityNumber("60001019906")
-      .withHashToSign(authenticationHash)
-      .withLanguage(Language.ENG)
-      .withDisplayText("Log into self-service?")
-      .withDisplayTextFormat(DisplayTextFormat.GSM7)
-      .build();
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
+        .withPhoneNumber("+37200000766")
+        .withNationalIdentityNumber("60001019906")
+        .withHashToSign(authenticationHash)
+        .withLanguage( MidLanguage.ENG)
+        .withDisplayText("Log into self-service?")
+        .withDisplayTextFormat( MidDisplayTextFormat.GSM7)
+        .build();
 
-  AuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
+    MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
 
-  SessionStatus sessionStatus = client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(),
-      "/authentication/session/{sessionId}");
+    MidSessionStatus sessionStatus = client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(),
+        "/authentication/session/{sessionId}");
 
-  MobileIdAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
+    MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
 ```
 
 > **Note** that `verificationCode` of the service should be displayed on the screen,
@@ -235,11 +235,11 @@ demonstrate how to perform authentication and verify the response.
 
 ### Verifying the authentication response
 ```java
-  AuthenticationResponseValidator validator = new AuthenticationResponseValidator();
-  MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+    MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+    MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
-  assertThat(authenticationResult.isValid(), is(true));
-  assertThat(authenticationResult.getErrors().isEmpty(), is(true));
+    assertThat(authenticationResult.isValid(), is(true));
+    assertThat(authenticationResult.getErrors().isEmpty(), is(true));
 ```
 
 When the authentication result is valid a session could be created now within the e-service or application. As the session logic is dependent on the implementation and may vary from system to system, this is something integrator has to do himself.
@@ -247,13 +247,13 @@ When the authentication result is valid a session could be created now within th
 When the authentication result is not valid then the reasons for invalidity are obtainable like this:
 
 ```java
-List <String> errors = authenticationResult.getErrors();
+List<String> errors = authenticationResult.getErrors();
 ```
 
 `AuthenticationIdentity` could be helpful for obtaining information about the authenticated person when constructing the session.
 
 ```java
-AuthenticationIdentity authenticationIdentity = authenticationResult.getAuthenticationIdentity();
+MidAuthenticationIdentity authenticationIdentity = authenticationResult.getAuthenticationIdentity();
 String givenName = authenticationIdentity.getGivenName();
 String surName = authenticationIdentity.getSurName();
 String identityCode = authenticationIdentity.getIdentityCode();
@@ -273,14 +273,14 @@ Following exceptions indicate problems with integration or configuration on Rely
 ### Handling authentication and signing exceptions
 
 ```java
-     try {
+    try {
         // perform authentication or signing
     }
-    catch (UserCancellationException e) {
+    catch (MidUserCancellationException e) {
         logger.info("User cancelled operation from his/her phone.");
         // display error
     }
-    catch (NotMidClientException e) {
+    catch (MidNotMidClientException e) {
         logger.info("User is not a MID client or user's certificates are revoked.");
         // display error
     }
@@ -288,19 +288,19 @@ Following exceptions indicate problems with integration or configuration on Rely
         logger.info("User did not type in PIN code or communication error.");
         // display error
     }
-    catch (PhoneNotAvailableException e) {
+    catch (MidPhoneNotAvailableException e) {
         logger.info("Unable to reach phone/SIM card. User needs to check if phone has coverage.");
         // display error
     }
-    catch (DeliveryException e) {
+    catch (MidDeliveryException e) {
         logger.info("Error communicating with the phone/SIM card.");
         // display error
     }
-    catch (InvalidUserConfigurationException e) {
+    catch (MidInvalidUserConfigurationException e) {
         logger.info("Mobile-ID configuration on user's SIM card differs from what is configured on service provider's side. User needs to contact his/her mobile operator.");
         // display error
     }
-    catch (MidSessionNotFoundException | MissingOrInvalidParameterException | UnauthorizedException e) {
+    catch (MidSessionNotFoundException | MidMissingOrInvalidParameterException | MidUnauthorizedException e) {
         logger.error("Integrator-side error with MID integration or configuration", e);
         // navigate to error page
     }
@@ -315,18 +315,18 @@ Following exceptions indicate problems with integration or configuration on Rely
 If you request signing certificate in a separate try block then you need to handle following exceptions separately:
 
 ```java
-  try {
-      // request user signing certificates
-  }
-  catch (NotMidClientException e) {
-      logger.info("User is not a MID client or user's certificates are revoked");
-  }
-  catch (MissingOrInvalidParameterException | UnauthorizedException e) {
-      logger.error("Integrator-side error with MID integration (including insufficient input validation) or configuration", e);
-  }
-  catch (MidInternalErrorException e) {
-      logger.warn("MID service returned internal error that cannot be handled locally.");
-  }
+    try {
+        // request user signing certificates
+    }
+    catch (MidNotMidClientException e) {
+        logger.info("User is not a MID client or user's certificates are revoked");
+    }
+    catch (MidMissingOrInvalidParameterException | MidUnauthorizedException e) {
+        logger.error("Integrator-side error with MID integration (including insufficient input validation) or configuration", e);
+    }
+    catch (MidInternalErrorException e) {
+        logger.warn("MID service returned internal error that cannot be handled locally.");
+    }
 ```
 
 ## Validating user input
@@ -335,18 +335,18 @@ This library comes with convenience methods to validate user input.
 You can use the methods also to clean input from whitespaces.
 
 ```java
-  try {
-      String nationalIdentityNumber = MidInputUtil.getValidatedNationalIdentityNumber("<national identity number entered by user>");
-      String phoneNumber = MidInputUtil.getValidatedPhoneNumber("<phone number entered by user>");
-  }
-  catch (InvalidNationalIdentityNumberException e) {
-      logger.info("User entered invalid national identity number");
-      // display error
-  }
-  catch (InvalidPhoneNumberException e) {
-      logger.info("User entered invalid phone number");
-      // display error
-  }
+    try {
+        String nationalIdentityNumber = MidInputUtil.getValidatedNationalIdentityNumber("<national identity number entered by user>");
+        String phoneNumber = MidInputUtil.getValidatedPhoneNumber("<phone number entered by user>");
+    }
+    catch (MidInvalidNationalIdentityNumberException e) {
+        logger.info("User entered invalid national identity number");
+        // display error
+    }
+    catch (MidInvalidPhoneNumberException e) {
+        logger.info("User entered invalid phone number");
+        // display error
+    }
 ```
 
 # Logging
