@@ -30,28 +30,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ee.sk.mid.exception.MidSessionNotFoundException;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.SessionStatusPoller;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.AuthenticationRequest;
-import ee.sk.mid.rest.dao.request.CertificateRequest;
-import ee.sk.mid.rest.dao.request.SessionStatusRequest;
-import ee.sk.mid.rest.dao.request.SignatureRequest;
-import ee.sk.mid.rest.dao.response.AuthenticationResponse;
-import ee.sk.mid.rest.dao.response.CertificateChoiceResponse;
-import ee.sk.mid.rest.dao.response.SignatureResponse;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidSessionStatusPoller;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
+import ee.sk.mid.rest.dao.request.MidCertificateRequest;
+import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
+import ee.sk.mid.rest.dao.request.MidSignatureRequest;
+import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
+import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
+import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 
-public class MobileIdConnectorStub implements MobileIdConnector {
+public class MobileIdConnectorStub implements MidConnector {
 
     private String sessionIdUsed;
-    private List<SessionStatus> responses = new ArrayList<>();
+    private List<MidSessionStatus> responses = new ArrayList<>();
     private int responseNumber = 0;
 
     public String getSessionIdUsed() {
         return sessionIdUsed;
     }
 
-    public List<SessionStatus> getResponses() {
+    public List<MidSessionStatus> getResponses() {
         return responses;
     }
 
@@ -60,32 +60,32 @@ public class MobileIdConnectorStub implements MobileIdConnector {
     }
 
     @Override
-    public CertificateChoiceResponse getCertificate(CertificateRequest request) {
+    public MidCertificateChoiceResponse getCertificate(MidCertificateRequest request) {
         return null;
     }
 
     @Override
-    public SignatureResponse sign(SignatureRequest request) {
+    public MidSignatureResponse sign(MidSignatureRequest request) {
         return null;
     }
 
     @Override
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public MidAuthenticationResponse authenticate(MidAuthenticationRequest request) {
         return null;
     }
 
     @Override
-    public SessionStatus getAuthenticationSessionStatus(SessionStatusRequest request) throws MidSessionNotFoundException {
-        return getSessionStatus(request, SessionStatusPoller.AUTHENTICATION_SESSION_PATH);
+    public MidSessionStatus getAuthenticationSessionStatus(MidSessionStatusRequest request) throws MidSessionNotFoundException {
+        return getSessionStatus(request, MidSessionStatusPoller.AUTHENTICATION_SESSION_PATH);
     }
 
     @Override
-    public SessionStatus getSignatureSessionStatus(SessionStatusRequest request) {
-        return getSessionStatus(request, SessionStatusPoller.SIGNATURE_SESSION_PATH);
+    public MidSessionStatus getSignatureSessionStatus(MidSessionStatusRequest request) {
+        return getSessionStatus(request, MidSessionStatusPoller.SIGNATURE_SESSION_PATH);
     }
 
     @Override
-    public SessionStatus getSessionStatus(SessionStatusRequest request, String path) throws MidSessionNotFoundException {
+    public MidSessionStatus getSessionStatus(MidSessionStatusRequest request, String path) throws MidSessionNotFoundException {
         sessionIdUsed = request.getSessionID();
         return responses.get(responseNumber++);
     }

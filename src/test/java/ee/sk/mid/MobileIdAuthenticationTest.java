@@ -43,7 +43,7 @@ public class MobileIdAuthenticationTest {
     @Test(expected = MidInternalErrorException.class)
     public void setInvalidValueInBase64_shouldThrowException() {
 
-        MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
+        MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withSignatureValueInBase64("!IsNotValidBase64Character")
                 .build();
 
@@ -52,12 +52,12 @@ public class MobileIdAuthenticationTest {
 
     @Test
     public void getSignatureValueInBase64() {
-        MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
+        MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64("SEFDS0VSTUFO")
-                .withCertificate(CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
+                .withCertificate( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
                 .withSignedHashInBase64(SIGNED_HASH_IN_BASE64)
-                .withHashType(HashType.SHA512)
+                .withHashType( MidHashType.SHA512)
                 .build();
 
         assertThat(authentication.getSignatureValueInBase64(), is("SEFDS0VSTUFO"));
@@ -65,12 +65,12 @@ public class MobileIdAuthenticationTest {
 
     @Test
     public void getSignatureValueInBytes() {
-        MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
+        MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64("SEFDS0VSTUFO")
-                .withCertificate(CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
+                .withCertificate( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
                 .withSignedHashInBase64("K74MSLkafRuKZ1Ooucvh2xa4Q3nz+R/hFWIShN96SPHNcem+uQ6mFMe9kkJQqp5EaoZnJeaFpl310TmlzRgNyQ==")
-                .withHashType(HashType.SHA512)
+                .withHashType( MidHashType.SHA512)
                 .build();
 
         assertThat(authentication.getSignatureValue(), is("HACKERMAN".getBytes(StandardCharsets.UTF_8)));
@@ -78,13 +78,13 @@ public class MobileIdAuthenticationTest {
 
     @Test
     public void createMobileIdAuthentication() throws CertificateEncodingException {
-        MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
+        MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64("SEFDS0VSTUFO")
-                .withCertificate(CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
+                .withCertificate( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
                 .withSignedHashInBase64("K74MSLkafRuKZ1Ooucvh2xa4Q3nz+R/hFWIShN96SPHNcem+uQ6mFMe9kkJQqp5EaoZnJeaFpl310TmlzRgNyQ==")
-                .withHashType(HashType.SHA512)
-                .withAlgorithmName(HashType.SHA512.getAlgorithmName())
+                .withHashType( MidHashType.SHA512)
+                .withAlgorithmName( MidHashType.SHA512.getAlgorithmName())
                 .build();
 
         assertThat(authentication.getResult(), is("OK"));
@@ -92,6 +92,6 @@ public class MobileIdAuthenticationTest {
         assertThat(authentication.getAlgorithmName(), is("SHA-512"));
         assertThat(Base64.encodeBase64String(authentication.getCertificate().getEncoded()), is(AUTH_CERTIFICATE_EE));
         assertThat(authentication.getSignedHashInBase64(), is("K74MSLkafRuKZ1Ooucvh2xa4Q3nz+R/hFWIShN96SPHNcem+uQ6mFMe9kkJQqp5EaoZnJeaFpl310TmlzRgNyQ=="));
-        assertThat(authentication.getHashType(), is(HashType.SHA512));
+        assertThat(authentication.getHashType(), is( MidHashType.SHA512));
     }
 }

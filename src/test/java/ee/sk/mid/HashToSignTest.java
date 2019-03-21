@@ -34,25 +34,25 @@ import static ee.sk.mid.mock.TestData.SHA512_HASH_IN_BASE64;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
 public class HashToSignTest {
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void setInvalidHashInBase64_shouldThrowException() {
-        HashToSign.newBuilder()
+        MidHashToSign.newBuilder()
             .withHashInBase64("!IsNotValidBase64String")
-            .withHashType(HashType.SHA256)
+            .withHashType( MidHashType.SHA256)
             .build();
     }
 
     @Test
     public void calculateVerificationCode_withSHA256() {
-        HashToSign hashToSign = HashToSign.newBuilder()
-            .withHash(HashType.SHA256.calculateDigest(HASH_TO_SIGN))
-            .withHashType(HashType.SHA256)
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
+            .withHash( MidHashType.SHA256.calculateDigest(HASH_TO_SIGN))
+            .withHashType( MidHashType.SHA256)
             .build();
 
         assertThat(hashToSign.calculateVerificationCode(), is("0104"));
@@ -60,9 +60,9 @@ public class HashToSignTest {
 
     @Test
     public void setHashInBase64_calculateVerificationCode_withSHA256() {
-        HashToSign hashToSign = HashToSign.newBuilder()
-            .withHash(HashType.SHA256.calculateDigest(HASH_TO_SIGN))
-            .withHashType(HashType.SHA256)
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
+            .withHash( MidHashType.SHA256.calculateDigest(HASH_TO_SIGN))
+            .withHashType( MidHashType.SHA256)
             .build();
 
         assertThat(hashToSign.calculateVerificationCode(), is("0104"));
@@ -70,9 +70,9 @@ public class HashToSignTest {
 
     @Test
     public void calculateVerificationCode_withSHA384() {
-        HashToSign hashToSign = HashToSign.newBuilder()
-            .withHash(HashType.SHA384.calculateDigest(HASH_TO_SIGN))
-            .withHashType(HashType.SHA384)
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
+            .withHash( MidHashType.SHA384.calculateDigest(HASH_TO_SIGN))
+            .withHashType( MidHashType.SHA384)
             .build();
 
         assertThat(hashToSign.calculateVerificationCode(), is("5781"));
@@ -81,9 +81,9 @@ public class HashToSignTest {
     @Test
     public void setHashInBase64_calculateVerificationCode_withSHA384() {
 
-        HashToSign hashToSign = HashToSign.newBuilder()
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA384_HASH_IN_BASE64)
-            .withHashType(HashType.SHA384)
+            .withHashType( MidHashType.SHA384)
             .build();
 
         assertThat(hashToSign.calculateVerificationCode(), is("5781"));
@@ -91,9 +91,9 @@ public class HashToSignTest {
 
     @Test
     public void calculateVerificationCode_withSHA512() {
-        HashToSign hashToSign = HashToSign.newBuilder()
-            .withHash(HashType.SHA512.calculateDigest(HASH_TO_SIGN))
-            .withHashType(HashType.SHA512)
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
+            .withHash( MidHashType.SHA512.calculateDigest(HASH_TO_SIGN))
+            .withHashType( MidHashType.SHA512)
             .build();
 
         assertThat(hashToSign.calculateVerificationCode(), is("4667"));
@@ -101,48 +101,48 @@ public class HashToSignTest {
 
     @Test
     public void setHashInBase64_calculateVerificationCode_withSHA512() {
-        HashToSign hashToSign = HashToSign.newBuilder()
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA512_HASH_IN_BASE64)
-            .withHashType(HashType.SHA512)
+            .withHashType( MidHashType.SHA512)
             .build();
 
         assertThat(hashToSign.calculateVerificationCode(), is("4667"));
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void checkFields_withoutHashType() {
-        HashToSign.newBuilder()
+        MidHashToSign.newBuilder()
             .withHashInBase64(SHA512_HASH_IN_BASE64)
             .build();
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void checkFields_withoutHash() {
-        HashToSign.newBuilder()
-            .withHashType(HashType.SHA512)
+        MidHashToSign.newBuilder()
+            .withHashType( MidHashType.SHA512)
             .build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void checkFields_withHashAndDataToHash() {
-        HashToSign.newBuilder()
-            .withHashType(HashType.SHA512)
-            .withHash(HashType.SHA512.calculateDigest(HASH_TO_SIGN))
+        MidHashToSign.newBuilder()
+            .withHashType( MidHashType.SHA512)
+            .withHash( MidHashType.SHA512.calculateDigest(HASH_TO_SIGN))
             .withDataToHash(DATA_TO_SIGN)
             .build();
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void checkFields_withoutHash_withoutHashType_withoutData() {
-        HashToSign.newBuilder().build();
+        MidHashToSign.newBuilder().build();
     }
 
 
     @Test
     public void withDataToHash_withHashTypeSHA256() {
-        HashToSign hashToSignFromData = HashToSign.newBuilder()
+        MidHashToSign hashToSignFromData = MidHashToSign.newBuilder()
             .withDataToHash(DATA_TO_SIGN)
-            .withHashType(HashType.SHA256)
+            .withHashType( MidHashType.SHA256)
             .build();
 
         assertThat(hashToSignFromData.getHashType().getHashTypeName(), is("SHA256"));
@@ -153,9 +153,9 @@ public class HashToSignTest {
 
     @Test
     public void withDataToHash_withHashTypeSHA384() {
-        HashToSign hashToSignFromData = HashToSign.newBuilder()
+        MidHashToSign hashToSignFromData = MidHashToSign.newBuilder()
             .withDataToHash(DATA_TO_SIGN)
-            .withHashType(HashType.SHA384)
+            .withHashType( MidHashType.SHA384)
             .build();
 
         assertThat(hashToSignFromData.getHashType().getHashTypeName(), is("SHA384"));
@@ -166,9 +166,9 @@ public class HashToSignTest {
 
     @Test
     public void withDataToHash_withHashTypeSHA512() {
-        HashToSign hashToSignFromData = HashToSign.newBuilder()
+        MidHashToSign hashToSignFromData = MidHashToSign.newBuilder()
             .withDataToHash(DATA_TO_SIGN)
-            .withHashType(HashType.SHA512)
+            .withHashType( MidHashType.SHA512)
             .build();
 
         assertThat(hashToSignFromData.getHashType().getHashTypeName(), is("SHA512"));

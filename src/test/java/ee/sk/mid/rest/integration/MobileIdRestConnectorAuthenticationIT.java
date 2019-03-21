@@ -47,13 +47,13 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import ee.sk.mid.categories.IntegrationTest;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.UnauthorizedException;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.MobileIdRestConnector;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.AuthenticationRequest;
-import ee.sk.mid.rest.dao.response.AuthenticationResponse;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidUnauthorizedException;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
+import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -63,76 +63,76 @@ public class MobileIdRestConnectorAuthenticationIT {
 
     private static final String AUTHENTICATION_SESSION_PATH = "/authentication/session/{sessionId}";
 
-    private MobileIdConnector connector;
+    private MidConnector connector;
 
     @Before
     public void setUp() {
-        connector = MobileIdRestConnector.newBuilder()
+        connector = MidRestConnector.newBuilder()
             .withEndpointUrl(DEMO_HOST_URL)
             .build();
     }
 
     @Test
     public void authenticate() throws Exception {
-        AuthenticationRequest request = createValidAuthenticationRequest();
+        MidAuthenticationRequest request = createValidAuthenticationRequest();
         assertCorrectAuthenticationRequestMade(request);
 
-        AuthenticationResponse response = connector.authenticate(request);
+        MidAuthenticationResponse response = connector.authenticate(request);
         assertThat(response.getSessionID(), not(isEmptyOrNullString()));
 
-        SessionStatus sessionStatus = pollSessionStatus(connector, response.getSessionID(), AUTHENTICATION_SESSION_PATH);
+        MidSessionStatus sessionStatus = pollSessionStatus(connector, response.getSessionID(), AUTHENTICATION_SESSION_PATH);
         assertAuthenticationPolled(sessionStatus);
     }
 
     @Test
     public void authenticate_withDisplayText() throws InterruptedException {
-        AuthenticationRequest request = createValidAuthenticationRequest();
+        MidAuthenticationRequest request = createValidAuthenticationRequest();
         request.setDisplayText("Log into internet banking system");
         assertCorrectAuthenticationRequestMade(request);
 
-        AuthenticationResponse response = connector.authenticate(request);
+        MidAuthenticationResponse response = connector.authenticate(request);
         assertThat(response.getSessionID(), not(isEmptyOrNullString()));
 
-        SessionStatus sessionStatus = pollSessionStatus(connector, response.getSessionID(), AUTHENTICATION_SESSION_PATH);
+        MidSessionStatus sessionStatus = pollSessionStatus(connector, response.getSessionID(), AUTHENTICATION_SESSION_PATH);
         assertAuthenticationPolled(sessionStatus);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withWrongPhoneNumber_shouldThrowException() {
-        AuthenticationRequest request = createAuthenticationRequest(DEMO_RELYING_PARTY_UUID,
+        MidAuthenticationRequest request = createAuthenticationRequest(DEMO_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, WRONG_PHONE, VALID_NAT_IDENTITY);
         connector.authenticate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withWrongNationalIdentityNumber_shouldThrowException() {
-        AuthenticationRequest request = createAuthenticationRequest(DEMO_RELYING_PARTY_UUID,
+        MidAuthenticationRequest request = createAuthenticationRequest(DEMO_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, VALID_PHONE, WRONG_NAT_IDENTITY);
         connector.authenticate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withWrongRelyingPartyUUID_shouldThrowException() {
-        AuthenticationRequest request = createAuthenticationRequest(WRONG_RELYING_PARTY_UUID,
+        MidAuthenticationRequest request = createAuthenticationRequest(WRONG_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         connector.authenticate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withWrongRelyingPartyName_shouldThrowException() {
-        AuthenticationRequest request = createAuthenticationRequest(DEMO_RELYING_PARTY_UUID, WRONG_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
+        MidAuthenticationRequest request = createAuthenticationRequest(DEMO_RELYING_PARTY_UUID, WRONG_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         connector.authenticate(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void authenticate_withUnknownRelyingPartyUUID_shouldThrowException() {
-        AuthenticationRequest request = createAuthenticationRequest(DEMO_RELYING_PARTY_UUID, UNKNOWN_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
+        MidAuthenticationRequest request = createAuthenticationRequest(DEMO_RELYING_PARTY_UUID, UNKNOWN_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         connector.authenticate(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void authenticate_withUnknownRelyingPartyName_shouldThrowException() {
-        AuthenticationRequest request = createAuthenticationRequest(UNKNOWN_RELYING_PARTY_UUID,
+        MidAuthenticationRequest request = createAuthenticationRequest(UNKNOWN_RELYING_PARTY_UUID,
             DEMO_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
         connector.authenticate(request);
     }

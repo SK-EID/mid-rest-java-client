@@ -45,22 +45,22 @@ import static ee.sk.mid.mock.TestData.SIGNATURE_SESSION_PATH;
 import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
 
-import ee.sk.mid.exception.DeliveryException;
-import ee.sk.mid.exception.InvalidUserConfigurationException;
+import ee.sk.mid.exception.MidDeliveryException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidSessionTimeoutException;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.NotMidClientException;
-import ee.sk.mid.exception.PhoneNotAvailableException;
-import ee.sk.mid.exception.UserCancellationException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.mock.MobileIdConnectorSpy;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.MobileIdRestConnector;
-import ee.sk.mid.rest.SessionStatusPoller;
-import ee.sk.mid.rest.dao.SessionSignature;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.SignatureRequest;
-import ee.sk.mid.rest.dao.response.SignatureResponse;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.MidSessionStatusPoller;
+import ee.sk.mid.rest.dao.MidSessionSignature;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidSignatureRequest;
+import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,25 +71,25 @@ public class SignatureRequestBuilderTest {
     @Before
     public void setUp() {
         connector = new MobileIdConnectorSpy();
-        connector.setSignatureResponseToRespond(new SignatureResponse(SESSION_ID));
+        connector.setSignatureResponseToRespond(new MidSignatureResponse(SESSION_ID));
         connector.setSessionStatusToRespond(createDummySignatureSessionStatus());
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withoutRelyingPartyUUID_shouldThrowException() {
-        HashToSign hashToSign = HashToSign.newBuilder()
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA256_HASH_IN_BASE64)
-            .withHashType(HashType.SHA256)
+            .withHashType( MidHashType.SHA256)
             .build();
 
-        SignatureRequest request = SignatureRequest.newBuilder()
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(hashToSign)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .build();
@@ -97,21 +97,21 @@ public class SignatureRequestBuilderTest {
         connector.sign(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withoutRelyingPartyName_shouldThrowException() {
-        HashToSign hashToSign = HashToSign.newBuilder()
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA256_HASH_IN_BASE64)
-            .withHashType(HashType.SHA256)
+            .withHashType( MidHashType.SHA256)
             .build();
 
-        SignatureRequest request = SignatureRequest.newBuilder()
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(hashToSign)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .build();
@@ -119,20 +119,20 @@ public class SignatureRequestBuilderTest {
         connector.sign(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withoutPhoneNumber_shouldThrowException() {
-        HashToSign hashToSign = HashToSign.newBuilder()
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA256_HASH_IN_BASE64)
-            .withHashType(HashType.SHA256)
+            .withHashType( MidHashType.SHA256)
             .build();
 
-        SignatureRequest request = SignatureRequest.newBuilder()
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(hashToSign)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -141,20 +141,20 @@ public class SignatureRequestBuilderTest {
         connector.sign(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withoutNationalIdentityNumber_shouldThrowException() {
-        HashToSign hashToSign = HashToSign.newBuilder()
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA256_HASH_IN_BASE64)
-            .withHashType(HashType.SHA256)
+            .withHashType( MidHashType.SHA256)
             .build();
 
-        SignatureRequest request = SignatureRequest.newBuilder()
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withHashToSign(hashToSign)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -163,15 +163,15 @@ public class SignatureRequestBuilderTest {
         connector.sign(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withoutHashToSign_shouldThrowException() {
-        SignatureRequest request = SignatureRequest.newBuilder()
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
                 .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -181,20 +181,20 @@ public class SignatureRequestBuilderTest {
     }
 
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void sign_withoutLanguage_shouldThrowException() {
-        HashToSign hashToSign = HashToSign.newBuilder()
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA256_HASH_IN_BASE64)
-            .withHashType(HashType.SHA256)
+            .withHashType( MidHashType.SHA256)
             .build();
 
-        SignatureRequest request = SignatureRequest.newBuilder()
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(hashToSign)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -215,7 +215,7 @@ public class SignatureRequestBuilderTest {
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = NotMidClientException.class)
+    @Test(expected = MidNotMidClientException.class)
     public void sign_withNotMIDClient_shouldThrowException() {
         connector.setSessionStatusToRespond(createNotMIDClientStatus());
         makeSignatureRequest(connector);
@@ -227,7 +227,7 @@ public class SignatureRequestBuilderTest {
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = UserCancellationException.class)
+    @Test(expected = MidUserCancellationException.class)
     public void sign_withUserCancellation_shouldThrowException() {
         connector.setSessionStatusToRespond(createUserCancellationStatus());
         makeSignatureRequest(connector);
@@ -239,25 +239,25 @@ public class SignatureRequestBuilderTest {
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = PhoneNotAvailableException.class)
+    @Test(expected = MidPhoneNotAvailableException.class)
     public void sign_withSimNotAvailable_shouldThrowException() {
         connector.setSessionStatusToRespond(createSimNotAvailableStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = DeliveryException.class)
+    @Test(expected = MidDeliveryException.class)
     public void sign_withDeliveryError_shouldThrowException() {
         connector.setSessionStatusToRespond(createDeliveryErrorStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = DeliveryException.class)
+    @Test(expected = MidDeliveryException.class)
     public void sign_withInvalidCardResponse_shouldThrowException() {
         connector.setSessionStatusToRespond(createInvalidCardResponseStatus());
         makeSignatureRequest(connector);
     }
 
-    @Test(expected = InvalidUserConfigurationException.class)
+    @Test(expected = MidInvalidUserConfigurationException.class)
     public void sign_withSignatureHashMismatch_shouldThrowException() {
         connector.setSessionStatusToRespond(createSignatureHashMismatchStatus());
         makeSignatureRequest(connector);
@@ -281,41 +281,41 @@ public class SignatureRequestBuilderTest {
         makeSignatureRequest(connector);
     }
 
-    private static SessionStatus createDummySignatureSessionStatus() {
-        SessionStatus sessionStatus = new SessionStatus();
+    private static MidSessionStatus createDummySignatureSessionStatus() {
+        MidSessionStatus sessionStatus = new MidSessionStatus();
         sessionStatus.setState("COMPLETE");
         sessionStatus.setResult("OK");
-        SessionSignature signature = new SessionSignature();
+        MidSessionSignature signature = new MidSessionSignature();
         signature.setValue("luvjsi1+1iLN9yfDFEh/BE8h");
         signature.setAlgorithm("sha256WithRSAEncryption");
         sessionStatus.setSignature(signature);
         return sessionStatus;
     }
 
-    private void makeSignatureRequest(MobileIdConnector connector) {
-        HashToSign hashToSign = HashToSign.newBuilder()
+    private void makeSignatureRequest(MidConnector connector) {
+        MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA256_HASH_IN_BASE64)
-            .withHashType(HashType.SHA256)
+            .withHashType( MidHashType.SHA256)
             .build();
 
-        SignatureRequest request = SignatureRequest.newBuilder()
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withPhoneNumber(VALID_PHONE)
                 .withNationalIdentityNumber(VALID_NAT_IDENTITY)
                 .withHashToSign(hashToSign)
-                .withLanguage(Language.EST)
+                .withLanguage( MidLanguage.EST)
                 .build();
 
-        SignatureResponse response = connector.sign(request);
+        MidSignatureResponse response = connector.sign(request);
 
-        SessionStatusPoller poller = SessionStatusPoller.newBuilder()
+        MidSessionStatusPoller poller = MidSessionStatusPoller.newBuilder()
             .withConnector(connector)
             .build();
 
-        SessionStatus sessionStatus = poller.fetchFinalSessionStatus(response.getSessionID(), SIGNATURE_SESSION_PATH);
+        MidSessionStatus sessionStatus = poller.fetchFinalSessionStatus(response.getSessionID(), SIGNATURE_SESSION_PATH);
 
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(LOCALHOST_URL)

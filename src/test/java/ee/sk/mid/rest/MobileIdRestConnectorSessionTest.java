@@ -38,8 +38,8 @@ import static org.junit.Assert.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.exception.MidSessionNotFoundException;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.SessionStatusRequest;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,11 +49,11 @@ public class MobileIdRestConnectorSessionTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(18089);
 
-    private MobileIdConnector connector;
+    private MidConnector connector;
 
     @Before
     public void setUp() {
-        connector = MobileIdRestConnector.newBuilder()
+        connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .build();
     }
@@ -61,13 +61,13 @@ public class MobileIdRestConnectorSessionTest {
     @Test(expected = MidSessionNotFoundException.class)
     public void getNotExistingSessionStatus() {
         stubNotFoundResponse("/authentication/session/de305d54-75b4-431b-adb2-eb6b9e546016");
-        SessionStatusRequest request = new SessionStatusRequest("de305d54-75b4-431b-adb2-eb6b9e546016");
+        MidSessionStatusRequest request = new MidSessionStatusRequest("de305d54-75b4-431b-adb2-eb6b9e546016");
         connector.getAuthenticationSessionStatus(request);
     }
 
     @Test
     public void getRunningSessionStatus() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusRunning.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusRunning.json");
 
         assertThat(sessionStatus, is(notNullValue()));
         assertThat(sessionStatus.getState(), is("RUNNING"));
@@ -75,7 +75,7 @@ public class MobileIdRestConnectorSessionTest {
 
     @Test
     public void getSessionStatus_forSuccessfulAuthenticationRequest() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusForSuccessfulAuthenticationRequest.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusForSuccessfulAuthenticationRequest.json");
 
         assertSuccessfulSessionStatus(sessionStatus);
 
@@ -87,67 +87,67 @@ public class MobileIdRestConnectorSessionTest {
 
     @Test
     public void getSessionStatus_whenTimeout() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenTimeout.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenTimeout.json");
         assertErrorSessionStatus(sessionStatus, "TIMEOUT");
     }
 
     @Test
     public void getSessionStatus_whenError() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenError.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenError.json");
         assertErrorSessionStatus(sessionStatus, "ERROR");
     }
 
     @Test
     public void getSessionStatus_whenNotMIDClient() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenNotMIDClient.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenNotMIDClient.json");
         assertErrorSessionStatus(sessionStatus, "NOT_MID_CLIENT");
     }
 
     @Test
     public void getSessionStatus_whenExpiredTransaction() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenExpiredTransaction.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenExpiredTransaction.json");
         assertErrorSessionStatus(sessionStatus, "EXPIRED_TRANSACTION");
     }
 
     @Test
     public void getSessionStatus_whenUserCancelled() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenUserCancelled.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenUserCancelled.json");
         assertErrorSessionStatus(sessionStatus, "USER_CANCELLED");
     }
 
     @Test
     public void getSessionStatus_whenMIDNotReady() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenMIDNotReady.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenMIDNotReady.json");
         assertErrorSessionStatus(sessionStatus, "MID_NOT_READY");
     }
 
     @Test
     public void getSessionStatus_whenPhoneAbsent() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenPhoneAbsent.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenPhoneAbsent.json");
         assertErrorSessionStatus(sessionStatus, "PHONE_ABSENT");
     }
 
     @Test
     public void getSessionStatus_whenDeliveryError() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenDeliveryError.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenDeliveryError.json");
         assertErrorSessionStatus(sessionStatus, "DELIVERY_ERROR");
     }
 
     @Test
     public void getSessionStatus_whenSimError() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenSimError.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenSimError.json");
         assertErrorSessionStatus(sessionStatus, "SIM_ERROR");
     }
 
     @Test
     public void getSessionStatus_whenSignatureHashMismatch() {
-        SessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenSignatureHashMismatch.json");
+        MidSessionStatus sessionStatus = getStubbedSessionStatusWithResponse("responses/sessionStatusWhenSignatureHashMismatch.json");
         assertErrorSessionStatus(sessionStatus, "SIGNATURE_HASH_MISMATCH");
     }
 
-    private SessionStatus getStubbedSessionStatusWithResponse(String responseFile) {
+    private MidSessionStatus getStubbedSessionStatusWithResponse(String responseFile) {
         stubRequestWithResponse("/authentication/session/de305d54-75b4-431b-adb2-eb6b9e546016", responseFile);
-        SessionStatusRequest request = new SessionStatusRequest("de305d54-75b4-431b-adb2-eb6b9e546016");
+        MidSessionStatusRequest request = new MidSessionStatusRequest("de305d54-75b4-431b-adb2-eb6b9e546016");
         return connector.getAuthenticationSessionStatus(request);
     }
 }

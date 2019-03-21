@@ -26,7 +26,7 @@ package ee.sk.mid.mock;
  * #L%
  */
 
-import ee.sk.mid.rest.dao.SessionStatus;
+import ee.sk.mid.rest.dao.MidSessionStatus;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -34,95 +34,95 @@ import static org.junit.Assert.assertThat;
 
 public class SessionStatusDummy {
 
-    public static SessionStatus createRunningSessionStatus() {
-        SessionStatus sessionStatus = new SessionStatus();
+    public static MidSessionStatus createRunningSessionStatus() {
+        MidSessionStatus sessionStatus = new MidSessionStatus();
         sessionStatus.setState("RUNNING");
         return sessionStatus;
     }
 
-    public static SessionStatus createSuccessfulSessionStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createSuccessfulSessionStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("OK");
         return sessionStatus;
     }
 
-    public static SessionStatus createTimeoutSessionStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createTimeoutSessionStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("TIMEOUT");
         return sessionStatus;
     }
 
-    public static SessionStatus createResponseRetrievingErrorStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createResponseRetrievingErrorStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("ERROR");
         return sessionStatus;
     }
 
-    public static SessionStatus createNotMIDClientStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createNotMIDClientStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("NOT_MID_CLIENT");
         return sessionStatus;
     }
 
-    public static SessionStatus createMSSPTransactionExpiredStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createMSSPTransactionExpiredStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("EXPIRED_TRANSACTION");
         return sessionStatus;
     }
 
-    public static SessionStatus createUserCancellationStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createUserCancellationStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("USER_CANCELLED");
         return sessionStatus;
     }
 
-    public static SessionStatus createMIDNotReadyStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createMIDNotReadyStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("MID_NOT_READY");
         return sessionStatus;
     }
 
-    public static SessionStatus createSimNotAvailableStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createSimNotAvailableStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("PHONE_ABSENT");
         return sessionStatus;
     }
 
-    public static SessionStatus createDeliveryErrorStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createDeliveryErrorStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("DELIVERY_ERROR");
         return sessionStatus;
     }
 
-    public static SessionStatus createInvalidCardResponseStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createInvalidCardResponseStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("SIM_ERROR");
         return sessionStatus;
     }
 
-    public static SessionStatus createSignatureHashMismatchStatus() {
-        SessionStatus sessionStatus = createCompleteSessionStatus();
+    public static MidSessionStatus createSignatureHashMismatchStatus() {
+        MidSessionStatus sessionStatus = createCompleteSessionStatus();
         sessionStatus.setResult("SIGNATURE_HASH_MISMATCH");
         return sessionStatus;
     }
 
-    private static SessionStatus createCompleteSessionStatus() {
-        SessionStatus sessionStatus = new SessionStatus();
+    private static MidSessionStatus createCompleteSessionStatus() {
+        MidSessionStatus sessionStatus = new MidSessionStatus();
         sessionStatus.setState("COMPLETE");
         return sessionStatus;
     }
 
-    public static void assertCompleteSessionStatus(SessionStatus sessionStatus) {
+    public static void assertCompleteSessionStatus(MidSessionStatus sessionStatus) {
         assertThat(sessionStatus, is(notNullValue()));
         assertThat(sessionStatus.getState(), is("COMPLETE"));
     }
 
-    public static void assertSuccessfulSessionStatus(SessionStatus sessionStatus) {
+    public static void assertSuccessfulSessionStatus(MidSessionStatus sessionStatus) {
         assertThat(sessionStatus.getState(), is("COMPLETE"));
         assertThat(sessionStatus.getResult(), is("OK"));
     }
 
-    public static void assertErrorSessionStatus(SessionStatus sessionStatus, String result) {
+    public static void assertErrorSessionStatus(MidSessionStatus sessionStatus, String result) {
         assertThat(sessionStatus.getState(), is("COMPLETE"));
         assertThat(sessionStatus.getResult(), is(result));
     }

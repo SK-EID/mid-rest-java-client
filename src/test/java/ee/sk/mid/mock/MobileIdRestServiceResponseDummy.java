@@ -26,23 +26,23 @@ package ee.sk.mid.mock;
  * #L%
  */
 
-import ee.sk.mid.rest.dao.SessionStatus;
+import ee.sk.mid.rest.dao.MidSessionStatus;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class MobileIdRestServiceResponseDummy {
 
-    public static void assertSignaturePolled(SessionStatus sessionStatus) {
+    public static void assertSignaturePolled(MidSessionStatus sessionStatus) {
         assertSessionStatusPolled(sessionStatus);
     }
 
-    public static void assertAuthenticationPolled(SessionStatus sessionStatus) {
+    public static void assertAuthenticationPolled(MidSessionStatus sessionStatus) {
         assertSessionStatusPolled(sessionStatus);
         assertThat(sessionStatus.getCert(), not(isEmptyOrNullString()));
     }
 
-    private static void assertSessionStatusPolled(SessionStatus sessionStatus) {
+    private static void assertSessionStatusPolled(MidSessionStatus sessionStatus) {
         assertThat(sessionStatus, is(notNullValue()));
         assertThat(sessionStatus.getState(), not(isEmptyOrNullString()));
         assertThat(sessionStatus.getResult(), not(isEmptyOrNullString()));

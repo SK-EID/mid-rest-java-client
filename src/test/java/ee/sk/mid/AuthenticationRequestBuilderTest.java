@@ -45,22 +45,22 @@ import static ee.sk.mid.mock.TestData.SESSION_ID;
 import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
 
-import ee.sk.mid.exception.DeliveryException;
-import ee.sk.mid.exception.InvalidUserConfigurationException;
+import ee.sk.mid.exception.MidDeliveryException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidSessionTimeoutException;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.NotMidClientException;
-import ee.sk.mid.exception.PhoneNotAvailableException;
-import ee.sk.mid.exception.UserCancellationException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.mock.MobileIdConnectorSpy;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.MobileIdRestConnector;
-import ee.sk.mid.rest.SessionStatusPoller;
-import ee.sk.mid.rest.dao.SessionSignature;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.AuthenticationRequest;
-import ee.sk.mid.rest.dao.response.AuthenticationResponse;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.MidSessionStatusPoller;
+import ee.sk.mid.rest.dao.MidSessionSignature;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
+import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,23 +71,23 @@ public class AuthenticationRequestBuilderTest {
     @Before
     public void setUp() {
         connector = new MobileIdConnectorSpy();
-        connector.setAuthenticationResponseToRespond(new AuthenticationResponse(SESSION_ID));
+        connector.setAuthenticationResponseToRespond(new MidAuthenticationResponse(SESSION_ID));
         connector.setSessionStatusToRespond(createDummyAuthenticationSessionStatus());
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withoutRelyingPartyUUID_shouldThrowException() {
-        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
+        MidAuthenticationHashToSign mobileIdAuthenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
+        MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(mobileIdAuthenticationHash)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .build();
 
@@ -95,36 +95,36 @@ public class AuthenticationRequestBuilderTest {
 
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withoutRelyingPartyName_shouldThrowException() {
-        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
+        MidAuthenticationHashToSign mobileIdAuthenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
+        MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(mobileIdAuthenticationHash)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .build();
 
         connector.authenticate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withoutPhoneNumber_shouldThrowException() {
-        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
+        MidAuthenticationHashToSign mobileIdAuthenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
+        MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(mobileIdAuthenticationHash)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -132,17 +132,17 @@ public class AuthenticationRequestBuilderTest {
         connector.authenticate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withoutNationalIdentityNumber_shouldThrowException() {
-        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
+        MidAuthenticationHashToSign mobileIdAuthenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
+        MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withHashToSign(mobileIdAuthenticationHash)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -151,16 +151,16 @@ public class AuthenticationRequestBuilderTest {
         connector.authenticate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withoutHashToSign_shouldThrowException() {
 
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
+        MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -169,17 +169,17 @@ public class AuthenticationRequestBuilderTest {
         connector.authenticate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withoutLanguage_shouldThrowException() {
-        MobileIdAuthenticationHashToSign mobileIdAuthenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
+        MidAuthenticationHashToSign mobileIdAuthenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
+        MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(mobileIdAuthenticationHash)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -200,7 +200,7 @@ public class AuthenticationRequestBuilderTest {
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = NotMidClientException.class)
+    @Test(expected = MidNotMidClientException.class)
     public void authenticate_withNotMIDClient_shouldThrowException() {
         connector.setSessionStatusToRespond(createNotMIDClientStatus());
         makeAuthenticationRequest(connector);
@@ -212,7 +212,7 @@ public class AuthenticationRequestBuilderTest {
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = UserCancellationException.class)
+    @Test(expected = MidUserCancellationException.class)
     public void authenticate_withUserCancellation_shouldThrowException() {
         connector.setSessionStatusToRespond(createUserCancellationStatus());
         makeAuthenticationRequest(connector);
@@ -224,25 +224,25 @@ public class AuthenticationRequestBuilderTest {
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = PhoneNotAvailableException.class)
+    @Test(expected = MidPhoneNotAvailableException.class)
     public void authenticate_withSimNotAvailable_shouldThrowException() {
         connector.setSessionStatusToRespond(createSimNotAvailableStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = DeliveryException.class)
+    @Test(expected = MidDeliveryException.class)
     public void authenticate_withDeliveryError_shouldThrowException() {
         connector.setSessionStatusToRespond(createDeliveryErrorStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = DeliveryException.class)
+    @Test(expected = MidDeliveryException.class)
     public void authenticate_withInvalidCardResponse_shouldThrowException() {
         connector.setSessionStatusToRespond(createInvalidCardResponseStatus());
         makeAuthenticationRequest(connector);
     }
 
-    @Test(expected = InvalidUserConfigurationException.class)
+    @Test(expected = MidInvalidUserConfigurationException.class)
     public void authenticate_withSignatureHashMismatch_shouldThrowException() {
         connector.setSessionStatusToRespond(createSignatureHashMismatchStatus());
         makeAuthenticationRequest(connector);
@@ -278,25 +278,25 @@ public class AuthenticationRequestBuilderTest {
         makeAuthenticationRequest(connector);
     }
 
-    private void makeAuthenticationRequest(MobileIdConnector connector) {
-        MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
+    private void makeAuthenticationRequest(MidConnector connector) {
+        MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
-        AuthenticationRequest request = AuthenticationRequest.newBuilder()
+        MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .withHashToSign(authenticationHash)
-            .withLanguage(Language.EST)
+            .withLanguage( MidLanguage.EST)
             .build();
 
-        AuthenticationResponse response = connector.authenticate(request);
+        MidAuthenticationResponse response = connector.authenticate(request);
 
-        SessionStatusPoller poller = SessionStatusPoller.newBuilder()
+        MidSessionStatusPoller poller = MidSessionStatusPoller.newBuilder()
             .withConnector(connector)
             .build();
 
-        SessionStatus sessionStatus = poller.fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
+        MidSessionStatus sessionStatus = poller.fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
 
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(LOCALHOST_URL)
@@ -305,11 +305,11 @@ public class AuthenticationRequestBuilderTest {
         client.createMobileIdAuthentication(sessionStatus, authenticationHash);
     }
 
-    public static SessionStatus createDummyAuthenticationSessionStatus() {
-        SessionSignature signature = new SessionSignature();
+    public static MidSessionStatus createDummyAuthenticationSessionStatus() {
+        MidSessionSignature signature = new MidSessionSignature();
         signature.setValue("c2FtcGxlIHNpZ25hdHVyZQ0K");
         signature.setAlgorithm("sha512WithRSAEncryption");
-        SessionStatus sessionStatus = new SessionStatus();
+        MidSessionStatus sessionStatus = new MidSessionStatus();
         sessionStatus.setState("COMPLETE");
         sessionStatus.setResult("OK");
         sessionStatus.setSignature(signature);

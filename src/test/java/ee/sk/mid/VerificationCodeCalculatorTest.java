@@ -62,7 +62,7 @@ public class VerificationCodeCalculatorTest {
         assertThat(controlCodeAs4digits, is("1462"));
 
         byte[] hashValueBytes = DatatypeConverter.parseHexBinary(hashValueInExample);
-        String codeWithCalculator = VerificationCodeCalculator.calculateMobileIdVerificationCode(hashValueBytes);
+        String codeWithCalculator = MidVerificationCodeCalculator.calculateMobileIdVerificationCode(hashValueBytes);
 
         assertThat(codeWithCalculator, is("1462"));
     }
@@ -83,19 +83,19 @@ public class VerificationCodeCalculatorTest {
 
     @Test
     public void calculateVerificationCode_withSHA256() {
-        String verificationCode = calculateVerificationCode(HashType.SHA256.calculateDigest(HACKERMAN_SHA256.getBytes()));
+        String verificationCode = calculateVerificationCode( MidHashType.SHA256.calculateDigest(HACKERMAN_SHA256.getBytes()));
         assertThat(verificationCode, is("6008"));
     }
 
     @Test
     public void calculateVerificationCode_withSHA384() {
-        String verificationCode = calculateVerificationCode(HashType.SHA384.calculateDigest(HACKERMAN_SHA384.getBytes()));
+        String verificationCode = calculateVerificationCode( MidHashType.SHA384.calculateDigest(HACKERMAN_SHA384.getBytes()));
         assertThat(verificationCode,is("7230"));
     }
 
     @Test
     public void calculateVerificationCode_withSHA512() {
-        String verificationCode = calculateVerificationCode(HashType.SHA512.calculateDigest(HACKERMAN_SHA512.getBytes()));
+        String verificationCode = calculateVerificationCode( MidHashType.SHA512.calculateDigest(HACKERMAN_SHA512.getBytes()));
         assertThat(verificationCode,is("3843"));
     }
 
@@ -112,6 +112,6 @@ public class VerificationCodeCalculatorTest {
     }
 
     private String calculateVerificationCode(byte[] dummyDocumentHash) {
-        return VerificationCodeCalculator.calculateMobileIdVerificationCode(dummyDocumentHash);
+        return MidVerificationCodeCalculator.calculateMobileIdVerificationCode(dummyDocumentHash);
     }
 }

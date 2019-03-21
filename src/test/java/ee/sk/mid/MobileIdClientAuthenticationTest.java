@@ -66,20 +66,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import ee.sk.mid.exception.DeliveryException;
-import ee.sk.mid.exception.InvalidUserConfigurationException;
+import ee.sk.mid.exception.MidDeliveryException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidSessionTimeoutException;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.NotMidClientException;
-import ee.sk.mid.exception.PhoneNotAvailableException;
-import ee.sk.mid.exception.UnauthorizedException;
-import ee.sk.mid.exception.UserCancellationException;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.MobileIdRestConnector;
-import ee.sk.mid.rest.dao.SessionStatus;
-import ee.sk.mid.rest.dao.request.AuthenticationRequest;
-import ee.sk.mid.rest.dao.response.AuthenticationResponse;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidUnauthorizedException;
+import ee.sk.mid.exception.MidUserCancellationException;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
+import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.hamcrest.Matchers;
@@ -93,11 +93,11 @@ public class MobileIdClientAuthenticationTest {
   @Rule
   public WireMockRule wireMockRule = new WireMockRule(18089);
 
-  private MobileIdClient client;
+  private MidClient client;
 
   @Before
   public void setUp() {
-    client = MobileIdClient.newBuilder()
+    client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
@@ -119,28 +119,28 @@ public class MobileIdClientAuthenticationTest {
 
   @Test
   public void authenticate_withHashAndWithoutDisplayText() {
-      MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.newBuilder()
+      MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
           .withHashInBase64(SHA256_HASH_IN_BASE64)
-          .withHashType(HashType.SHA256)
+          .withHashType( MidHashType.SHA256)
           .build();
 
-    AuthenticationRequest request = AuthenticationRequest.newBuilder()
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
         .withPhoneNumber(VALID_PHONE)
         .withNationalIdentityNumber(VALID_NAT_IDENTITY)
         .withHashToSign(authenticationHash)
-        .withLanguage(Language.EST)
+        .withLanguage( MidLanguage.EST)
         .build();
 
-    MobileIdAuthentication authentication = sendAuthentication(client, request, authenticationHash);
+    MidAuthentication authentication = sendAuthentication(client, request, authenticationHash);
 
     assertThat(authentication, is(notNullValue()));
     assertThat(authentication.getResult(), not(isEmptyOrNullString()));
     assertThat(authentication.getSignatureValueInBase64(), not(isEmptyOrNullString()));
     assertThat(authentication.getCertificate(), is(notNullValue()));
-    assertThat(authentication.getHashType(), Matchers.is(HashType.SHA256));
+    assertThat(authentication.getHashType(), Matchers.is( MidHashType.SHA256));
 
-    AuthenticationResponseValidator validator = new AuthenticationResponseValidator();
-    MobileIdAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
+    MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+    MidAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
 
     assertThat(mobileIdAuthenticationResult.isValid(), is(false));
     assertThat(mobileIdAuthenticationResult.getErrors(), contains("Signature verification failed"));
@@ -152,18 +152,18 @@ public class MobileIdClientAuthenticationTest {
     stubRequestWithResponse("/authentication", "requests/authenticationRequestUcs2.json",
         "responses/authenticationResponse.json");
 
-      MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.newBuilder()
+      MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
           .withHashInBase64(SHA256_HASH_IN_BASE64)
-          .withHashType(HashType.SHA256)
+          .withHashType( MidHashType.SHA256)
           .build();
 
-    AuthenticationRequest request = AuthenticationRequest.newBuilder()
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
         .withPhoneNumber(VALID_PHONE)
         .withNationalIdentityNumber(VALID_NAT_IDENTITY)
         .withHashToSign(authenticationHash)
-        .withLanguage(Language.RUS)
+        .withLanguage( MidLanguage.RUS)
         .withDisplayText("Войти")
-        .withDisplayTextFormat(DisplayTextFormat.UCS2)
+        .withDisplayTextFormat( MidDisplayTextFormat.UCS2)
         .build();
 
     sendAuthentication(client, request, authenticationHash);
@@ -172,38 +172,38 @@ public class MobileIdClientAuthenticationTest {
 
   @Test
   public void authenticate_withHashToSing() {
-    HashToSign hashToSign = HashToSign.newBuilder()
+    MidHashToSign hashToSign = MidHashToSign.newBuilder()
         .withDataToHash(DATA_TO_SIGN)
-        .withHashType(HashType.SHA512)
+        .withHashType( MidHashType.SHA512)
         .build();
 
-    AuthenticationRequest request = AuthenticationRequest.newBuilder()
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
         .withPhoneNumber(VALID_PHONE)
         .withNationalIdentityNumber(VALID_NAT_IDENTITY)
         .withHashToSign(hashToSign)
-        .withLanguage(Language.EST)
+        .withLanguage( MidLanguage.EST)
         .build();
 
     assertCorrectAuthenticationRequestMade(request);
 
-    AuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
+    MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
     assertThat(response.getSessionID(), not(isEmptyOrNullString()));
 
-    SessionStatus sessionStatus = client.getSessionStatusPoller()
+    MidSessionStatus sessionStatus = client.getSessionStatusPoller()
             .fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
     assertAuthenticationPolled(sessionStatus);
 
-    MobileIdAuthentication authentication =client.createMobileIdAuthentication(sessionStatus, hashToSign);
+    MidAuthentication authentication =client.createMobileIdAuthentication(sessionStatus, hashToSign);
 
     assertThat(authentication, is(notNullValue()));
     assertThat(authentication.getResult(), not(isEmptyOrNullString()));
     assertThat(authentication.getSignatureValueInBase64(), not(isEmptyOrNullString()));
     assertThat(authentication.getCertificate(), is(notNullValue()));
     assertThat(authentication.getSignedHashInBase64(), is(hashToSign.getHashInBase64()));
-    assertThat(authentication.getHashType(), Matchers.is(HashType.SHA512));
+    assertThat(authentication.getHashType(), Matchers.is( MidHashType.SHA512));
 
-    AuthenticationResponseValidator validator = new AuthenticationResponseValidator();
-    MobileIdAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
+    MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+    MidAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
 
     assertThat(mobileIdAuthenticationResult.isValid(), is(false));
     assertThat(mobileIdAuthenticationResult.getErrors(), contains("Signature verification failed"));
@@ -212,59 +212,59 @@ public class MobileIdClientAuthenticationTest {
   @Test
   public void authenticate_withDisplayText() {
 
-      MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.newBuilder()
+      MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
           .withHashInBase64(SHA256_HASH_IN_BASE64)
-          .withHashType(HashType.SHA256)
+          .withHashType( MidHashType.SHA256)
           .build();
     assertThat(authenticationHash.calculateVerificationCode(), is("0104"));
 
-    AuthenticationRequest request = AuthenticationRequest.newBuilder()
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
         .withPhoneNumber(VALID_PHONE)
         .withNationalIdentityNumber(VALID_NAT_IDENTITY)
         .withHashToSign(authenticationHash)
-        .withLanguage(Language.EST)
+        .withLanguage( MidLanguage.EST)
         .withDisplayText("Log into internet banking system")
         .build();
 
     assertMadeCorrectAuthenticationRequesWithSHA256(request);
 
-    AuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
+    MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
     assertThat(response.getSessionID(), not(isEmptyOrNullString()));
 
-    SessionStatus
+    MidSessionStatus
         sessionStatus =
         client.getSessionStatusPoller()
             .fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
     assertAuthenticationPolled(sessionStatus);
 
-    MobileIdAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
+    MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
     assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
   }
 
   @Test
   public void authenticate_withDisplayTextAndWithDisplayTextFormat() {
-    MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.newBuilder()
+    MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
         .withHashInBase64(SHA256_HASH_IN_BASE64)
-        .withHashType(HashType.SHA256)
+        .withHashType( MidHashType.SHA256)
         .build();
 
-    AuthenticationRequest request = AuthenticationRequest.newBuilder()
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
         .withPhoneNumber(VALID_PHONE)
         .withNationalIdentityNumber(VALID_NAT_IDENTITY)
         .withHashToSign(authenticationHash)
-        .withLanguage(Language.EST)
+        .withLanguage( MidLanguage.EST)
         .withDisplayText("войти")
-        .withDisplayTextFormat(DisplayTextFormat.UCS2)
+        .withDisplayTextFormat( MidDisplayTextFormat.UCS2)
         .build();
 
-    AuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
+    MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
     assertThat(response.getSessionID(), not(isEmptyOrNullString()));
 
-    SessionStatus sessionStatus = client.getSessionStatusPoller()
+    MidSessionStatus sessionStatus = client.getSessionStatusPoller()
             .fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
     assertAuthenticationPolled(sessionStatus);
 
-    MobileIdAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
+    MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
     assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
   }
 
@@ -282,7 +282,7 @@ public class MobileIdClientAuthenticationTest {
     makeValidAuthenticationRequest(client);
   }
 
-  @Test(expected = NotMidClientException.class)
+  @Test(expected = MidNotMidClientException.class)
   public void authenticate_whenNotMIDClient_shouldThrowException() {
     stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
         "responses/sessionStatusWhenNotMIDClient.json");
@@ -296,7 +296,7 @@ public class MobileIdClientAuthenticationTest {
     makeValidAuthenticationRequest(client);
   }
 
-  @Test(expected = UserCancellationException.class)
+  @Test(expected = MidUserCancellationException.class)
   public void authenticate_whenUserCancelled_shouldThrowException() {
     stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
         "responses/sessionStatusWhenUserCancelled.json");
@@ -310,28 +310,28 @@ public class MobileIdClientAuthenticationTest {
     makeValidAuthenticationRequest(client);
   }
 
-  @Test(expected = PhoneNotAvailableException.class)
+  @Test(expected = MidPhoneNotAvailableException.class)
   public void authenticate_whenSimNotAvailable_shouldThrowException() {
     stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
         "responses/sessionStatusWhenPhoneAbsent.json");
     makeValidAuthenticationRequest(client);
   }
 
-  @Test(expected = DeliveryException.class)
+  @Test(expected = MidDeliveryException.class)
   public void authenticate_whenDeliveryError_shouldThrowException() {
     stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
         "responses/sessionStatusWhenDeliveryError.json");
     makeValidAuthenticationRequest(client);
   }
 
-  @Test(expected = DeliveryException.class)
+  @Test(expected = MidDeliveryException.class)
   public void authenticate_whenInvalidCardResponse_shouldThrowException() {
     stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
         "responses/sessionStatusWhenSimError.json");
     makeValidAuthenticationRequest(client);
   }
 
-  @Test(expected = InvalidUserConfigurationException.class)
+  @Test(expected = MidInvalidUserConfigurationException.class)
   public void authenticate_whenSignatureHashMismatch_shouldThrowException() {
     stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
         "responses/sessionStatusWhenSignatureHashMismatch.json");
@@ -351,13 +351,13 @@ public class MobileIdClientAuthenticationTest {
     makeValidAuthenticationRequest(client);
   }
 
-  @Test(expected = MissingOrInvalidParameterException.class)
+  @Test(expected = MidMissingOrInvalidParameterException.class)
   public void authenticate_withWrongRequestParams_shouldThrowException() {
     stubBadRequestResponse("/authentication", "requests/authenticationRequest.json");
     makeValidAuthenticationRequest(client);
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test(expected = MidUnauthorizedException.class)
   public void authenticate_withWrongAuthenticationParams_shouldThrowException() {
     stubUnauthorizedResponse("/authentication", "requests/authenticationRequest.json");
     makeValidAuthenticationRequest(client);
@@ -372,7 +372,7 @@ public class MobileIdClientAuthenticationTest {
         "/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
         "responses/sessionStatusForSuccessfulAuthenticationRequest.json", FIRST_REQUEST_DONE, STARTED, 0);
 
-    MobileIdClient client = MobileIdClient.newBuilder()
+    MidClient client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
@@ -398,7 +398,7 @@ public class MobileIdClientAuthenticationTest {
         "responses/sessionStatusForSuccessfulAuthenticationRequest.json", FIRST_REQUEST_DONE, STARTED, 500);
 
 
-    MobileIdClient client = MobileIdClient.newBuilder()
+    MidClient client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
@@ -406,22 +406,22 @@ public class MobileIdClientAuthenticationTest {
         .withLongPollingTimeoutSeconds(3)
         .build();
 
-    MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.newBuilder()
+    MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
         .withHashInBase64(SHA256_HASH_IN_BASE64)
-        .withHashType(HashType.SHA256)
+        .withHashType( MidHashType.SHA256)
         .build();
 
-    AuthenticationRequest request = AuthenticationRequest.newBuilder()
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
         .withPhoneNumber(VALID_PHONE)
         .withNationalIdentityNumber(VALID_NAT_IDENTITY)
         .withHashToSign(authenticationHash)
-        .withLanguage(Language.RUS)
+        .withLanguage( MidLanguage.RUS)
         .withDisplayText("Войти")
-        .withDisplayTextFormat(DisplayTextFormat.UCS2)
+        .withDisplayTextFormat( MidDisplayTextFormat.UCS2)
         .build();
 
-    AuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
-    SessionStatus sessionStatus = client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
+    MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
+    MidSessionStatus sessionStatus = client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
 
     client.createMobileIdAuthentication(sessionStatus, authenticationHash);
 
@@ -436,7 +436,7 @@ public class MobileIdClientAuthenticationTest {
     headersToAdd.put(headerName, headerValue);
     ClientConfig clientConfig = getClientConfigWithCustomRequestHeaders(headersToAdd);
 
-    MobileIdClient client = MobileIdClient.newBuilder()
+    MidClient client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
@@ -451,19 +451,19 @@ public class MobileIdClientAuthenticationTest {
 
   @Test
   public void verifyMobileIdConnector_whenConnectorIsNotProvided() {
-    MobileIdConnector connector = client.getMobileIdConnector();
-    assertThat(connector instanceof MobileIdRestConnector, is(true));
+    MidConnector connector = client.getMobileIdConnector();
+    assertThat(connector instanceof MidRestConnector, is(true));
   }
 
   @Test
   public void verifyMobileIdConnector_whenConnectorIsProvided() {
     final String mock = "Mock";
-    SessionStatus status = mock(SessionStatus.class);
+    MidSessionStatus status = mock( MidSessionStatus.class);
     when(status.getState()).thenReturn(mock);
-    MobileIdConnector connector = mock(MobileIdConnector.class);
+    MidConnector connector = mock( MidConnector.class);
     when(connector.getSessionStatus(null, null)).thenReturn(status);
 
-    MobileIdClient client = MobileIdClient.newBuilder()
+    MidClient client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
@@ -473,11 +473,11 @@ public class MobileIdClientAuthenticationTest {
     assertThat(client.getMobileIdConnector().getSessionStatus(null, null).getState(), is(mock));
   }
 
-  private long measureAuthenticationDuration(MobileIdClient client) {
+  private long measureAuthenticationDuration(MidClient client) {
     long startTime = System.currentTimeMillis();
-    MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.newBuilder()
+    MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
         .withHashInBase64(SHA512_HASH_IN_BASE64)
-        .withHashType(HashType.SHA512)
+        .withHashType( MidHashType.SHA512)
         .build();
 
     createAndSendAuthentication(client, VALID_PHONE, VALID_NAT_IDENTITY, authenticationHash);

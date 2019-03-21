@@ -38,17 +38,13 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Scanner;
 
-import ee.sk.mid.AuthenticationIdentity;
-import ee.sk.mid.AuthenticationResponseValidator;
-import ee.sk.mid.MobileIdAuthentication;
-import ee.sk.mid.MobileIdAuthenticationHashToSign;
-import ee.sk.mid.MobileIdAuthenticationResult;
-import ee.sk.mid.MobileIdClient;
+import ee.sk.mid.*;
+import ee.sk.mid.MidAuthenticationIdentity;
 
 
 public class MobileIdAuthenticationInteractive {
 
-    private static MobileIdClient client = MobileIdClient.newBuilder()
+    private static MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
@@ -57,7 +53,7 @@ public class MobileIdAuthenticationInteractive {
 
     public static void main(String[] args) {
 
-        MobileIdAuthenticationHashToSign authenticationHash = MobileIdAuthenticationHashToSign.generateRandomHashOfDefaultType();
+        MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
         String verificationCode = authenticationHash.calculateVerificationCode();
 
         Scanner scanner = new Scanner( System.in );
@@ -72,23 +68,23 @@ public class MobileIdAuthenticationInteractive {
 
         System.out.println("Verification code is " + verificationCode);
 
-        MobileIdAuthentication authentication = createAndSendAuthentication(client, phoneNr, idCode, authenticationHash);
+        MidAuthentication authentication = createAndSendAuthentication(client, phoneNr, idCode, authenticationHash);
 
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
 
-        AuthenticationResponseValidator validator = new AuthenticationResponseValidator();
-        MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertAuthenticationResultValid(authenticationResult);
     }
 
-    private static void assertAuthenticationResultValid(MobileIdAuthenticationResult authenticationResult) {
+    private static void assertAuthenticationResultValid(MidAuthenticationResult authenticationResult) {
         assertThat(authenticationResult.isValid(), is(true));
         assertThat(authenticationResult.getErrors().isEmpty(), is(true));
         assertAuthenticationIdentityValid(authenticationResult.getAuthenticationIdentity());
     }
 
-    private static void assertAuthenticationIdentityValid(AuthenticationIdentity authenticationIdentity) {
+    private static void assertAuthenticationIdentityValid(MidAuthenticationIdentity authenticationIdentity) {
         assertThat(authenticationIdentity.getGivenName(), not(isEmptyOrNullString()));
         assertThat(authenticationIdentity.getSurName(), not(isEmptyOrNullString()));
         assertThat(authenticationIdentity.getIdentityCode(), not(isEmptyOrNullString()));

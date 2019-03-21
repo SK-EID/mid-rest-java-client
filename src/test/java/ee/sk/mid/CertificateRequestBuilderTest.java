@@ -34,13 +34,13 @@ import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
 
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.NotMidClientException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.mock.MobileIdConnectorSpy;
-import ee.sk.mid.rest.MobileIdConnector;
-import ee.sk.mid.rest.MobileIdRestConnector;
-import ee.sk.mid.rest.dao.request.CertificateRequest;
-import ee.sk.mid.rest.dao.response.CertificateChoiceResponse;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.dao.request.MidCertificateRequest;
+import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,14 +54,14 @@ public class CertificateRequestBuilderTest {
         connector.setCertificateChoiceResponseToRespond(createDummyCertificateChoiceResponse());
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withoutRelyingPartyUUID_shouldThrowException() {
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .build();
@@ -69,27 +69,27 @@ public class CertificateRequestBuilderTest {
 
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withoutRelyingPartyName_shouldThrowException() {
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .build();
         connector.getCertificate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withoutPhoneNumber_shouldThrowException() {
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
                 .withNationalIdentityNumber(VALID_NAT_IDENTITY)
                 .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -97,13 +97,13 @@ public class CertificateRequestBuilderTest {
         connector.getCertificate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_withoutNationalIdentityNumber_shouldThrowException() {
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .build();
 
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -111,13 +111,13 @@ public class CertificateRequestBuilderTest {
         connector.getCertificate(request);
     }
 
-    @Test(expected = NotMidClientException.class)
+    @Test(expected = MidNotMidClientException.class)
     public void getCertificate_withCertificateNotPresent_shouldThrowException() {
         connector.getCertificateChoiceResponseToRespond().setResult("NOT_FOUND");
         makeCertificateRequest(connector);
     }
 
-    @Test(expected = NotMidClientException.class)
+    @Test(expected = MidNotMidClientException.class)
     public void getCertificate_withInactiveCertificateFound_shouldThrowException() {
         connector.getCertificateChoiceResponseToRespond().setResult("NOT_ACTIVE");
         makeCertificateRequest(connector);
@@ -147,15 +147,15 @@ public class CertificateRequestBuilderTest {
         makeCertificateRequest(connector);
     }
 
-    private void makeCertificateRequest(MobileIdConnector connector) {
-        CertificateRequest request = CertificateRequest.newBuilder()
+    private void makeCertificateRequest(MidConnector connector) {
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
 
-        CertificateChoiceResponse response = connector.getCertificate(request);
+        MidCertificateChoiceResponse response = connector.getCertificate(request);
 
-        MobileIdClient client = MobileIdClient.newBuilder()
+        MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(LOCALHOST_URL)
@@ -164,8 +164,8 @@ public class CertificateRequestBuilderTest {
         client.createMobileIdCertificate(response);
     }
 
-    private static CertificateChoiceResponse createDummyCertificateChoiceResponse() {
-        CertificateChoiceResponse certificateChoiceResponse = new CertificateChoiceResponse();
+    private static MidCertificateChoiceResponse createDummyCertificateChoiceResponse() {
+        MidCertificateChoiceResponse certificateChoiceResponse = new MidCertificateChoiceResponse();
         certificateChoiceResponse.setResult("OK");
         certificateChoiceResponse.setCert(AUTH_CERTIFICATE_EE);
         return certificateChoiceResponse;

@@ -52,10 +52,10 @@ import java.util.Map;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.ClientRequestHeaderFilter;
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.UnauthorizedException;
-import ee.sk.mid.rest.dao.request.CertificateRequest;
-import ee.sk.mid.rest.dao.response.CertificateChoiceResponse;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidUnauthorizedException;
+import ee.sk.mid.rest.dao.request.MidCertificateRequest;
+import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
@@ -67,11 +67,11 @@ public class MobileIdRestConnectorCertificateTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(18089);
 
-    private MobileIdConnector connector;
+    private MidConnector connector;
 
     @Before
     public void setUp() {
-        connector = MobileIdRestConnector.newBuilder()
+        connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
@@ -82,12 +82,12 @@ public class MobileIdRestConnectorCertificateTest {
     public void getCertificate() {
         stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json", "responses/certificateChoiceResponse.json");
 
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
 
-        CertificateChoiceResponse response = connector.getCertificate(request);
+        MidCertificateChoiceResponse response = connector.getCertificate(request);
 
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is("OK"));
@@ -98,7 +98,7 @@ public class MobileIdRestConnectorCertificateTest {
     public void getCertificate_whenGettingResponseFailed_shouldThrowException() {
         stubInternalServerErrorResponse("/certificate", "requests/certificateChoiceRequest.json");
 
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
@@ -110,7 +110,7 @@ public class MobileIdRestConnectorCertificateTest {
     public void getCertificate_whenResponseNotFound_shouldThrowException() {
         stubNotFoundResponse("/certificate", "requests/certificateChoiceRequest.json");
 
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
@@ -118,12 +118,12 @@ public class MobileIdRestConnectorCertificateTest {
         connector.getCertificate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void getCertificate_http400returned_shouldThrowException() {
 
         stubBadRequestResponse("/certificate", "requests/certificateChoiceRequest.json");
 
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
@@ -131,11 +131,11 @@ public class MobileIdRestConnectorCertificateTest {
         connector.getCertificate(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void getCertificate_withWrongAuthenticationParams_shouldThrowException() {
         stubUnauthorizedResponse("/certificate", "requests/certificateChoiceRequest.json");
 
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
@@ -150,7 +150,7 @@ public class MobileIdRestConnectorCertificateTest {
 
         Map<String, String> headers = new HashMap<>();
         headers.put(headerName, headerValue);
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withClientConfig(getClientConfigWithCustomRequestHeader(headers))
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
@@ -159,7 +159,7 @@ public class MobileIdRestConnectorCertificateTest {
 
         stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json", "responses/certificateChoiceResponse.json");
 
-        CertificateRequest request = CertificateRequest.newBuilder()
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
             .withPhoneNumber(VALID_PHONE)
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();

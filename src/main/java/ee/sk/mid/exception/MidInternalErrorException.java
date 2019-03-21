@@ -26,7 +26,7 @@ package ee.sk.mid.exception;
  * #L%
  */
 
-public class MidInternalErrorException extends MobileIdException {
+public class MidInternalErrorException extends MidException {
 
     public MidInternalErrorException(String message) {
         super(message);

@@ -50,13 +50,13 @@ import java.util.Map;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.ClientRequestHeaderFilter;
-import ee.sk.mid.HashType;
-import ee.sk.mid.Language;
+import ee.sk.mid.MidHashType;
+import ee.sk.mid.MidLanguage;
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MissingOrInvalidParameterException;
-import ee.sk.mid.exception.UnauthorizedException;
-import ee.sk.mid.rest.dao.request.AuthenticationRequest;
-import ee.sk.mid.rest.dao.response.AuthenticationResponse;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidUnauthorizedException;
+import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
+import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
@@ -68,11 +68,11 @@ public class MobileIdRestConnectorAuthenticationTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(18089);
 
-    private MobileIdConnector connector;
+    private MidConnector connector;
 
     @Before
     public void setUp() {
-        connector = MobileIdRestConnector.newBuilder()
+        connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .build();
     }
@@ -80,8 +80,8 @@ public class MobileIdRestConnectorAuthenticationTest {
     @Test
     public void authenticate() {
         stubRequestWithResponse("/authentication", "requests/authenticationRequest.json", "responses/authenticationResponse.json");
-        AuthenticationRequest request = createValidAuthenticationRequest();
-        AuthenticationResponse response = connector.authenticate(request);
+        MidAuthenticationRequest request = createValidAuthenticationRequest();
+        MidAuthenticationResponse response = connector.authenticate(request);
 
         assertThat(response, is(notNullValue()));
         assertThat(response.getSessionID(), is("1dcc1600-29a6-4e95-a95c-d69b31febcfb"));
@@ -91,17 +91,17 @@ public class MobileIdRestConnectorAuthenticationTest {
     public void authenticate_withDisplayText() {
         stubRequestWithResponse("/authentication", "requests/authenticationRequestWithDisplayText.json", "responses/authenticationResponse.json");
 
-        AuthenticationRequest request = new AuthenticationRequest();
+        MidAuthenticationRequest request = new MidAuthenticationRequest();
         request.setRelyingPartyUUID(DEMO_RELYING_PARTY_UUID);
         request.setRelyingPartyName(DEMO_RELYING_PARTY_NAME);
         request.setPhoneNumber(VALID_PHONE);
         request.setNationalIdentityNumber(VALID_NAT_IDENTITY);
         request.setHash("AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=");
-        request.setHashType(HashType.SHA256);
-        request.setLanguage(Language.EST);
+        request.setHashType( MidHashType.SHA256);
+        request.setLanguage( MidLanguage.EST);
         request.setDisplayText("Log into internet banking system");
 
-        AuthenticationResponse response = connector.authenticate(request);
+        MidAuthenticationResponse response = connector.authenticate(request);
 
         assertThat(response, is(notNullValue()));
         assertThat(response.getSessionID(), is("1dcc1600-29a6-4e95-a95c-d69b31febcfb"));
@@ -110,28 +110,28 @@ public class MobileIdRestConnectorAuthenticationTest {
     @Test(expected = MidInternalErrorException.class)
     public void authenticate_whenGettingResponseFailed_shouldThrowException() {
         stubInternalServerErrorResponse("/authentication", "requests/authenticationRequest.json");
-        AuthenticationRequest request = createValidAuthenticationRequest();
+        MidAuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
     }
 
     @Test(expected = MidInternalErrorException.class)
     public void authenticate_whenResponseNotFound_shouldThrowException() {
         stubNotFoundResponse("/authentication", "requests/authenticationRequest.json");
-        AuthenticationRequest request = createValidAuthenticationRequest();
+        MidAuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
     }
 
-    @Test(expected = MissingOrInvalidParameterException.class)
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withWrongRequestParams_shouldThrowException() {
         stubBadRequestResponse("/authentication", "requests/authenticationRequest.json");
-        AuthenticationRequest request = createValidAuthenticationRequest();
+        MidAuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = MidUnauthorizedException.class)
     public void authenticate_withWrongAuthenticationParams_shouldThrowException() {
         stubUnauthorizedResponse("/authentication", "requests/authenticationRequest.json");
-        AuthenticationRequest request = createValidAuthenticationRequest();
+        MidAuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
     }
 
@@ -142,12 +142,12 @@ public class MobileIdRestConnectorAuthenticationTest {
 
         Map<String, String> headers = new HashMap<>();
         headers.put(headerName, headerValue);
-        MobileIdConnector connector = MobileIdRestConnector.newBuilder()
+        MidConnector connector = MidRestConnector.newBuilder()
             .withEndpointUrl(LOCALHOST_URL)
             .withClientConfig(getClientConfigWithCustomRequestHeader(headers))
             .build();
         stubRequestWithResponse("/authentication", "requests/authenticationRequest.json", "responses/authenticationResponse.json");
-        AuthenticationRequest request = createValidAuthenticationRequest();
+        MidAuthenticationRequest request = createValidAuthenticationRequest();
         connector.authenticate(request);
 
         verify(postRequestedFor(urlEqualTo("/authentication"))

@@ -51,17 +51,17 @@ import org.junit.Test;
 
 public class AuthenticationResponseValidatorTest {
 
-    private AuthenticationResponseValidator validator;
+    private MidAuthenticationResponseValidator validator;
 
     @Before
     public void setUp() {
-        validator = new AuthenticationResponseValidator();
+        validator = new MidAuthenticationResponseValidator();
     }
 
     @Test
     public void validate_whenRSA_shouldReturnValidAuthenticationResult() {
-        MobileIdAuthentication authentication = createValidMobileIdAuthentication();
-        MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+        MidAuthentication authentication = createValidMobileIdAuthentication();
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(true));
         assertThat(authenticationResult.getErrors().isEmpty(), is(true));
@@ -69,8 +69,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_whenECC_shouldReturnValidAuthenticationResult() {
-        MobileIdAuthentication authentication = createMobileIdAuthenticationWithECC();
-        MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+        MidAuthentication authentication = createMobileIdAuthenticationWithECC();
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(true));
         assertThat(authenticationResult.getErrors().isEmpty(), is(true));
@@ -78,15 +78,15 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_whenResultLowerCase_shouldReturnValidAuthenticationResult() {
-        MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
+        MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("ok")
                 .withSignatureValueInBase64(VALID_SIGNATURE_IN_BASE64)
-                .withCertificate(CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
+                .withCertificate( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
                 .withSignedHashInBase64(SIGNED_HASH_IN_BASE64)
-                .withHashType(HashType.SHA512)
+                .withHashType( MidHashType.SHA512)
                 .build();
 
-        MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(true));
         assertThat(authenticationResult.getErrors().isEmpty(), is(true));
@@ -94,8 +94,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_whenResultNotOk_shouldReturnInvalidAuthenticationResult() {
-        MobileIdAuthentication authentication = createMobileIdAuthenticationWithInvalidResult();
-        MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+        MidAuthentication authentication = createMobileIdAuthenticationWithInvalidResult();
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(false));
         assertThat(authenticationResult.getErrors(), contains("Response result verification failed"));
@@ -103,8 +103,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_whenSignatureVerificationFails_shouldReturnInvalidAuthenticationResult() {
-        MobileIdAuthentication authentication = createMobileIdAuthenticationWithInvalidSignature();
-        MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+        MidAuthentication authentication = createMobileIdAuthenticationWithInvalidSignature();
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(false));
         assertThat(authenticationResult.getErrors(), contains("Signature verification failed"));
@@ -112,8 +112,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_whenSignersCertExpired_shouldReturnInvalidAuthenticationResult() {
-        MobileIdAuthentication authentication = createMobileIdAuthenticationWithExpiredCertificate();
-        MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+        MidAuthentication authentication = createMobileIdAuthenticationWithExpiredCertificate();
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(false));
         assertThat(authenticationResult.getErrors(), contains("Signer's certificate expired"));
@@ -121,8 +121,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_shouldReturnValidIdentity() {
-        MobileIdAuthentication authentication = createValidMobileIdAuthentication();
-        MobileIdAuthenticationResult authenticationResult = validator.validate(authentication);
+        MidAuthentication authentication = createValidMobileIdAuthentication();
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.getAuthenticationIdentity().getGivenName(), is("MARY ÄNN"));
         assertThat(authenticationResult.getAuthenticationIdentity().getSurName(), is("O’CONNEŽ-ŠUSLIK TESTNUMBER"));
@@ -132,12 +132,12 @@ public class AuthenticationResponseValidatorTest {
 
     @Test(expected = MidInternalErrorException.class)
     public void validate_whenCertificateIsNull_shouldThrowException() {
-        MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
+        MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64(VALID_SIGNATURE_IN_BASE64)
                 .withCertificate(null)
                 .withSignedHashInBase64(SIGNED_HASH_IN_BASE64)
-                .withHashType(HashType.SHA512)
+                .withHashType( MidHashType.SHA512)
                 .build();
 
         validator.validate(authentication);
@@ -145,12 +145,12 @@ public class AuthenticationResponseValidatorTest {
 
     @Test(expected = MidInternalErrorException.class)
     public void validate_whenSignatureIsEmpty_shouldThrowException() {
-        MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
+        MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64("")
-                .withCertificate(CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
+                .withCertificate( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
                 .withSignedHashInBase64(SIGNED_HASH_IN_BASE64)
-                .withHashType(HashType.SHA512)
+                .withHashType( MidHashType.SHA512)
                 .build();
 
         validator.validate(authentication);
@@ -158,10 +158,10 @@ public class AuthenticationResponseValidatorTest {
 
     @Test(expected = MidInternalErrorException.class)
     public void validate_whenHashTypeIsNull_shouldThrowException() {
-        MobileIdAuthentication authentication = MobileIdAuthentication.newBuilder()
+        MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64(VALID_SIGNATURE_IN_BASE64)
-                .withCertificate(CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
+                .withCertificate( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
                 .withSignedHashInBase64(SIGNED_HASH_IN_BASE64)
                 .withHashType(null)
                 .build();
@@ -169,55 +169,55 @@ public class AuthenticationResponseValidatorTest {
         validator.validate(authentication);
     }
 
-    private MobileIdAuthentication createValidMobileIdAuthentication() {
+    private MidAuthentication createValidMobileIdAuthentication() {
         return createMobileIdAuthentication("OK", VALID_SIGNATURE_IN_BASE64);
     }
 
-    private MobileIdAuthentication createMobileIdAuthenticationWithInvalidResult() {
+    private MidAuthentication createMobileIdAuthenticationWithInvalidResult() {
         return createMobileIdAuthentication("NOT OK", VALID_SIGNATURE_IN_BASE64);
     }
 
-    private MobileIdAuthentication createMobileIdAuthenticationWithInvalidSignature() {
+    private MidAuthentication createMobileIdAuthenticationWithInvalidSignature() {
         return createMobileIdAuthentication("OK", INVALID_SIGNATURE_IN_BASE64);
     }
 
-    private MobileIdAuthentication createMobileIdAuthenticationWithExpiredCertificate() {
-        X509Certificate certificateSpy = spy(CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE));
+    private MidAuthentication createMobileIdAuthenticationWithExpiredCertificate() {
+        X509Certificate certificateSpy = spy( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE));
         when(certificateSpy.getNotAfter()).thenReturn(DateUtils.addHours(new Date(), -1));
 
-        return MobileIdAuthentication.newBuilder()
+        return MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64(VALID_SIGNATURE_IN_BASE64)
                 .withCertificate(certificateSpy)
                 .withSignedHashInBase64(SIGNED_HASH_IN_BASE64)
-                .withHashType(HashType.SHA512)
+                .withHashType( MidHashType.SHA512)
                 .build();
     }
 
-    private MobileIdAuthentication createMobileIdAuthentication(String result, String signatureInBase64) {
-        return MobileIdAuthentication.newBuilder()
+    private MidAuthentication createMobileIdAuthentication(String result, String signatureInBase64) {
+        return MidAuthentication.newBuilder()
                 .withResult(result)
                 .withSignatureValueInBase64(signatureInBase64)
-                .withCertificate(CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
+                .withCertificate( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
                 .withSignedHashInBase64(SIGNED_HASH_IN_BASE64)
-                .withHashType(HashType.SHA512)
+                .withHashType( MidHashType.SHA512)
                 .build();
     }
 
-    private MobileIdAuthentication createMobileIdAuthenticationWithECC() {
-        return MobileIdAuthentication.newBuilder()
+    private MidAuthentication createMobileIdAuthenticationWithECC() {
+        return MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64(VALID_ECC_SIGNATURE_IN_BASE64)
-                .withCertificate(CertificateParser.parseX509Certificate(ECC_CERTIFICATE))
+                .withCertificate( MidCertificateParser.parseX509Certificate(ECC_CERTIFICATE))
                 .withSignedHashInBase64(SIGNED_ECC_HASH_IN_BASE64)
-                .withHashType(HashType.SHA512)
+                .withHashType( MidHashType.SHA512)
                 .build();
     }
 
     @Test
     public void constructAuthenticationIdentity_withEECertificate() {
-        X509Certificate certificateEe = CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE);
-        AuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateEe);
+        X509Certificate certificateEe = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE);
+        MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateEe);
 
         assertThat(authenticationIdentity.getGivenName(), is("MARY ÄNN"));
         assertThat(authenticationIdentity.getSurName(), is("O’CONNEŽ-ŠUSLIK TESTNUMBER"));
@@ -227,8 +227,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void constructAuthenticationIdentity_withLVCertificate() {
-        X509Certificate certificateLv = CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_LV);
-        AuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateLv);
+        X509Certificate certificateLv = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_LV);
+        MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateLv);
 
         assertThat(authenticationIdentity.getGivenName(), is("FORENAME-010117-21234"));
         assertThat(authenticationIdentity.getSurName(), is("SURNAME-010117-21234"));
@@ -238,8 +238,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void constructAuthenticationIdentity_withLTCertificate() {
-        X509Certificate certificateLt = CertificateParser.parseX509Certificate(AUTH_CERTIFICATE_LT);
-        AuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateLt);
+        X509Certificate certificateLt = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_LT);
+        MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateLt);
 
         assertThat(authenticationIdentity.getGivenName(), is("FORENAMEPNOLT-36009067968"));
         assertThat(authenticationIdentity.getSurName(), is("SURNAMEPNOLT-36009067968"));

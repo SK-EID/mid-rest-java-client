@@ -26,8 +26,8 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.InvalidNationalIdentityNumberException;
-import ee.sk.mid.exception.InvalidPhoneNumberException;
+import ee.sk.mid.exception.MidInvalidNationalIdentityNumberException;
+import ee.sk.mid.exception.MidInvalidPhoneNumberException;
 
 public class MidInputUtil {
 
@@ -37,19 +37,19 @@ public class MidInputUtil {
     }
 
     public static boolean isNationalIdentityNumberValid(String nationalIdentityNumber) {
-        return NationalIdentificationCodeValidator.isValid(nationalIdentityNumber);
+        return MidNationalIdentificationCodeValidator.isValid(nationalIdentityNumber);
     }
 
 
     public static void validatePhoneNumber(String phoneNumber) {
         if (!isPhoneNumberValid(phoneNumber)) {
-            throw new InvalidPhoneNumberException(phoneNumber);
+            throw new MidInvalidPhoneNumberException(phoneNumber);
         }
     }
 
     public static void validateNationalIdentityNumber(String nationalIdentityNumber) {
         if (!isNationalIdentityNumberValid(nationalIdentityNumber)) {
-            throw new InvalidNationalIdentityNumberException(nationalIdentityNumber);
+            throw new MidInvalidNationalIdentityNumberException(nationalIdentityNumber);
         }
     }
 
