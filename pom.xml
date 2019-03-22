@@ -37,6 +37,7 @@
 
     <properties>
         <skip.integration.tests>true</skip.integration.tests>
+        <skip.gpg.sign>true</skip.gpg.sign>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -53,6 +54,12 @@
             <id>no-integration-tests</id>
             <properties>
                 <skip.integration.tests>true</skip.integration.tests>
+            </properties>
+        </profile>
+        <profile>
+            <id>release-to-maven-central</id>
+            <properties>
+                <skip.gpg.sign>false</skip.gpg.sign>
             </properties>
         </profile>
     </profiles>
@@ -333,6 +340,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <skip>${skip.gpg.sign}</skip>
+                </configuration>
             </plugin>
 
 
