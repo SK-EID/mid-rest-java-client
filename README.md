@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.org/SK-EID/mid-rest-java-client.svg?branch=master)](https://travis-ci.org/SK-EID/mid-rest-java-client)
+[![Build Status](https://api.travis-ci.com/SK-EID/mid-rest-java-client.svg?branch=master)](https://travis-ci.com/SK-EID/mid-rest-java-client)
 [![Coverage Status](https://img.shields.io/codecov/c/github/SK-EID/mid-rest-java-client.svg)](https://codecov.io/gh/SK-EID/mid-rest-java-client)
 [![License: MIT](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
 
