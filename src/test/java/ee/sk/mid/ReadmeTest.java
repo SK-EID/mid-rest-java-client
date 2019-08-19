@@ -147,8 +147,8 @@ public class ReadmeTest {
     public void documentRetrieveCert() {
 
         MidCertificateRequest request = MidCertificateRequest.newBuilder()
-            .withPhoneNumber("+37060000666")
-            .withNationalIdentityNumber("60001019906")
+            .withPhoneNumber("+37200000266")
+            .withNationalIdentityNumber("60001019939")
             .build();
 
         MidCertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
