@@ -41,6 +41,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.Configuration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import ee.sk.mid.exception.MidInternalErrorException;
@@ -57,7 +58,6 @@ import ee.sk.mid.rest.dao.request.MidSignatureRequest;
 import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
 import ee.sk.mid.rest.dao.response.MidSignatureResponse;
-import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,8 @@ public class MidRestConnector implements MidConnector {
     private static final String AUTHENTICATION_PATH = "/authentication";
 
     private String endpointUrl;
-    private ClientConfig clientConfig;
+    private Configuration clientConfig;
+    private Client configuredClient;
 
     private String relyingPartyUUID;
     private String relyingPartyName;
@@ -78,12 +79,12 @@ public class MidRestConnector implements MidConnector {
         this.endpointUrl = endpointUrl;
     }
 
-    public MidRestConnector(String endpointUrl, ClientConfig clientConfig) {
+    public MidRestConnector(String endpointUrl, Configuration clientConfig) {
         this(endpointUrl);
         this.clientConfig = clientConfig;
     }
 
-    public MidRestConnector(String endpointUrl, ClientConfig clientConfig, String relyingPartyUUID, String relyingPartyName) {
+    public MidRestConnector(String endpointUrl, Configuration clientConfig, String relyingPartyUUID, String relyingPartyName) {
         this.endpointUrl = endpointUrl;
         this.clientConfig = clientConfig;
         this.relyingPartyName = relyingPartyName;
@@ -93,6 +94,7 @@ public class MidRestConnector implements MidConnector {
     MidRestConnector(MidRestConnectorBuilder mobileIdRestConnectorBuilder) {
         this.endpointUrl = mobileIdRestConnectorBuilder.endpointUrl;
         this.clientConfig = mobileIdRestConnectorBuilder.clientConfig;
+        this.configuredClient = mobileIdRestConnectorBuilder.configuredClient;
         this.relyingPartyName = mobileIdRestConnectorBuilder.relyingPartyName;
         this.relyingPartyUUID = mobileIdRestConnectorBuilder.relyingPartyUUID;
     }
@@ -224,7 +226,13 @@ public class MidRestConnector implements MidConnector {
     }
 
     private Invocation.Builder prepareClient(URI uri) {
-        Client client = clientConfig == null ? ClientBuilder.newClient() : ClientBuilder.newClient(clientConfig);
+        Client client;
+        if (this.configuredClient == null) {
+            client = clientConfig == null ? ClientBuilder.newClient() : ClientBuilder.newClient(clientConfig);
+        }
+        else {
+            client = this.configuredClient;
+        }
         return client
             .register(new MidLoggingFilter())
             .target(uri)
