@@ -53,11 +53,7 @@ import static ee.sk.mid.mock.TestData.SHA256_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SHA512_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -143,7 +139,7 @@ public class MobileIdClientAuthenticationTest {
     MidAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
 
     assertThat(mobileIdAuthenticationResult.isValid(), is(false));
-    assertThat(mobileIdAuthenticationResult.getErrors(), contains("Signature verification failed"));
+    assertThat(mobileIdAuthenticationResult.getErrors(), hasItem("Signature verification failed"));
   }
 
   @Test
@@ -206,7 +202,7 @@ public class MobileIdClientAuthenticationTest {
     MidAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
 
     assertThat(mobileIdAuthenticationResult.isValid(), is(false));
-    assertThat(mobileIdAuthenticationResult.getErrors(), contains("Signature verification failed"));
+    assertThat(mobileIdAuthenticationResult.getErrors(), hasItem("Signature verification failed"));
   }
 
   @Test
