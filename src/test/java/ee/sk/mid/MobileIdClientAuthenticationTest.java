@@ -87,6 +87,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 public class MobileIdClientAuthenticationTest {
 
   public static final String FIRST_REQUEST_DONE = "FIRST_REQUEST_DONE";

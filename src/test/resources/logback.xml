@@ -6,8 +6,7 @@
         </encoder>
     </appender>
 
-    <logger name="ee.sk.mid" level="DEBUG"/>
-    <logger name="ee.sk.mid.rest.MidLoggingFilter" level="TRACE"/>
+    <logger name="ee.sk.mid" level="INFO"/>
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

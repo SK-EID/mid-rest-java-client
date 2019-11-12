@@ -92,6 +92,33 @@ request to enter your PIN to phone.
 
 > **Note** that these values are demo environment specific. In production use the values provided by Application Provider.
 
+### Configuring a proxy
+#### JBoss and WildFly
+```java
+        // org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder
+        // org.jboss.resteasy.client.jaxrs.ResteasyClient
+        ResteasyClient resteasyClient = new ResteasyClientBuilder()
+            .defaultProxy("192.168.1.254", 8080, "http")
+            .build();
+        MidClient client = MidClient.newBuilder()
+            .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+            .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+            .withRelyingPartyName("DEMO")
+            .withConfiguredClient(resteasyClient)
+            .build();
+```
+#### Tomcat
+```java
+        // org.glassfish.jersey.client.ClientConfig
+        ClientConfig clientConfig = new ClientConfig()
+        clientConfig.property(ClientProperties.PROXY_URI, "192.168.1.254:8080");
+        MidClient client = MidClient.newBuilder()
+            .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+            .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+            .withRelyingPartyName("DEMO")
+            .withwithNetworkConnectionConfig(clientConfig)
+            .build();
+```
 
 ### Long-polling configuration
 Under the hood operations as signing and authentication consist of 2 request steps:
@@ -258,6 +285,76 @@ String givenName = authenticationIdentity.getGivenName();
 String surName = authenticationIdentity.getSurName();
 String identityCode = authenticationIdentity.getIdentityCode();
 String country = authenticationIdentity.getCountry();
+```
+
+### Verifying the ssl connection to SK
+By default the client is configured to trust both Live and Demo Environment ssl certificates
+```java
+    client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .build();
+```
+
+Using with only demo environment certificates
+```java
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withDemoEnvCertificates()
+                 .build();
+```
+
+Using with only live environment certificates
+```java
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withLiveEnvCertificates()
+                 .build();
+```
+
+Using with custom certificates
+```java
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withSslCertificates("Pem encoded cert 1", "Pem encoded cert 2")
+                 .build();
+```
+
+Using with custom keystore
+```java
+InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/pathToKeystore");
+KeyStore keyStore = KeyStore.getInstance("JKS");
+keyStore.load(is, "changeit".toCharArray());
+
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withSslKeyStore(keyStore)
+                 .build();
+```
+
+Using with custom ssl context
+```java
+...
+SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
+trustManagerFactory.init(keyStore);
+sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withSslContext(sslContext)
+                 .build();
 ```
 
 ## Handling negative scenarios
