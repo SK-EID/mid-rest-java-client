@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.net.URI;
 
+import javax.net.ssl.SSLContext;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
@@ -75,6 +76,8 @@ public class MidRestConnector implements MidConnector {
     private String relyingPartyUUID;
     private String relyingPartyName;
 
+    private SSLContext sslContext;
+
     public MidRestConnector(String endpointUrl) {
         this.endpointUrl = endpointUrl;
     }
@@ -97,6 +100,7 @@ public class MidRestConnector implements MidConnector {
         this.configuredClient = mobileIdRestConnectorBuilder.configuredClient;
         this.relyingPartyName = mobileIdRestConnectorBuilder.relyingPartyName;
         this.relyingPartyUUID = mobileIdRestConnectorBuilder.relyingPartyUUID;
+        this.sslContext = mobileIdRestConnectorBuilder.sslContext;
     }
 
     @Override
@@ -228,7 +232,14 @@ public class MidRestConnector implements MidConnector {
     private Invocation.Builder prepareClient(URI uri) {
         Client client;
         if (this.configuredClient == null) {
-            client = clientConfig == null ? ClientBuilder.newClient() : ClientBuilder.newClient(clientConfig);
+            ClientBuilder clientBuilder = ClientBuilder.newBuilder();
+            if (null != this.clientConfig) {
+                clientBuilder.withConfig(this.clientConfig);
+            }
+            if (null != this.sslContext) {
+                clientBuilder.sslContext(this.sslContext);
+            }
+            client = clientBuilder.build();
         }
         else {
             client = this.configuredClient;
@@ -244,5 +255,8 @@ public class MidRestConnector implements MidConnector {
         return new MidRestConnectorBuilder();
     }
 
-
+    @Override
+    public void setSslContext(SSLContext sslContext) {
+        this.sslContext = sslContext;
+    }
 }

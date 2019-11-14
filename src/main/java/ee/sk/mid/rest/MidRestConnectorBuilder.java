@@ -26,6 +26,7 @@ package ee.sk.mid.rest;
  * #L%
  */
 
+import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Configuration;
 
@@ -35,6 +36,7 @@ public class MidRestConnectorBuilder {
   Client configuredClient;
   String relyingPartyUUID;
   String relyingPartyName;
+  SSLContext sslContext;
 
   public MidRestConnectorBuilder withEndpointUrl(String endpointUrl) {
     this.endpointUrl = endpointUrl;
@@ -58,6 +60,11 @@ public class MidRestConnectorBuilder {
 
   public MidRestConnectorBuilder withRelyingPartyName(String relyingPartyName) {
     this.relyingPartyName = relyingPartyName;
+    return this;
+  }
+
+  public MidRestConnectorBuilder withSslContext(SSLContext sslContext) {
+    this.sslContext = sslContext;
     return this;
   }
 

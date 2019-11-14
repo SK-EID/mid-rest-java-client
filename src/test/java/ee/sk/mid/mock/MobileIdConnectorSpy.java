@@ -26,6 +26,8 @@ package ee.sk.mid.mock;
  * #L%
  */
 
+import javax.net.ssl.SSLContext;
+
 import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.rest.MidConnector;
 import ee.sk.mid.rest.MidSessionStatusPoller;
@@ -98,5 +100,10 @@ public class MobileIdConnectorSpy implements MidConnector {
     @Override
     public MidSessionStatus getSessionStatus(MidSessionStatusRequest request, String path) throws MidSessionNotFoundException {
         return sessionStatusToRespond;
+    }
+
+    @Override
+    public void setSslContext(SSLContext sslContext) {
+
     }
 }
