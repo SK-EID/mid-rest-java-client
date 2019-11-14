@@ -83,6 +83,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.io.File;
+
 @Category({IntegrationTest.class})
 public class MobileIdAuthenticationIT {
 
@@ -98,7 +100,7 @@ public class MobileIdAuthenticationIT {
     }
 
     @Test
-    public void authenticate() {
+    public void authenticate() throws Exception{
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         assertThat(authenticationHash.calculateVerificationCode().length(), is(4));
@@ -109,6 +111,10 @@ public class MobileIdAuthenticationIT {
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
 
         MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+
+        File caCertificateFile = new File(MobileIdAuthenticationIT.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
+        validator.addTrustedCACertificate(caCertificateFile);
+
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertAuthenticationResultValid(authenticationResult);
