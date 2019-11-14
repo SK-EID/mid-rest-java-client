@@ -30,6 +30,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.security.cert.X509Certificate;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Configuration;
+
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidException;
@@ -40,7 +43,6 @@ import ee.sk.mid.rest.MidSessionStatusPoller;
 import ee.sk.mid.rest.dao.MidSessionSignature;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
-import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +53,8 @@ public class MidClient {
     private String relyingPartyUUID;
     private String relyingPartyName;
     private String hostUrl;
-    private ClientConfig networkConnectionConfig;
+    private Configuration networkConnectionConfig;
+    private Client configuredClient;
     private MidConnector connector;
     private MidSessionStatusPoller sessionStatusPoller;
 
@@ -60,6 +63,7 @@ public class MidClient {
         this.relyingPartyName = builder.relyingPartyName;
         this.hostUrl = builder.hostUrl;
         this.networkConnectionConfig = builder.networkConnectionConfig;
+        this.configuredClient = builder.configuredClient;
         this.connector = builder.connector;
 
         this.sessionStatusPoller = MidSessionStatusPoller.newBuilder()
@@ -73,6 +77,7 @@ public class MidClient {
         if (null == connector) {
             this.connector = MidRestConnector.newBuilder()
                 .withEndpointUrl(hostUrl)
+                .withConfiguredClient(configuredClient)
                 .withClientConfig(networkConnectionConfig)
                 .withRelyingPartyUUID(relyingPartyUUID)
                 .withRelyingPartyName(relyingPartyName)
@@ -157,7 +162,8 @@ public class MidClient {
         private String relyingPartyUUID;
         private String relyingPartyName;
         private String hostUrl;
-        private ClientConfig networkConnectionConfig;
+        private Configuration networkConnectionConfig;
+        private Client configuredClient;
         private int pollingSleepTimeoutSeconds;
         private int longPollingTimeoutSeconds;
         private MidConnector connector;
@@ -179,8 +185,13 @@ public class MidClient {
             return this;
         }
 
-        public MobileIdClientBuilder withNetworkConnectionConfig(ClientConfig networkConnectionConfig) {
+        public MobileIdClientBuilder withNetworkConnectionConfig(Configuration networkConnectionConfig) {
             this.networkConnectionConfig = networkConnectionConfig;
+            return this;
+        }
+
+        public MobileIdClientBuilder withConfiguredClient(Client configuredClient) {
+            this.configuredClient = configuredClient;
             return this;
         }
 

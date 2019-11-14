@@ -92,6 +92,33 @@ request to enter your PIN to phone.
 
 > **Note** that these values are demo environment specific. In production use the values provided by Application Provider.
 
+### Configuring a proxy
+#### JBoss and WildFly
+```java
+        // org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder
+        // org.jboss.resteasy.client.jaxrs.ResteasyClient
+        ResteasyClient resteasyClient = new ResteasyClientBuilder()
+            .defaultProxy("192.168.1.254", 8080, "http")
+            .build();
+        MidClient client = MidClient.newBuilder()
+            .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+            .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+            .withRelyingPartyName("DEMO")
+            .withConfiguredClient(resteasyClient)
+            .build();
+```
+#### Tomcat
+```java
+        // org.glassfish.jersey.client.ClientConfig
+        ClientConfig clientConfig = new ClientConfig()
+        clientConfig.property(ClientProperties.PROXY_URI, "192.168.1.254:8080");
+        MidClient client = MidClient.newBuilder()
+            .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+            .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+            .withRelyingPartyName("DEMO")
+            .withwithNetworkConnectionConfig(clientConfig)
+            .build();
+```
 
 ### Long-polling configuration
 Under the hood operations as signing and authentication consist of 2 request steps:
