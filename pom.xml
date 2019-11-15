@@ -300,6 +300,11 @@
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
                 <version>5.2.1</version>
+                <configuration>
+                    <failBuildOnCVSS>
+                        2
+                    </failBuildOnCVSS>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
