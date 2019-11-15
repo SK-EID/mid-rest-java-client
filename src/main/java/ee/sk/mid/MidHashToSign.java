@@ -44,7 +44,7 @@ public class MidHashToSign implements Serializable {
             this.hash = builder.hashType.calculateDigest(builder.dataToHash);
         }
         else {
-            this.hash = builder.hash;
+            this.hash = builder.hash.clone();
         }
     }
 
