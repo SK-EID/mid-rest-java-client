@@ -49,7 +49,7 @@ public class MidHashToSign implements Serializable {
     }
 
     public byte[] getHash() {
-        return hash;
+        return hash.clone();
     }
 
     public String getHashInBase64() {

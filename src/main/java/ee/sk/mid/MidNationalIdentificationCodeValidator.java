@@ -80,10 +80,12 @@ public class MidNationalIdentificationCodeValidator {
         switch (firstNumber) {
             case 5:
             case 6:
-                year += 100;
+                year += 2000;
+                break;
             case 3:
             case 4:
-                year += 100;
+                year += 1900;
+                break;
             default:
                 year += 1800;
         }
