@@ -28,7 +28,7 @@ You can use the library as a dependency from the Maven Central (http://mvnreposi
 <dependency>
     <groupId>ee.sk.mid</groupId>
     <artifactId>mid-rest-java-client</artifactId>
-    <version>1.1</version>
+    <version>INSERT_VERSION_HERE</version>
 </dependency>
 ```
 
