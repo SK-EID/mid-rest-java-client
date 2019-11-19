@@ -86,7 +86,7 @@ public class MidHashToSign implements Serializable {
             if (hash == null || hash.length == 0) {
                 throw new MidMissingOrInvalidParameterException("Cannot pass empty hash value");
             }
-            this.hash = hash;
+            this.hash = hash.clone();
 
             return this;
         }
