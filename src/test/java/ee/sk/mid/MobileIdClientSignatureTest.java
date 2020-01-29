@@ -26,57 +26,39 @@ package ee.sk.mid;
  * #L%
  */
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectSignatureRequestMade;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertSignatureCreated;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidSignature;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeValidSignatureRequest;
-import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertSignaturePolled;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubSessionStatusWithState;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
-import static ee.sk.mid.mock.TestData.DATA_TO_SIGN;
-import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
-import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
-import static ee.sk.mid.mock.TestData.LOCALHOST_URL;
-import static ee.sk.mid.mock.TestData.SHA256_HASH_IN_BASE64;
-import static ee.sk.mid.mock.TestData.SIGNATURE_SESSION_PATH;
-import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
-import static ee.sk.mid.mock.TestData.VALID_PHONE;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
-import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
-import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
-import ee.sk.mid.exception.MidNotMidClientException;
-import ee.sk.mid.exception.MidPhoneNotAvailableException;
-import ee.sk.mid.exception.MidUnauthorizedException;
-import ee.sk.mid.exception.MidUserCancellationException;
+import ee.sk.mid.exception.*;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
 import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
 import ee.sk.mid.rest.dao.request.MidSignatureRequest;
 import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+
+import javax.ws.rs.ProcessingException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.*;
+import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertSignaturePolled;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.*;
+import static ee.sk.mid.mock.TestData.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 
 public class MobileIdClientSignatureTest {
 
@@ -86,7 +68,7 @@ public class MobileIdClientSignatureTest {
     public WireMockRule wireMockRule = new WireMockRule(18089);
 
     @Rule
-    public ExpectedException expectedEx = ExpectedException.none();
+    public ExpectedException expectedException = ExpectedException.none();
 
     private MidClient client;
 
@@ -104,6 +86,11 @@ public class MobileIdClientSignatureTest {
         stubRequestWithResponse("/signature/session/2c52caf4-13b0-41c4-bdc6-aa268403cc00",
             "responses/sessionStatusForSuccessfulSigningRequest.json");
     }
+
+     @After
+     public void reset() {
+        wireMockRule.resetAll();
+     }
 
     @Test
     public void sign() {
@@ -275,8 +262,8 @@ public class MobileIdClientSignatureTest {
 
     @Test
     public void sign_withWrongRequestParams_shouldThrowException() {
-        expectedEx.expect( MidMissingOrInvalidParameterException.class);
-        expectedEx.expectMessage("Invalid phoneNumber or nationalIdentityNumber");
+        expectedException.expect( MidMissingOrInvalidParameterException.class);
+        expectedException.expectMessage("Invalid phoneNumber or nationalIdentityNumber");
 
         stubBadRequestResponse("/signature", "requests/signatureRequest.json");
         makeValidSignatureRequest(client);
@@ -327,6 +314,153 @@ public class MobileIdClientSignatureTest {
 
         verify(postRequestedFor(urlEqualTo("/signature"))
             .withHeader(headerName, equalTo(headerValue)));
+    }
+
+    @Test
+    public void sign_responseFromServerComesSlightlyBeforeTimeout_theRequestIsSuccessful() {
+        stubRequestWithResponse("/signature/session/2c52caf4-13b0-41c4-bdc6-aa268403cc00",
+                "responses/sessionStatusForSuccessfulSigningRequest.json", 4950);
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                .withHostUrl(LOCALHOST_URL)
+                .build();
+
+        client.getMobileIdConnector()
+                .getSessionStatus(new MidSessionStatusRequest("2c52caf4-13b0-41c4-bdc6-aa268403cc00", 3), SIGNATURE_SESSION_PATH);
+
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void sign_responseFromServerComesSlightlyAfterTimeout_timeoutExceptionIsThrown() {
+        stubRequestWithResponse("/signature/session/2c52caf4-13b0-41c4-bdc6-aa268403cc00",
+                "responses/sessionStatusForSuccessfulSigningRequest.json", 5050);
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                .withHostUrl(LOCALHOST_URL)
+                .withMaximumResponseWaitingTimeInMilliseconds(5000)
+                .build();
+
+        client.getMobileIdConnector()
+                .getSessionStatus(new MidSessionStatusRequest("2c52caf4-13b0-41c4-bdc6-aa268403cc00", 3), SIGNATURE_SESSION_PATH);
+
+    }
+
+    @Test
+    public void sign_responseIsTimedoutOnThreeRequestsAndFourthArrivesInTime_eachTimeoutShouldResultInNewRequest_totalFourRequestsMade() {
+        stubRequestWithResponse("/signature/session/2c52caf4-13b0-41c4-bdc6-aa268403cc00",
+                "responses/sessionStatusForSuccessfulSigningRequest.json", 5050, STARTED, "TIMEOUT1");
+        stubRequestWithResponse("/signature/session/2c52caf4-13b0-41c4-bdc6-aa268403cc00",
+                "responses/sessionStatusForSuccessfulSigningRequest.json", 5050, "TIMEOUT1", "TIMEOUT2");
+        stubRequestWithResponse("/signature/session/2c52caf4-13b0-41c4-bdc6-aa268403cc00",
+                "responses/sessionStatusForSuccessfulSigningRequest.json", 5050, "TIMEOUT2", "TIMEOUT3");
+        stubRequestWithResponse("/signature/session/2c52caf4-13b0-41c4-bdc6-aa268403cc00",
+                "responses/sessionStatusForSuccessfulSigningRequest.json", 4950, "TIMEOUT3", "RECEIVE");
+
+        MidConnector connector = spy(MidRestConnector.newBuilder()
+                .withEndpointUrl(LOCALHOST_URL)
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                .withMaximumResponseWaitingTimeInMilliseconds(5000)
+                .build());
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                .withHostUrl(LOCALHOST_URL)
+                .withLongPollingTimeoutSeconds(3)
+                .withMobileIdConnector(connector)
+                .build();
+
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
+                .withRelyingPartyUUID(client.getRelyingPartyUUID())
+                .withRelyingPartyName(client.getRelyingPartyName())
+                .withPhoneNumber(VALID_PHONE)
+                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+                .withHashToSign(MidHashToSign.newBuilder()
+                        .withHashType(MidHashType.SHA256)
+                        .withHashInBase64("AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=")
+                        .build())
+                .withLanguage( MidLanguage.EST)
+                .build();
+
+        MidSignatureResponse response = client.getMobileIdConnector().sign(request);
+        client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(), SIGNATURE_SESSION_PATH);
+
+        Mockito.verify(connector, times(4)).getSessionStatus(any(), any());
+    }
+
+    @Test(expected = MidResponseTimeoutException.class)
+    public void sign_initationRequestTimesOut_SocketTimeoutExceptionIsthrownInternally() {
+        stubRequestWithResponse("/signature", "requests/signatureRequest.json",
+                "responses/signatureResponse.json", 5050);
+
+        MidConnector connector = spy(MidRestConnector.newBuilder()
+                .withEndpointUrl(LOCALHOST_URL)
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                .withMaximumResponseWaitingTimeInMilliseconds(5000)
+                .build());
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                .withHostUrl(LOCALHOST_URL)
+                .withLongPollingTimeoutSeconds(3)
+                .withMobileIdConnector(connector)
+                .build();
+
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
+                .withRelyingPartyUUID(client.getRelyingPartyUUID())
+                .withRelyingPartyName(client.getRelyingPartyName())
+                .withPhoneNumber(VALID_PHONE)
+                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+                .withHashToSign(MidHashToSign.newBuilder()
+                        .withHashType(MidHashType.SHA256)
+                        .withHashInBase64("AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=")
+                        .build())
+                .withLanguage( MidLanguage.EST)
+                .build();
+
+        MidSignatureResponse response = client.getMobileIdConnector().sign(request);
+    }
+
+    @Test
+    public void sign_initationRequestResponseComesSlightlyBeforeTimeout_shouldPassWithoutExceptions() {
+        stubRequestWithResponse("/signature", "requests/signatureRequest.json",
+                "responses/signatureResponse.json", 5050);
+
+        MidConnector connector = spy(MidRestConnector.newBuilder()
+                .withEndpointUrl(LOCALHOST_URL)
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                .withMaximumResponseWaitingTimeInMilliseconds(6000)
+                .build());
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                .withHostUrl(LOCALHOST_URL)
+                .withLongPollingTimeoutSeconds(3)
+                .withMobileIdConnector(connector)
+                .build();
+
+        MidSignatureRequest request = MidSignatureRequest.newBuilder()
+                .withRelyingPartyUUID(client.getRelyingPartyUUID())
+                .withRelyingPartyName(client.getRelyingPartyName())
+                .withPhoneNumber(VALID_PHONE)
+                .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+                .withHashToSign(MidHashToSign.newBuilder()
+                        .withHashType(MidHashType.SHA256)
+                        .withHashInBase64("AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=")
+                        .build())
+                .withLanguage( MidLanguage.EST)
+                .build();
+
+        MidSignatureResponse response = client.getMobileIdConnector().sign(request);
     }
 
     private long measureSigningDuration(MidClient client) {

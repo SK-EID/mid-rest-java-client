@@ -26,22 +26,17 @@ package ee.sk.mid.rest;
  * #L%
  */
 
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
-
-import java.util.concurrent.TimeUnit;
-
-import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
-import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
-import ee.sk.mid.exception.MidException;
-import ee.sk.mid.exception.MidNotMidClientException;
-import ee.sk.mid.exception.MidPhoneNotAvailableException;
-import ee.sk.mid.exception.MidUserCancellationException;
+import ee.sk.mid.exception.*;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.ProcessingException;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeUnit;
+
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 
 public class MidSessionStatusPoller {
 
@@ -95,13 +90,26 @@ public class MidSessionStatusPoller {
 
             logger.debug("Polling session status");
             MidSessionStatusRequest request = new MidSessionStatusRequest(sessionId, this.longPollingTimeoutSeconds);
-            sessionStatus = connector.getSessionStatus(request, path);
+            try {
+                sessionStatus = connector.getSessionStatus(request, path);
 
-            if (equalsIgnoreCase("COMPLETE", sessionStatus.getState())) {
-                break;
+                if (equalsIgnoreCase("COMPLETE", sessionStatus.getState())) {
+                    break;
+                }
+
+                logger.debug("Sleeping for " + pollingSleepTimeoutSeconds + " seconds");
+                TimeUnit.SECONDS.sleep(pollingSleepTimeoutSeconds);
+
             }
-            logger.debug("Sleeping for " + pollingSleepTimeoutSeconds + " seconds");
-            TimeUnit.SECONDS.sleep(pollingSleepTimeoutSeconds);
+            catch (ProcessingException exception) {
+                Throwable cause = exception.getCause();
+                if (null != cause && cause.getClass().isAssignableFrom(SocketTimeoutException.class)) {
+                    logger.warn("Session status request for MID-API timed out. Retrying.", cause);
+                }
+                else {
+                    throw exception;
+                }
+            }
         }
         logger.debug("Got session final session status response");
         return sessionStatus;
@@ -150,7 +158,6 @@ public class MidSessionStatusPoller {
         private int pollingSleepTimeoutSeconds = 0;
         private int longPollingTimeoutSeconds = 0;
 
-
         public SessionStatusPollerBuilder withConnector(MidConnector connector) {
             this.connector = connector;
             return this;
@@ -167,7 +174,6 @@ public class MidSessionStatusPoller {
         public MidSessionStatusPoller build() {
             return new MidSessionStatusPoller(this);
         }
-
 
     }
 }

@@ -26,6 +26,14 @@ package ee.sk.mid.rest;
  * #L%
  */
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import ee.sk.mid.exception.MidSessionNotFoundException;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
 import static ee.sk.mid.mock.SessionStatusDummy.assertErrorSessionStatus;
@@ -35,14 +43,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertThat;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import ee.sk.mid.exception.MidSessionNotFoundException;
-import ee.sk.mid.rest.dao.MidSessionStatus;
-import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
 
 public class MobileIdRestConnectorSessionTest {
 
@@ -82,7 +82,7 @@ public class MobileIdRestConnectorSessionTest {
         assertThat(sessionStatus.getSignature(), is(notNullValue()));
         assertThat(sessionStatus.getSignature().getValue(), startsWith("luvjsi1+1iLN9yfDFEh/BE8hXtAKhAIxilv"));
         assertThat(sessionStatus.getSignature().getAlgorithm(), is("sha256WithRSAEncryption"));
-        assertThat(sessionStatus.getCert(), startsWith("MIIHhjCCBW6gAwIBAgIQDNYLtVwrKURYStr"));
+        assertThat(sessionStatus.getCert(), startsWith("MIIGLzCCBBegAwIBAgIQHFA4RWeWjGFbbE2rV10Ixz"));
     }
 
     @Test

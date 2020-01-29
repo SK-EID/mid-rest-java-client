@@ -33,6 +33,7 @@ public class MidRestConnectorBuilder {
   ClientConfig clientConfig;
   String relyingPartyUUID;
   String relyingPartyName;
+  Integer maximumResponseWaitingTimeInMilliseconds;
 
   public MidRestConnectorBuilder withEndpointUrl(String endpointUrl) {
     this.endpointUrl = endpointUrl;
@@ -51,6 +52,11 @@ public class MidRestConnectorBuilder {
 
   public MidRestConnectorBuilder withRelyingPartyName(String relyingPartyName) {
     this.relyingPartyName = relyingPartyName;
+    return this;
+  }
+
+  public MidRestConnectorBuilder withMaximumResponseWaitingTimeInMilliseconds(Integer maximumResponseWaitingTimeInMilliseconds) {
+    this.maximumResponseWaitingTimeInMilliseconds = maximumResponseWaitingTimeInMilliseconds;
     return this;
   }
 

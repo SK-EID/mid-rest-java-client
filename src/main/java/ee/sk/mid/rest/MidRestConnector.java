@@ -26,40 +26,31 @@ package ee.sk.mid.rest;
  * #L%
  */
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import java.net.URI;
-
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionNotFoundException;
-import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
-import ee.sk.mid.exception.MidException;
-import ee.sk.mid.exception.MidUnauthorizedException;
+import ee.sk.mid.exception.*;
 import ee.sk.mid.rest.dao.MidSessionStatus;
-import ee.sk.mid.rest.dao.request.MidAbstractRequest;
-import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
-import ee.sk.mid.rest.dao.request.MidCertificateRequest;
-import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
-import ee.sk.mid.rest.dao.request.MidSignatureRequest;
+import ee.sk.mid.rest.dao.request.*;
 import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
 import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.*;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class MidRestConnector implements MidConnector {
 
@@ -73,6 +64,8 @@ public class MidRestConnector implements MidConnector {
 
     private String relyingPartyUUID;
     private String relyingPartyName;
+
+    private int maximumResponseWaitingTimeInMilliseconds = 122000;
 
     public MidRestConnector(String endpointUrl) {
         this.endpointUrl = endpointUrl;
@@ -95,6 +88,8 @@ public class MidRestConnector implements MidConnector {
         this.clientConfig = mobileIdRestConnectorBuilder.clientConfig;
         this.relyingPartyName = mobileIdRestConnectorBuilder.relyingPartyName;
         this.relyingPartyUUID = mobileIdRestConnectorBuilder.relyingPartyUUID;
+        this.maximumResponseWaitingTimeInMilliseconds = Optional.ofNullable(mobileIdRestConnectorBuilder.maximumResponseWaitingTimeInMilliseconds)
+                .orElse(maximumResponseWaitingTimeInMilliseconds);
     }
 
     @Override
@@ -175,7 +170,7 @@ public class MidRestConnector implements MidConnector {
 
         URI uri = uriBuilder.build(request.getSessionID());
         try {
-            return prepareClient(uri).get( MidSessionStatus.class);
+            return prepareClient(uri).get(MidSessionStatus.class);
         } catch (NotFoundException e) {
             logger.error("Session " + request + " not found: " + e.getMessage());
             throw new MidSessionNotFoundException();
@@ -211,6 +206,15 @@ public class MidRestConnector implements MidConnector {
         } catch (NotAuthorizedException e) {
             logger.error("Request is unauthorized for URI " + uri + ": " + e.getMessage());
             throw new MidUnauthorizedException("Request is unauthorized for URI " + uri + ": " + e.getMessage());
+        } catch (ProcessingException e) {
+            Throwable cause = e.getCause();
+            if (null != cause && cause.getClass().isAssignableFrom(SocketTimeoutException.class)) {
+                logger.warn("Session initiation request for MID-API timed out.", cause);
+                throw new MidResponseTimeoutException();
+            }
+            else {
+                throw e;
+            }
         }
     }
 
@@ -224,7 +228,19 @@ public class MidRestConnector implements MidConnector {
     }
 
     private Invocation.Builder prepareClient(URI uri) {
-        Client client = clientConfig == null ? ClientBuilder.newClient() : ClientBuilder.newClient(clientConfig);
+        Client client;
+        if (null == clientConfig) {
+            client = ClientBuilder.newBuilder()
+                    .readTimeout(maximumResponseWaitingTimeInMilliseconds, TimeUnit.MILLISECONDS)
+                    .build();
+        }
+        else {
+            client = ClientBuilder.newBuilder()
+                    .readTimeout(maximumResponseWaitingTimeInMilliseconds, TimeUnit.MILLISECONDS)
+                    .withConfig(clientConfig)
+                    .build();
+        }
+
         return client
             .register(new MidLoggingFilter())
             .target(uri)

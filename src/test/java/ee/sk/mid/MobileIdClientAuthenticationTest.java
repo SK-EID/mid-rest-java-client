@@ -26,72 +26,50 @@ package ee.sk.mid;
  * #L%
  */
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectAuthenticationRequestMade;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertMadeCorrectAuthenticationRequesWithSHA256;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createAndSendAuthentication;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeValidAuthenticationRequest;
-import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.sendAuthentication;
-import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertAuthenticationPolled;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubSessionStatusWithState;
-import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
-import static ee.sk.mid.mock.TestData.AUTHENTICATION_SESSION_PATH;
-import static ee.sk.mid.mock.TestData.DATA_TO_SIGN;
-import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
-import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
-import static ee.sk.mid.mock.TestData.LOCALHOST_URL;
-import static ee.sk.mid.mock.TestData.SHA256_HASH_IN_BASE64;
-import static ee.sk.mid.mock.TestData.SHA512_HASH_IN_BASE64;
-import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
-import static ee.sk.mid.mock.TestData.VALID_PHONE;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
-import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
-import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
-import ee.sk.mid.exception.MidNotMidClientException;
-import ee.sk.mid.exception.MidPhoneNotAvailableException;
-import ee.sk.mid.exception.MidUnauthorizedException;
-import ee.sk.mid.exception.MidUserCancellationException;
+import ee.sk.mid.exception.*;
 import ee.sk.mid.rest.MidConnector;
 import ee.sk.mid.rest.MidRestConnector;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
+import ee.sk.mid.rest.dao.request.MidSessionStatusRequest;
 import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+
+import javax.ws.rs.ProcessingException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.*;
+import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertAuthenticationPolled;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.*;
+import static ee.sk.mid.mock.TestData.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.*;
 
 public class MobileIdClientAuthenticationTest {
 
   public static final String FIRST_REQUEST_DONE = "FIRST_REQUEST_DONE";
   @Rule
   public WireMockRule wireMockRule = new WireMockRule(18089);
+
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   private MidClient client;
 
@@ -115,6 +93,11 @@ public class MobileIdClientAuthenticationTest {
         "responses/authenticationResponse.json");
     stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
         "responses/sessionStatusForSuccessfulAuthenticationRequest.json");
+  }
+
+  @After
+  public void reset() {
+    wireMockRule.resetAll();
   }
 
   @Test
@@ -471,6 +454,153 @@ public class MobileIdClientAuthenticationTest {
         .build();
 
     assertThat(client.getMobileIdConnector().getSessionStatus(null, null).getState(), is(mock));
+  }
+
+  @Test
+  public void authenticate_responseFromServerComesSlightlyBeforeTimeout_theRequestIsSuccessful() {
+    stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
+            "responses/sessionStatusForSuccessfulAuthenticationRequest.json", 4950);
+
+    client = MidClient.newBuilder()
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withHostUrl(LOCALHOST_URL)
+            .build();
+
+    client.getMobileIdConnector()
+            .getSessionStatus(new MidSessionStatusRequest("1dcc1600-29a6-4e95-a95c-d69b31febcfb", 3), AUTHENTICATION_SESSION_PATH);
+
+  }
+
+  @Test(expected = ProcessingException.class)
+  public void authenticate_responseFromServerComesSlightlyAfterTimeout_timeoutExceptionIsThrown() {
+    stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
+            "responses/sessionStatusForSuccessfulAuthenticationRequest.json", 5050);
+
+    client = MidClient.newBuilder()
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withHostUrl(LOCALHOST_URL)
+            .withMaximumResponseWaitingTimeInMilliseconds(5000)
+            .build();
+
+    client.getMobileIdConnector()
+            .getSessionStatus(new MidSessionStatusRequest("1dcc1600-29a6-4e95-a95c-d69b31febcfb", 3), AUTHENTICATION_SESSION_PATH);
+
+  }
+
+  @Test
+  public void authenticate_responseIsTimedoutOnThreeRequestsAndFourthArrivesInTime_eachTimeoutShouldResultInNewRequest_totalFourRequestsMade() {
+    stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
+            "responses/sessionStatusForSuccessfulAuthenticationRequest.json", 5050, STARTED, "TIMEOUT1");
+    stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
+            "responses/sessionStatusForSuccessfulAuthenticationRequest.json", 5050, "TIMEOUT1", "TIMEOUT2");
+    stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
+            "responses/sessionStatusForSuccessfulAuthenticationRequest.json", 5050, "TIMEOUT2", "TIMEOUT3");
+    stubRequestWithResponse("/authentication/session/1dcc1600-29a6-4e95-a95c-d69b31febcfb",
+            "responses/sessionStatusForSuccessfulAuthenticationRequest.json", 4950, "TIMEOUT3", "RECEIVE");
+
+    MidConnector connector = spy(MidRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withMaximumResponseWaitingTimeInMilliseconds(5000)
+            .build());
+
+    client = MidClient.newBuilder()
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withHostUrl(LOCALHOST_URL)
+            .withLongPollingTimeoutSeconds(3)
+            .withMobileIdConnector(connector)
+            .build();
+
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
+            .withRelyingPartyUUID(client.getRelyingPartyUUID())
+            .withRelyingPartyName(client.getRelyingPartyName())
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(MidHashToSign.newBuilder()
+                    .withHashType(MidHashType.SHA512)
+                    .withHashInBase64("kc42j4tGXa1Pc2LdMcJCKAgpOk9RCQgrBogF6fHA40VSPw1qITw8zQ8g5ZaLcW5jSlq67ehG3uSvQAWIFs3TOw==")
+                    .build())
+            .withLanguage( MidLanguage.EST)
+            .build();
+
+    MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
+    client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
+
+    Mockito.verify(connector, times(4)).getSessionStatus(any(), any());
+  }
+
+  @Test(expected = MidResponseTimeoutException.class)
+  public void authenticate_initationRequestTimesOut_SocketTimeoutExceptionIsthrownInternally_getsConvertedToMidInternalErrorException() {
+    stubRequestWithResponse("/authentication", "requests/authenticationRequest.json",
+            "responses/authenticationResponse.json", 5050);
+
+    MidConnector connector = spy(MidRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withMaximumResponseWaitingTimeInMilliseconds(5000)
+            .build());
+
+    client = MidClient.newBuilder()
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withHostUrl(LOCALHOST_URL)
+            .withLongPollingTimeoutSeconds(3)
+            .withMobileIdConnector(connector)
+            .build();
+
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
+            .withRelyingPartyUUID(client.getRelyingPartyUUID())
+            .withRelyingPartyName(client.getRelyingPartyName())
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(MidHashToSign.newBuilder()
+                    .withHashType(MidHashType.SHA512)
+                    .withHashInBase64("kc42j4tGXa1Pc2LdMcJCKAgpOk9RCQgrBogF6fHA40VSPw1qITw8zQ8g5ZaLcW5jSlq67ehG3uSvQAWIFs3TOw==")
+                    .build())
+            .withLanguage( MidLanguage.EST)
+            .build();
+
+    MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
+  }
+
+  @Test
+  public void authenticate_initationRequestResponseComesSlightlyBeforeTimeout_shouldPassWithoutExceptions() {
+    stubRequestWithResponse("/authentication", "requests/authenticationRequest.json",
+            "responses/authenticationResponse.json", 5050);
+
+    MidConnector connector = spy(MidRestConnector.newBuilder()
+            .withEndpointUrl(LOCALHOST_URL)
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withMaximumResponseWaitingTimeInMilliseconds(6000)
+            .build());
+
+    client = MidClient.newBuilder()
+            .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+            .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+            .withHostUrl(LOCALHOST_URL)
+            .withLongPollingTimeoutSeconds(3)
+            .withMobileIdConnector(connector)
+            .build();
+
+    MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
+            .withRelyingPartyUUID(client.getRelyingPartyUUID())
+            .withRelyingPartyName(client.getRelyingPartyName())
+            .withPhoneNumber(VALID_PHONE)
+            .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+            .withHashToSign(MidHashToSign.newBuilder()
+                    .withHashType(MidHashType.SHA512)
+                    .withHashInBase64("kc42j4tGXa1Pc2LdMcJCKAgpOk9RCQgrBogF6fHA40VSPw1qITw8zQ8g5ZaLcW5jSlq67ehG3uSvQAWIFs3TOw==")
+                    .build())
+            .withLanguage( MidLanguage.EST)
+            .build();
+
+    MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
   }
 
   private long measureAuthenticationDuration(MidClient client) {

@@ -26,13 +26,9 @@ package ee.sk.mid;
  * #L%
  */
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import java.security.cert.X509Certificate;
-
+import ee.sk.mid.exception.MidException;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
-import ee.sk.mid.exception.MidException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.rest.MidConnector;
 import ee.sk.mid.rest.MidRestConnector;
@@ -44,6 +40,10 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.cert.X509Certificate;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 public class MidClient {
 
     private static final Logger logger = LoggerFactory.getLogger( MidClient.class);
@@ -54,12 +54,14 @@ public class MidClient {
     private ClientConfig networkConnectionConfig;
     private MidConnector connector;
     private MidSessionStatusPoller sessionStatusPoller;
+    private Integer maximumResponseWaitingTimeInMilliseconds;
 
     private MidClient(MobileIdClientBuilder builder) {
         this.relyingPartyUUID = builder.relyingPartyUUID;
         this.relyingPartyName = builder.relyingPartyName;
         this.hostUrl = builder.hostUrl;
         this.networkConnectionConfig = builder.networkConnectionConfig;
+        this.maximumResponseWaitingTimeInMilliseconds = builder.maximumResponseWaitingTimeInMilliseconds;
         this.connector = builder.connector;
 
         this.sessionStatusPoller = MidSessionStatusPoller.newBuilder()
@@ -76,6 +78,7 @@ public class MidClient {
                 .withClientConfig(networkConnectionConfig)
                 .withRelyingPartyUUID(relyingPartyUUID)
                 .withRelyingPartyName(relyingPartyName)
+                .withMaximumResponseWaitingTimeInMilliseconds(maximumResponseWaitingTimeInMilliseconds)
                 .build();
         }
         return connector;
@@ -161,6 +164,7 @@ public class MidClient {
         private int pollingSleepTimeoutSeconds;
         private int longPollingTimeoutSeconds;
         private MidConnector connector;
+        private Integer maximumResponseWaitingTimeInMilliseconds;
 
         private MobileIdClientBuilder() {}
 
@@ -196,6 +200,11 @@ public class MidClient {
 
         public MobileIdClientBuilder withMobileIdConnector(MidConnector mobileIdConnector) {
             this.connector = mobileIdConnector;
+            return this;
+        }
+
+        public MobileIdClientBuilder withMaximumResponseWaitingTimeInMilliseconds(Integer maximumResponseWaitingTimeInMilliseconds) {
+            this.maximumResponseWaitingTimeInMilliseconds = maximumResponseWaitingTimeInMilliseconds;
             return this;
         }
 

@@ -26,21 +26,14 @@ package ee.sk.mid.mock;
  * #L%
  */
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.junit.Assert.assertNotNull;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import org.apache.commons.io.FileUtils;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertNotNull;
 
 public class MobileIdRestServiceStub {
 
@@ -53,21 +46,44 @@ public class MobileIdRestServiceStub {
                         .withBody("Not found")));
     }
 
-    public static void stubRequestWithResponse(String url, String responseFile) {
+    public static void stubRequestWithResponse(String url, String responseFile, int delayInMillis) {
         stubFor(get(urlPathEqualTo(url))
                 .withHeader("Accept", equalTo("application/json"))
                 .willReturn(aResponse()
+                        .withFixedDelay(delayInMillis)
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(readFileBody(responseFile))));
     }
 
+    public static void stubRequestWithResponse(String url, String responseFile, int delayInMillis, String oldState, String newState) {
+        stubFor(get(urlPathEqualTo(url))
+                .inScenario("DEFAULT")
+                .whenScenarioStateIs(oldState)
+                .willSetStateTo(newState)
+                .withHeader("Accept", equalTo("application/json"))
+                .willReturn(aResponse()
+                        .withFixedDelay(delayInMillis)
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(readFileBody(responseFile))));
+    }
+
+    public static void stubRequestWithResponse(String url, String responseFile) {
+        stubRequestWithResponse(url, responseFile, 0);
+    }
+
     public static void stubRequestWithResponse(String url, String requestFile, String responseFile) {
+        stubRequestWithResponse(url, requestFile, responseFile, 0);
+    }
+
+    public static void stubRequestWithResponse(String url, String requestFile, String responseFile, int delayInMillies) {
         stubFor(post(urlEqualTo(url))
                 .withHeader("Accept", equalTo("application/json"))
                 .withRequestBody(equalToJson(readFileBody(requestFile)))
                 .willReturn(aResponse()
                         .withStatus(200)
+                        .withFixedDelay(delayInMillies)
                         .withHeader("Content-Type", "application/json")
                         .withBody(readFileBody(responseFile))));
     }
