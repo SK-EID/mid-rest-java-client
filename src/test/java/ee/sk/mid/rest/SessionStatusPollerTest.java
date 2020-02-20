@@ -26,35 +26,19 @@ package ee.sk.mid.rest;
  * #L%
  */
 
-import static ee.sk.mid.mock.SessionStatusDummy.assertCompleteSessionStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createDeliveryErrorStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createInvalidCardResponseStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createMIDNotReadyStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createMSSPTransactionExpiredStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createNotMIDClientStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createResponseRetrievingErrorStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createRunningSessionStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createSignatureHashMismatchStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createSimNotAvailableStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createSuccessfulSessionStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createTimeoutSessionStatus;
-import static ee.sk.mid.mock.SessionStatusDummy.createUserCancellationStatus;
-import static ee.sk.mid.mock.TestData.AUTHENTICATION_SESSION_PATH;
-import static ee.sk.mid.mock.TestData.SESSION_ID;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
-import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
-import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
-import ee.sk.mid.exception.MidNotMidClientException;
-import ee.sk.mid.exception.MidPhoneNotAvailableException;
-import ee.sk.mid.exception.MidUserCancellationException;
+import ee.sk.mid.exception.*;
 import ee.sk.mid.mock.MobileIdConnectorStub;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.net.SocketTimeoutException;
+
+import static ee.sk.mid.mock.SessionStatusDummy.*;
+import static ee.sk.mid.mock.TestData.AUTHENTICATION_SESSION_PATH;
+import static ee.sk.mid.mock.TestData.SESSION_ID;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class SessionStatusPollerTest {
 
@@ -184,6 +168,16 @@ public class SessionStatusPollerTest {
         sessionStatus.setResult(null);
         connector.getResponses().add(sessionStatus);
         poller.fetchFinalSessionStatus(SESSION_ID, AUTHENTICATION_SESSION_PATH);
+    }
+
+    @Test
+    public void isTimeout_socketTimeoutExceptionSupplied_shouldReturnTrue() {
+        assertThat(MidSessionStatusPoller.isTimeout(new SocketTimeoutException("TIMEOUT")), is(true));
+    }
+
+    @Test
+    public void isTimeout_runtimeExceptionSupplied_shouldReturnFalse() {
+        assertThat(MidSessionStatusPoller.isTimeout(new RuntimeException("NOT TIMEOUT")), is(false));
     }
 
     private long measurePollingDuration() {

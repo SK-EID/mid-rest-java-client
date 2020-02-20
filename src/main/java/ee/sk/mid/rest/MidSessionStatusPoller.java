@@ -93,7 +93,7 @@ public class MidSessionStatusPoller {
             try {
                 sessionStatus = connector.getSessionStatus(request, path);
 
-                if (equalsIgnoreCase("COMPLETE", sessionStatus.getState())) {
+                if ("COMPLETE".equalsIgnoreCase(sessionStatus.getState())) {
                     break;
                 }
 
@@ -103,7 +103,7 @@ public class MidSessionStatusPoller {
             }
             catch (ProcessingException exception) {
                 Throwable cause = exception.getCause();
-                if (null != cause && cause.getClass().isAssignableFrom(SocketTimeoutException.class)) {
+                if (isTimeout(cause)) {
                     logger.warn("Session status request for MID-API timed out. Retrying.", cause);
                 }
                 else {
@@ -113,6 +113,10 @@ public class MidSessionStatusPoller {
         }
         logger.debug("Got session final session status response");
         return sessionStatus;
+    }
+
+    static boolean isTimeout(Throwable cause) {
+        return null != cause && cause.getClass().isAssignableFrom(SocketTimeoutException.class);
     }
 
     private void validateResult(MidSessionStatus sessionStatus) {
