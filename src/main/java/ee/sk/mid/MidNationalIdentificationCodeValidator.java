@@ -37,18 +37,22 @@ public class MidNationalIdentificationCodeValidator {
         if (idCode == null || idCode.length() != 11) {
             return false;
         }
-        int controlDigit = Integer.parseInt(idCode.substring(10));
-
-        if (controlDigit != calculateControlDigit(idCode)) {
-            return false;
-        }
-
         try {
-            getBirthDate(idCode);
-        } catch (DateTimeException ex) {
-            return false;
+          int controlDigit = Integer.parseInt(idCode.substring(10));
+  
+          if (controlDigit != calculateControlDigit(idCode)) {
+              return false;
+          }
+  
+          try {
+              getBirthDate(idCode);
+          } catch (DateTimeException ex) {
+              return false;
+          }
+          return true;
+        } catch (NumberFormatException e) {
+          return false;
         }
-        return true;
     }
 
     public static int calculateControlDigit(String idCode) {

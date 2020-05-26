@@ -48,6 +48,20 @@ public class NationalIdentificationCodeValidatorTest {
 
         assertThat(isValid, is(false));
     }
+    
+    @Test
+    public void shouldConsiderInvalid_lengthMismatch() {
+        boolean isValid = MidNationalIdentificationCodeValidator.isValid("376050302993");
+
+        assertThat(isValid, is(false));
+    }
+    
+    @Test
+    public void shouldConsiderInvalid_notNumber() {
+        boolean isValid = MidNationalIdentificationCodeValidator.isValid("3760503029y");
+
+        assertThat(isValid, is(false));
+    }
 
     @Test
     public void shouldCalculateControlDigit() {
