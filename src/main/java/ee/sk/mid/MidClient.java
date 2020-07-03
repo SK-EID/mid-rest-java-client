@@ -48,6 +48,9 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Configuration;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Configuration;
+
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidException;
