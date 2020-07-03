@@ -26,8 +26,20 @@ package ee.sk.mid;
  * #L%
  */
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import ee.sk.mid.exception.*;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.MidSessionStatusPoller;
+import ee.sk.mid.rest.dao.MidSessionSignature;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Configuration;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -42,28 +54,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Configuration;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Configuration;
-
-import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
-import ee.sk.mid.exception.MidException;
-import ee.sk.mid.exception.MidNotMidClientException;
-import ee.sk.mid.exception.MidSslException;
-import ee.sk.mid.rest.MidConnector;
-import ee.sk.mid.rest.MidRestConnector;
-import ee.sk.mid.rest.MidSessionStatusPoller;
-import ee.sk.mid.rest.dao.MidSessionSignature;
-import ee.sk.mid.rest.dao.MidSessionStatus;
-import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class MidClient {
 
@@ -188,7 +180,7 @@ public class MidClient {
             CertificateFactory factory = CertificateFactory.getInstance("X509");
             int i = 0;
             for (String sslCertificate : this.sslCertificates) {
-                Certificate certificate = factory.generateCertificate(new ByteArrayInputStream(sslCertificate.getBytes()));
+                Certificate certificate = factory.generateCertificate(new ByteArrayInputStream(sslCertificate.getBytes(UTF_8)));
                 keyStore.setCertificateEntry("mid_api_ssl_cert" + (++i), certificate);
             }
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
