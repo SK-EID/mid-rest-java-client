@@ -30,7 +30,8 @@ public enum MidAuthenticationError {
 
     INVALID_RESULT("Response result verification failed"),
     SIGNATURE_VERIFICATION_FAILURE("Signature verification failed"),
-    CERTIFICATE_EXPIRED("Signer's certificate expired");
+    CERTIFICATE_EXPIRED("Signer's certificate expired"),
+    CERTIFICATE_NOT_TRUSTED("Signer's certificate is not trusted");
 
     private String message;
 

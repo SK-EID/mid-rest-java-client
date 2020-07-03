@@ -29,9 +29,19 @@ package ee.sk.mid;
 import static ee.sk.mid.MidSignatureVerifier.verifyWithECDSA;
 import static ee.sk.mid.MidSignatureVerifier.verifyWithRSA;
 
-import java.security.PublicKey;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -44,6 +54,12 @@ import org.slf4j.LoggerFactory;
 public class MidAuthenticationResponseValidator {
 
     private static final Logger logger = LoggerFactory.getLogger( MidAuthenticationResponseValidator.class);
+
+    private List<X509Certificate> trustedCACertificates = new ArrayList<>();
+
+    public MidAuthenticationResponseValidator() {
+        initializeTrustedCACertificatesFromKeyStore();
+    }
 
     public MidAuthenticationResult validate(MidAuthentication authentication) {
         validateAuthentication(authentication);
@@ -61,6 +77,10 @@ public class MidAuthenticationResponseValidator {
         if (!isCertificateValid(authentication.getCertificate())) {
             authenticationResult.setValid(false);
             authenticationResult.addError( MidAuthenticationError.CERTIFICATE_EXPIRED);
+        }
+        if (!isCertificateTrusted(authentication.getCertificate())) {
+            authenticationResult.setValid(false);
+            authenticationResult.addError(MidAuthenticationError.CERTIFICATE_NOT_TRUSTED);
         }
         return authenticationResult;
     }
@@ -131,7 +151,53 @@ public class MidAuthenticationResponseValidator {
         }
     }
 
+    private void initializeTrustedCACertificatesFromKeyStore() {
+        try (InputStream is = MidAuthenticationResponseValidator.class.getResourceAsStream("/trusted_certificates.jks")) {
+            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keystore.load(is, "changeit".toCharArray());
+            Enumeration<String> aliases = keystore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                X509Certificate certificate = (X509Certificate) keystore.getCertificate(alias);
+                logger.error(certificate.toString());
+                addTrustedCACertificate(certificate);
+            }
+        } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
+            logger.error("Error initializing trusted CA certificates", e);
+            throw new MidInternalErrorException("Error initializing trusted CA certificates", e);
+        }
+    }
+
+    public void addTrustedCACertificate(File certificateFile) throws IOException, CertificateException {
+        addTrustedCACertificate(Files.readAllBytes(certificateFile.toPath()));
+    }
+
+    public void addTrustedCACertificate(byte[] certificateBytes) throws CertificateException {
+        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+        X509Certificate caCertificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certificateBytes));
+        addTrustedCACertificate(caCertificate);
+    }
+
+    public void addTrustedCACertificate(X509Certificate certificate) {
+        trustedCACertificates.add(certificate);
+    }
+
     private boolean isCertificateValid(X509Certificate certificate) {
         return !certificate.getNotAfter().before(new Date());
+    }
+
+    private boolean isCertificateTrusted(X509Certificate certificate) {
+        for (X509Certificate trustedCACertificate : trustedCACertificates) {
+            try {
+                certificate.verify(trustedCACertificate.getPublicKey());
+                return true;
+            } catch (SignatureException e) {
+                continue;
+            } catch (GeneralSecurityException e) {
+                logger.warn("Error verifying signer's certificate: " + certificate.getSubjectDN() + " against CA certificate: " + trustedCACertificate.getSubjectDN(), e);
+                continue;
+            }
+        }
+        return false;
     }
 }
