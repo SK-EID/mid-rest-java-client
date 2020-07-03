@@ -30,13 +30,13 @@ import ee.sk.mid.exception.MidException;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidSslException;
 import ee.sk.mid.rest.MidConnector;
 import ee.sk.mid.rest.MidRestConnector;
 import ee.sk.mid.rest.MidSessionStatusPoller;
 import ee.sk.mid.rest.dao.MidSessionSignature;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
-import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,8 @@ public class MidClient {
     private String relyingPartyUUID;
     private String relyingPartyName;
     private String hostUrl;
-    private ClientConfig networkConnectionConfig;
+    private Configuration networkConnectionConfig;
+    private Client configuredClient;
     private MidConnector connector;
     private MidSessionStatusPoller sessionStatusPoller;
     private Integer maximumResponseWaitingTimeInMilliseconds;
@@ -63,6 +64,9 @@ public class MidClient {
         this.networkConnectionConfig = builder.networkConnectionConfig;
         this.maximumResponseWaitingTimeInMilliseconds = builder.maximumResponseWaitingTimeInMilliseconds;
         this.connector = builder.connector;
+      
+        this.sslCertificates=builder.sslCertificates;
+        this.sslContext = builder.sslContext == null ? createSslContext() : builder.sslContext;
 
         this.sessionStatusPoller = MidSessionStatusPoller.newBuilder()
             .withConnector(this.getMobileIdConnector())
@@ -75,6 +79,7 @@ public class MidClient {
         if (null == connector) {
             this.connector = MidRestConnector.newBuilder()
                 .withEndpointUrl(hostUrl)
+                .withConfiguredClient(configuredClient)
                 .withClientConfig(networkConnectionConfig)
                 .withRelyingPartyUUID(relyingPartyUUID)
                 .withRelyingPartyName(relyingPartyName)
@@ -152,6 +157,26 @@ public class MidClient {
         }
     }
 
+    public SSLContext createSslContext() {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(null, "".toCharArray());
+            CertificateFactory factory = CertificateFactory.getInstance("X509");
+            int i = 0;
+            for (String sslCertificate : this.sslCertificates) {
+                Certificate certificate = factory.generateCertificate(new ByteArrayInputStream(sslCertificate.getBytes()));
+                keyStore.setCertificateEntry("mid_api_ssl_cert" + (++i), certificate);
+            }
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
+            trustManagerFactory.init(keyStore);
+            sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+            return sslContext;
+        } catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+            throw new MidSslException(e.getMessage());
+        }
+    }
+
     public static MobileIdClientBuilder newBuilder() {
         return new MobileIdClientBuilder();
     }
@@ -160,7 +185,8 @@ public class MidClient {
         private String relyingPartyUUID;
         private String relyingPartyName;
         private String hostUrl;
-        private ClientConfig networkConnectionConfig;
+        private Configuration networkConnectionConfig;
+        private Client configuredClient;
         private int pollingSleepTimeoutSeconds;
         private int longPollingTimeoutSeconds;
         private MidConnector connector;
@@ -183,8 +209,13 @@ public class MidClient {
             return this;
         }
 
-        public MobileIdClientBuilder withNetworkConnectionConfig(ClientConfig networkConnectionConfig) {
+        public MobileIdClientBuilder withNetworkConnectionConfig(Configuration networkConnectionConfig) {
             this.networkConnectionConfig = networkConnectionConfig;
+            return this;
+        }
+
+        public MobileIdClientBuilder withConfiguredClient(Client configuredClient) {
+            this.configuredClient = configuredClient;
             return this;
         }
 

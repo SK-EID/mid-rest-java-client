@@ -1,14 +1,20 @@
 language: java
-
 jdk:
   - openjdk8
-
+sudo: false
 cache:
   directories:
     - $HOME/.m2
-
+env:
+  global:
+    - secure: r3B7sTCeUXYvAGWSHttH+wZ1qiU2C2V5QfZYZoqleRu4I082CmhvyQQtnP1ZpKWtMa4M0XpG+24fDu6JD6i5wVB5VWWn8f2SjFjEeC/RHrsQ7QP2UuYACkOb0sLGFf6ylES1a544KwTZsTbceS61eFvYZV5fdrEezYcvZksv8H4EDJSJsIml3Fxpy53t2WGZUUUwrBLnxVW14zDa3rHz3J+8Rkz8GXGHdH9VPRt3I9bH4OKNfSnH/293kHT7aaqIK50tV3WHkTMYt/qgsbphBB2Cn7mTrDDihLMJFmYSPnRXBm2Z0y/898Qm3XhNeYxqjP4l6Jd93PMsHLAe5WQMm/9wzyqdf5WW/l/AEW+vAWfCpD6si72yHe5qiyj5sSnoekGidoAV9g4jDa40lPKb+uY67L5Q4nMiizJm4klXL7NTM8sxTHFmLDbjsM/DITWv3183YzONFmAQmM9cyBu9MWQV0f+c0ArVqyt73IvNGYaO/gYT2cC34jJUsXpFko4osn7IQk64AbmVoIS36QD6Zx1yyRMB7v8hEfpqqg/KPTO2eyUYdyhjjzM7mXtwyFR/0udUa9cRJcrxkivnFg69Hr3snJbsIszZcamvcABQocGPkQGKo+r3hjP/HtrmA3Y9gSnr54wIYgzZbDMmchHwocoxfm3gUFUvRCq106k6u+8=
+    - secure: C+aMZ1tlO6s/8lb2y0RmWMaXWUbszUQXUNLbl3kA5SjHjcxc4PzWOYm+sIu+PJ9Gg5w55FST+zEFOTe9NCwjWl+7cWCvpuPCN5p9HiiBnb226xENfP3LvgyeFHx+s4WAVo+Gx3JeyR0iSvoVugD03fuZTsg774VGtnyItb+km2GUh79k25UUrr+YojMgScum1R9T+zk4Yu7FpV/+kDXXLAFB1UXTpYdhsyDeml9y7nsQ+w2eAo3eii3WvnTtwUhY64U0VNxNqOmqTYI+S3QJrdIOuCKgr+s4g3w//g5fox76RzKz4g54jBaf69PmdZcDAbLpcTJVoa9aCoPeS6ADG65irJVew+P+3cRvrGzTgvKrtOiA2J6H2TDMJtZ2X3ZrAOIRP7HX3kTXbYXaEIIdLcaPCrwGqIcHdayxgAa0Xe/ofKtc6biP4tvtVEcv/M4k7Y77xd8TgvJlftIFpCxfZ6Yzxj3rjwvciX9KcxZBdkZXg9+DwEbVzll1Cr0HcKdKOssssS69RUxnc/CoYkiOzz/02yF266pnHFZXASX+iRC4zjOhM+NH+hlyLNaDHN1bRVkja1MHLQgcnrz4G6O75/Izl/4H1VAbqYq47Mw4FHfRM1LddHnPZvA3Aq+P9HIvLlIk5dDRMHtpmz7LyJ5BSO6quPYO6fdn/nIJClu+p+4=
+before_install:
+  - eval $(openssl aes-256-cbc -K $encrypted_ea2b7c6a03d7_key -iv $encrypted_ea2b7c6a03d7_iv -in private.key.enc -out  private.key -d)
+  - chmod +x travis.sh
+  - pip install --user codecov
+after_success:
+  - codecov
 script:
-  - mvn test
-  - mvn org.owasp:dependency-check-maven:check
-
+  - "./travis.sh"
 

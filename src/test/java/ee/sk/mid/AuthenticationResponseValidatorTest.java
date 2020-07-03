@@ -35,12 +35,12 @@ import static ee.sk.mid.mock.TestData.SIGNED_ECC_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SIGNED_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.VALID_ECC_SIGNATURE_IN_BASE64;
 import static ee.sk.mid.mock.TestData.VALID_SIGNATURE_IN_BASE64;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
@@ -59,7 +59,10 @@ public class AuthenticationResponseValidatorTest {
     }
 
     @Test
-    public void validate_whenRSA_shouldReturnValidAuthenticationResult() {
+    public void validate_whenRSA_shouldReturnValidAuthenticationResult() throws Exception{
+        File caCertificateFile = new File(AuthenticationResponseValidatorTest.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
+        validator.addTrustedCACertificate(caCertificateFile);
+
         MidAuthentication authentication = createValidMobileIdAuthentication();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
@@ -68,7 +71,10 @@ public class AuthenticationResponseValidatorTest {
     }
 
     @Test
-    public void validate_whenECC_shouldReturnValidAuthenticationResult() {
+    public void validate_whenECC_shouldReturnValidAuthenticationResult() throws Exception{
+        File caCertificateFile = new File(AuthenticationResponseValidatorTest.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt").getFile());
+        validator.addTrustedCACertificate(caCertificateFile);
+
         MidAuthentication authentication = createMobileIdAuthenticationWithECC();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
@@ -77,7 +83,7 @@ public class AuthenticationResponseValidatorTest {
     }
 
     @Test
-    public void validate_whenResultLowerCase_shouldReturnValidAuthenticationResult() {
+    public void validate_whenCertificateNotTrusted_shouldReturnCertificateNotTrusted() throws Exception {
         MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("ok")
                 .withSignatureValueInBase64(VALID_SIGNATURE_IN_BASE64)
@@ -86,6 +92,25 @@ public class AuthenticationResponseValidatorTest {
                 .withHashType( MidHashType.SHA512)
                 .build();
 
+
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
+
+        assertThat(authenticationResult.getErrors(), hasItem(equalTo("Signer's certificate is not trusted")));
+    }
+
+    @Test
+    public void validate_whenResultLowerCase_shouldReturnValidAuthenticationResult() throws Exception {
+        MidAuthentication authentication = MidAuthentication.newBuilder()
+                .withResult("ok")
+                .withSignatureValueInBase64(VALID_SIGNATURE_IN_BASE64)
+                .withCertificate( MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE))
+                .withSignedHashInBase64(SIGNED_HASH_IN_BASE64)
+                .withHashType( MidHashType.SHA512)
+                .build();
+
+        File caCertificateFile = new File(AuthenticationResponseValidatorTest.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
+        validator.addTrustedCACertificate(caCertificateFile);
+
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(true));
@@ -93,7 +118,10 @@ public class AuthenticationResponseValidatorTest {
     }
 
     @Test
-    public void validate_whenResultNotOk_shouldReturnInvalidAuthenticationResult() {
+    public void validate_whenResultNotOk_shouldReturnInvalidAuthenticationResult() throws Exception {
+        File caCertificateFile = new File(AuthenticationResponseValidatorTest.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
+        validator.addTrustedCACertificate(caCertificateFile);
+
         MidAuthentication authentication = createMobileIdAuthenticationWithInvalidResult();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
@@ -107,7 +135,7 @@ public class AuthenticationResponseValidatorTest {
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(false));
-        assertThat(authenticationResult.getErrors(), contains("Signature verification failed"));
+        assertThat(authenticationResult.getErrors(), hasItem(equalTo("Signature verification failed")));
     }
 
     @Test
@@ -116,7 +144,7 @@ public class AuthenticationResponseValidatorTest {
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(false));
-        assertThat(authenticationResult.getErrors(), contains("Signer's certificate expired"));
+        assertThat(authenticationResult.getErrors(), hasItem(equalTo("Signer's certificate expired")));
     }
 
     @Test

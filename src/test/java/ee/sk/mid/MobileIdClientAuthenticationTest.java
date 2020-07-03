@@ -62,6 +62,9 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 public class MobileIdClientAuthenticationTest {
 
   public static final String FIRST_REQUEST_DONE = "FIRST_REQUEST_DONE";
@@ -126,7 +129,7 @@ public class MobileIdClientAuthenticationTest {
     MidAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
 
     assertThat(mobileIdAuthenticationResult.isValid(), is(false));
-    assertThat(mobileIdAuthenticationResult.getErrors(), contains("Signature verification failed"));
+    assertThat(mobileIdAuthenticationResult.getErrors(), hasItem("Signature verification failed"));
   }
 
   @Test
@@ -189,7 +192,7 @@ public class MobileIdClientAuthenticationTest {
     MidAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
 
     assertThat(mobileIdAuthenticationResult.isValid(), is(false));
-    assertThat(mobileIdAuthenticationResult.getErrors(), contains("Signature verification failed"));
+    assertThat(mobileIdAuthenticationResult.getErrors(), hasItem("Signature verification failed"));
   }
 
   @Test
@@ -418,12 +421,13 @@ public class MobileIdClientAuthenticationTest {
     Map<String, String> headersToAdd = new HashMap<>();
     headersToAdd.put(headerName, headerValue);
     ClientConfig clientConfig = getClientConfigWithCustomRequestHeaders(headersToAdd);
+    Client configuredClient = ClientBuilder.newClient(clientConfig);
 
     MidClient client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
-        .withNetworkConnectionConfig(clientConfig)
+        .withConfiguredClient(configuredClient)
         .build();
 
     makeValidAuthenticationRequest(client);
