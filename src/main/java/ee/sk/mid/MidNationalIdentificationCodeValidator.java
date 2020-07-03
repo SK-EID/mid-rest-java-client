@@ -37,9 +37,14 @@ public class MidNationalIdentificationCodeValidator {
         if (idCode == null || idCode.length() != 11) {
             return false;
         }
-        int controlDigit = Integer.parseInt(idCode.substring(10));
+        try {
+            int controlDigit = Integer.parseInt(idCode.substring(10));
 
-        if (controlDigit != calculateControlDigit(idCode)) {
+            if (controlDigit != calculateControlDigit(idCode)) {
+                return false;
+            }
+        }
+        catch (NumberFormatException numberFormatException) {
             return false;
         }
 
