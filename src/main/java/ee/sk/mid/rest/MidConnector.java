@@ -26,6 +26,8 @@ package ee.sk.mid.rest;
  * #L%
  */
 
+import javax.net.ssl.SSLContext;
+
 import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
@@ -49,4 +51,6 @@ public interface MidConnector {
     MidSessionStatus getAuthenticationSessionStatus(MidSessionStatusRequest request) throws MidSessionNotFoundException;
 
     MidSessionStatus getSignatureSessionStatus(MidSessionStatusRequest request) throws MidSessionNotFoundException;
+
+    void setSslContext(SSLContext sslContext);
 }

@@ -44,12 +44,12 @@ public class MidHashToSign implements Serializable {
             this.hash = builder.hashType.calculateDigest(builder.dataToHash);
         }
         else {
-            this.hash = builder.hash;
+            this.hash = builder.hash.clone();
         }
     }
 
     public byte[] getHash() {
-        return hash;
+        return hash.clone();
     }
 
     public String getHashInBase64() {
@@ -86,7 +86,7 @@ public class MidHashToSign implements Serializable {
             if (hash == null || hash.length == 0) {
                 throw new MidMissingOrInvalidParameterException("Cannot pass empty hash value");
             }
-            this.hash = hash;
+            this.hash = hash.clone();
 
             return this;
         }

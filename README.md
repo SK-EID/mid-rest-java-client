@@ -28,7 +28,7 @@ You can use the library as a dependency from the Maven Central (http://mvnreposi
 <dependency>
     <groupId>ee.sk.mid</groupId>
     <artifactId>mid-rest-java-client</artifactId>
-    <version>1.1</version>
+    <version>INSERT_VERSION_HERE</version>
 </dependency>
 ```
 
@@ -285,6 +285,76 @@ String givenName = authenticationIdentity.getGivenName();
 String surName = authenticationIdentity.getSurName();
 String identityCode = authenticationIdentity.getIdentityCode();
 String country = authenticationIdentity.getCountry();
+```
+
+### Verifying the ssl connection to SK
+By default the client is configured to trust both Live and Demo Environment ssl certificates
+```java
+    client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .build();
+```
+
+Using with only demo environment certificates
+```java
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withDemoEnvCertificates()
+                 .build();
+```
+
+Using with only live environment certificates
+```java
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withLiveEnvCertificates()
+                 .build();
+```
+
+Using with custom certificates
+```java
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withSslCertificates("Pem encoded cert 1", "Pem encoded cert 2")
+                 .build();
+```
+
+Using with custom keystore
+```java
+InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/pathToKeystore");
+KeyStore keyStore = KeyStore.getInstance("JKS");
+keyStore.load(is, "changeit".toCharArray());
+
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withSslKeyStore(keyStore)
+                 .build();
+```
+
+Using with custom ssl context
+```java
+...
+SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
+trustManagerFactory.init(keyStore);
+sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+
+client = MidClient.newBuilder()
+                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
+                 .withHostUrl(DEMO_HOST_URL)
+                 .withSslContext(sslContext)
+                 .build();
 ```
 
 ## Handling negative scenarios
