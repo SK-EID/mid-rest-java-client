@@ -87,6 +87,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 public class MobileIdClientAuthenticationTest {
 
   public static final String FIRST_REQUEST_DONE = "FIRST_REQUEST_DONE";
@@ -435,12 +438,13 @@ public class MobileIdClientAuthenticationTest {
     Map<String, String> headersToAdd = new HashMap<>();
     headersToAdd.put(headerName, headerValue);
     ClientConfig clientConfig = getClientConfigWithCustomRequestHeaders(headersToAdd);
+    Client configuredClient = ClientBuilder.newClient(clientConfig);
 
     MidClient client = MidClient.newBuilder()
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
-        .withNetworkConnectionConfig(clientConfig)
+        .withConfiguredClient(configuredClient)
         .build();
 
     makeValidAuthenticationRequest(client);
