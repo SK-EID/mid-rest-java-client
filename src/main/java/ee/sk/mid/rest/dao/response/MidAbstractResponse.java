@@ -35,6 +35,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MidAbstractResponse implements Serializable {
 
+    private static final Long serialVersionUID = 1L;
+
     @JsonProperty(value = "sessionID")
     private String sessionID;
 

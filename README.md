@@ -1,6 +1,7 @@
 [![Build Status](https://api.travis-ci.com/SK-EID/mid-rest-java-client.svg?branch=master)](https://travis-ci.com/SK-EID/mid-rest-java-client)
 [![Coverage Status](https://img.shields.io/codecov/c/github/SK-EID/mid-rest-java-client.svg)](https://codecov.io/gh/SK-EID/mid-rest-java-client)
 [![License: MIT](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ee.sk.mid/mid-rest-java-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ee.sk.mid/mid-rest-java-client)
 
 # Mobile-ID (MID) Java client
 Mobile-ID Java client is a Java library that can be used for easy integration with MID REST interface (https://github.com/SK-EID/MID) of the [Mobile-ID](https://www.id.ee/index.php?id=36809).
@@ -35,7 +36,7 @@ You can use the library as a dependency from the Maven Central (http://mvnreposi
 ## Gradle configuration
 
 ```
-compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: '1.1'
+compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: '1.2'
 ```
 
 # Usage
@@ -131,7 +132,7 @@ The caller can tune the request parameters inside the bounds set by a service op
 
 ```java
     MidClient client = MidClient.newBuilder()
-        // set hostUrl, hRelyingParty UUID & Name
+        // set hostUrl, relyingPartyUUID, relyingPartyName
         .withLongPollingTimeoutSeconds(60)
         .build();
 ```
@@ -179,7 +180,7 @@ See chapter [Validating user input](#validating-user-input).
 
 ## Creating the signature
 
-### Creating tje signature from raw data file.
+### Creating the signature from raw data file.
 You can pass raw data to builder of SignableHash and it creates the hash itself internally:
 
 ```java

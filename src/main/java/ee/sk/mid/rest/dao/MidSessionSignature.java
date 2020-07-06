@@ -34,6 +34,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MidSessionSignature implements Serializable {
 
+    private static final Long serialVersionUID = 1L;
+
     private String algorithm;
     private String value;
 

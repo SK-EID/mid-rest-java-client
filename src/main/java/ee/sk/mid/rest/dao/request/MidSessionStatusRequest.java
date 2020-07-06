@@ -32,6 +32,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class MidSessionStatusRequest implements Serializable {
 
+    private static final Long serialVersionUID = 1L;
+
     private String sessionID;
 
     private int timeoutMs = 0;

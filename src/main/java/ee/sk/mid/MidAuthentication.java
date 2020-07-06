@@ -34,6 +34,8 @@ import org.apache.commons.codec.binary.Base64;
 
 public class MidAuthentication implements Serializable {
 
+    private static final Long serialVersionUID = 1L;
+
     private String result;
     private String signedHashInBase64;
     private MidHashType hashType;
