@@ -26,21 +26,30 @@ package ee.sk.mid.rest;
  * #L%
  */
 
-import org.glassfish.jersey.client.ClientConfig;
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Configuration;
 
 public class MidRestConnectorBuilder {
   String endpointUrl;
-  ClientConfig clientConfig;
+  Configuration clientConfig;
+  Client configuredClient;
   String relyingPartyUUID;
   String relyingPartyName;
+  SSLContext sslContext;
 
   public MidRestConnectorBuilder withEndpointUrl(String endpointUrl) {
     this.endpointUrl = endpointUrl;
     return this;
   }
 
-  public MidRestConnectorBuilder withClientConfig(ClientConfig clientConfig) {
+  public MidRestConnectorBuilder withClientConfig(Configuration clientConfig) {
     this.clientConfig = clientConfig;
+    return this;
+  }
+
+  public MidRestConnectorBuilder withConfiguredClient(Client client) {
+    this.configuredClient = client;
     return this;
   }
 
@@ -51,6 +60,11 @@ public class MidRestConnectorBuilder {
 
   public MidRestConnectorBuilder withRelyingPartyName(String relyingPartyName) {
     this.relyingPartyName = relyingPartyName;
+    return this;
+  }
+
+  public MidRestConnectorBuilder withSslContext(SSLContext sslContext) {
+    this.sslContext = sslContext;
     return this;
   }
 
