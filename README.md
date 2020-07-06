@@ -132,7 +132,7 @@ The caller can tune the request parameters inside the bounds set by a service op
 
 ```java
     MidClient client = MidClient.newBuilder()
-        // set hostUrl, hRelyingParty UUID & Name
+        // set hostUrl, relyingPartyUUID, relyingPartyName
         .withLongPollingTimeoutSeconds(60)
         .build();
 ```
@@ -180,7 +180,7 @@ See chapter [Validating user input](#validating-user-input).
 
 ## Creating the signature
 
-### Creating tje signature from raw data file.
+### Creating the signature from raw data file.
 You can pass raw data to builder of SignableHash and it creates the hash itself internally:
 
 ```java
