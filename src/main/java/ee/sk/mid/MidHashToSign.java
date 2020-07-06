@@ -34,6 +34,8 @@ import org.apache.commons.codec.binary.Base64;
 
 public class MidHashToSign implements Serializable {
 
+    private static final Long serialVersionUID = 1L;
+
     protected byte[] hash;
     protected MidHashType hashType;
 
