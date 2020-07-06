@@ -1,6 +1,7 @@
 [![Build Status](https://api.travis-ci.com/SK-EID/mid-rest-java-client.svg?branch=master)](https://travis-ci.com/SK-EID/mid-rest-java-client)
 [![Coverage Status](https://img.shields.io/codecov/c/github/SK-EID/mid-rest-java-client.svg)](https://codecov.io/gh/SK-EID/mid-rest-java-client)
 [![License: MIT](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ee.sk.mid/mid-rest-java-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ee.sk.mid/mid-rest-java-client)
 
 # Mobile-ID (MID) Java client
 Mobile-ID Java client is a Java library that can be used for easy integration with MID REST interface (https://github.com/SK-EID/MID) of the [Mobile-ID](https://www.id.ee/index.php?id=36809).
@@ -35,7 +36,7 @@ You can use the library as a dependency from the Maven Central (http://mvnreposi
 ## Gradle configuration
 
 ```
-compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: '1.1'
+compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: '1.2'
 ```
 
 # Usage
