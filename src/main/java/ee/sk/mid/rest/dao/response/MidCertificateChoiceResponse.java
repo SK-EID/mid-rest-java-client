@@ -33,6 +33,8 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MidCertificateChoiceResponse implements Serializable {
 
+    private static final Long serialVersionUID = 1L;
+
     private String result;
     private String cert;
 

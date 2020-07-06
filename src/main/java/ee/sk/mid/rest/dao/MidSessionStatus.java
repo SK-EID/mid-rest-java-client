@@ -34,6 +34,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MidSessionStatus implements Serializable {
 
+    private static final Long serialVersionUID = 1L;
+
     private String state;
     private String result;
     private MidSessionSignature signature;
