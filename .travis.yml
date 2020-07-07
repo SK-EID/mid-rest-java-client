@@ -4,13 +4,13 @@ jdk:
 sudo: false
 cache:
   directories:
-    - "$HOME/.m2"
+    - $HOME/.m2
 env:
   global:
     - secure: pmR4WAufSwARNTj1qSxrmMNqIvz4UkL99gYCj+pQDtATVvrrbSdJv8/qG9AdJdXg6QuIc3l9b+tCoKPnTKlHtm9rxFsvhYwEtoV7mEIviUUIAPab+h62QRqu0f6QlUL76CG4EJmCmBuv2hNX2a+vRyueYDEaYl4xFvE3O+0cGa3bp04CI0E3rJaH3V5IgiUYK04WxnkKao4EvxZuSRXKebNFxRckV1jgZOdTfY8jvEzpD27nPJWRVHT11f9SWcyRXHiHqreFPNu+4G/ugVtWe1rLr3Vw/HDK2heBjxIJXVmNaojS/kpvxmoz+XbDt2NCmkO11Cxo4nJ59F2PEYe9FkrUJWOhTBQNPaUoNn1NLOs54IJDUQXq1e0ZtqOWYLDLehmC+JWdGzN1/HmBkdZWKlrosIXhOR02KSb+Uy2Dz3d7Qft0EiP1rZp916WCaYppoKEuzA7/WuBMs/vlYGP1i8kgC7abWx7/2fKE7AxB9Z8x4A41EhhL0wkmu/p66W48ZEHS6e6wQCtuRipWZ+ettHPO8DC+hNaMuHydLjMVdwBvuGEzX5tCxlv37jiEbsWbmmP9KmnE5F2oO4pHQJe/pXA5KuD9TT/WERkXKU3Zx8Kg3Hcqpw8ZEc5J/65Pmzlh0OUI0kNZ3941S4+kHJR9Rdq65Z4tD7BKe3uX/NSSIoU=
     - secure: fLwzTEJGNvfVsQix9ahNc9nvOW0RkgItAa6o2vVLkZIeCCmNlfqnus3W8PcZ36+GtuueOb90hkNi18w+PhPKgWK7QDp1jiLMOe9o4PnURvEhh7gCxVx69d+1zsuV7SMX3lzOrZ/OdVDe5fytRp/+7cQ6uWxXyO9bcDrmJw3Q8IV8EKn/pS+21KzUK69mRmrqEzu1+ccqnHArK1kDlLpO4ikGQatpxnQ6vypyqVxTbvbZjVeBLbE4pWVHizNAXem1zWZ9wov2NZcnp9V48yb9Zl0sjMC4XSyM1v/pVf1lJzGv8Y7RY7g+pOXW2LYPv6hxQPEAB+DRRPwrNAgm+gvEMkq7vvxC1g1CtNlaV6M8BVO99FvM+it1YTSp4o/CFxc7lv5s+WzdOwv5Szgj4apXiq8iZTzLf5LMbip/Co5hHvHyO1nQk3QV9GZiI5EVyqsRU/YlJ7EQPUGKhn0e2Brh8r80sNX95eegiyp1Zafhfjcq0aNFxCq/kPGPK82pT4j/GKi9kUobfEUyIrR1yGWvc+1hs4IW2ovZA+hOOzCdhSFXduSJ/hGul+3aoPLNiFOYyIKnCjrqSeYAcpS4JlPYKR1YAX6KDJM1PdrSJkvox8fBFUTakPyRv4ZytOkpUYFIjZ8foOTAAgYO9tsr0ACjPjlX9HeEpkswyvMn4vAVMjA=
 before_install:
-  - eval `openssl aes-256-cbc -K $encrypted_a62b0390d49a_key -iv $encrypted_a62b0390d49a_iv -in private.key.enc -out lisateenused.private.gpg -d`
+  - eval $(openssl aes-256-cbc -K $encrypted_a62b0390d49a_key -iv $encrypted_a62b0390d49a_iv -in private.key.enc -out private.key -d)
   - chmod +x travis.sh
   - pip install --user codecov
 after_success:
