@@ -159,7 +159,7 @@ public class MobileIdSSL_IT {
     }
 
     @Test(expected = ProcessingException.class)
-    public void makeRequestToWrongApi_shouldThrowException() throws Exception {
+    public void makeRequestToWrongApi_shouldThrowException() {
 
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
@@ -338,7 +338,7 @@ public class MobileIdSSL_IT {
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl(DEMO_HOST_URL)
-             .withSslContext(sslContext)
+             .withTrustSslContext(sslContext)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -369,7 +369,7 @@ public class MobileIdSSL_IT {
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl(DEMO_HOST_URL)
-             .withSslContext(sslContext)
+             .withTrustSslContext(sslContext)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -403,7 +403,7 @@ public class MobileIdSSL_IT {
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl(DEMO_HOST_URL)
-             .withSslContext(sslContext)
+             .withTrustSslContext(sslContext)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
