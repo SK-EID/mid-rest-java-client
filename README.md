@@ -36,22 +36,27 @@ You can use the library as a dependency from the Maven Central (http://mvnreposi
 ## Gradle configuration
 
 ```
-compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: '1.2'
+compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: 'INSERT_VERSION_HERE'
 ```
 
 # Usage
 * [Running Unit tests](#running-unit-tests)
 * [Running against Demo environment](#running-against-demo-environment)
-* [Configure the client](#configure-the-client)
-* [Configure client network connection](#configure-client-network-connection)
-* [Retrieve signing certificate](#retrieve-signing-certificate)
-* [Create a signature](#create-a-signature)
-  - [Create a signature from existing hash](#create-a-signature-from-existing-hash)
-  - [Create a signature from unhashed data](#create-a-signature-from-unhashed-data)
-* [Authenticate](#authenticate)
-  - [Get an authentication response](#get-an-authentication-response)
-  - [Verify an authentication response](#verify-an-authentication-response)
+* [Configure the client](#client-configuration)
+  - [Verifying the SSL connection to SK](#verifying-the-ssl-connection-to-sk)
+  - [Configuring a proxy](#configuring-a-proxy)
+    - [JBoss and WildFly](#jboss-and-wildfly)
+    - [Tomcat](#tomcat)
+* [Retrieving signing certificate](#retrieving-signing-certificate)
+* [Creating the signature](#creating-the-signature)
+  - [Creating the signature from raw data file](#creating-the-signature-from-raw-data-file)
+  - [Creating the signature from existing hash](#creating-the-signature-from-existing-hash)
+* [Authentication](#authentication)
+  - [Getting the authentication response](#getting-the-authentication-response)
+  - [Verifying the authentication response](#verifying-the-authentication-response)
 * [Handling negative scenarios](#handling-negative-scenarios)
+  - [Handling authentication and signing exceptions](#handling-authentication-and-signing-exceptions)
+  - [Handling certificate retrieval exceptions](#handling-certificate-retrieval-exceptions)
 * [Validating user input](#validating-user-input)
 
 ## Running unit tests
@@ -60,7 +65,7 @@ compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: '1.2'
 
 ## Running against Demo environment
 
-SK ID Solutions AS hosts a public demo environment that you can run your tests against.
+SK ID Solutions AS hosts a public demo environment that you can use for testing your integration.
 There are [test numbers](https://github.com/SK-EID/MID/wiki/Test-number-for-automated-testing-in-DEMO)
 that can be used to simulate different scenarios.
 
@@ -79,25 +84,141 @@ own phone if you register your Mobile ID certificates [SK Demo environment](http
 It is also possible to change the status of the certificates from there.
 
 You can run `MobileIdAuthenticationInteractive` main method to test it out 
-(enter your own phone number and national identity code) and you should get a
+(enter your own phone number and national identity code), and you should get a
 request to enter your PIN to phone.
 
+
 ## Client configuration
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentConfigureTheClient() -->
 ```java
-    MidClient client = MidClient.newBuilder()
-        .withHostUrl("https://tsp.demo.sk.ee/mid-api")
-        .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
-        .withRelyingPartyName("DEMO")
-        .build();
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
+        MidClient client = MidClient.newBuilder()
+            .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+            .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+            .withRelyingPartyName("DEMO")
+            .withTrustStore(trustStore)
+            .build();
 ```
 
 > **Note** that these values are demo environment specific. In production use the values provided by Application Provider.
 
+### Verifying the SSL connection to Application Provider (SK)
+
+Relying Party needs to verify that it is connecting to MID API it trusts.
+More info about this requirement can be found from [MID Documentation](https://github.com/SK-EID/MID#28-api-endpoint-authentication).
+
+Server SSL certificates are valid for limited time and thus replaced regularly (about once in every 3 years).
+If a new certificate is issued, Relying Parties are notified in advance by Application Provider, and the new certificate needs to be imported
+into the Service Provider's system, or the code starts to throw errors after server certificate becomes invalid.
+
+Following options are available to set trusted certificates:
+
+Keeping the trusted certificates in a trust store file and providing this to mid-rest-java-client (recommended):
+
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentConfigureTheClientTrustStore() -->
+```java
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+                .withRelyingPartyName("DEMO")
+                .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+                .withTrustStore(trustStore)
+                .build();
+```
+You can also use trust store in P12 format. In this case replace "JKS" with "PKCS12".
+
+Using with custom ssl context
+
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentConfigureTheClientWithTrustSslContext() -->
+```java
+...
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+        
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
+        trustManagerFactory.init(trustStore);
+        sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+                .withRelyingPartyName("DEMO")
+                .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+                .withTrustSslContext(sslContext)
+                .build();
+```
+
+Or specifying trusted certificates as string list
+
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentConfigureTheClientWithTrustedCertificatesList() -->
+```java
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+                .withRelyingPartyName("DEMO")
+                .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+                .withTrustedCertificates("PEM encoded cert 1", "PEM encoded cert 2")
+                .build();
+```
+
+#### How to create a trust store
+
+Download production (mid.sk.ee) certificate in PEM format from here: https://www.skidsolutions.eu/en/repository/certs/
+
+Import it into Java keystore:
+`keytool -import -file truststoreCert.pem -alias alias -keystore truststore.jks`
+
+If you want you can then convert the Java keystore to a P12 key store and use it instead
+`keytool -importkeystore -srckeystore production_server_trusted_ssl_certs.jks -destkeystore production_server_trusted_ssl_certs.p12 -srcstoretype JKS -deststoretype PKCS12`
+
+Read next chapter how to obtain demo environment server SSL certificate.
+
+
+#### Updating certs in tests
+
+Integration tests (MobileIdSSL_IT.class and others) that check the validity of server are configured not to run after server's certificate expiration.
+When server (either production server or demo server) certificate has expired
+then to make the tests run again one needs to replace certificate value in respective constant and import it into the trust store.
+Here is the process that needs to be followed.
+
+1. Obtain the new certificate. Production server (mid.sk.ee) certificate will be available here:  https://www.skidsolutions.eu/en/repository/certs/
+Demo server (tsp.demo.sk.ee) certificate can be obtained by running:
+ 
+`openssl s_client -showcerts -servername tsp.demo.sk.ee -connect tsp.demo.sk.ee:443 </dev/null`
+(copy first certificate in chain and save to file new.tsp.demo.sk.ee.certificate.cer)
+
+2. Replace the certificate value in LIVE_SERVER_CERT or in DEMO_SERVER_CERT constant.
+
+3. Update the certificate expiration date in LIVE_SERVER_CERT_EXPIRATION_DATE or in DEMO_SERVER_CERT_EXPIRATION_DATE.
+
+4. Import the new production (mid.sk.ee) certificate into production_server_trusted_ssl_certs.jks or the new demo (tsp.demo.sk.ee) certificate into demo_server_trusted_ssl_certs.jks like this:
+
+Change into directory src/test/resources
+DEMO:
+`keytool -importcert -file new.tsp.demo.sk.ee.certificate.cer -keystore demo_server_trusted_ssl_certs.jks -alias "tsp.demo.sk.ee that expires YYYY-MM-DD" `
+password: changeit
+trust this certificate: yes
+
+LIVE:
+`keytool -importcert -file new.mid.sk.ee.certificate.cer -keystore production_server_trusted_ssl_certs.jks -alias "mid.sk.ee that expires YYYY-MM-DD" `
+password: changeit
+trust this certificate: yes
+
+After following this process the tests should pass again and a Pull Request could be submitted.
+
 ### Configuring a proxy
 #### JBoss and WildFly
+
+
 ```java
-        // org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder
-        // org.jboss.resteasy.client.jaxrs.ResteasyClient
+        // import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder
+        // import org.jboss.resteasy.client.jaxrs.ResteasyClient
         ResteasyClient resteasyClient = new ResteasyClientBuilder()
             .defaultProxy("192.168.1.254", 8080, "http")
             .build();
@@ -106,17 +227,20 @@ request to enter your PIN to phone.
             .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
             .withRelyingPartyName("DEMO")
             .withConfiguredClient(resteasyClient)
+            .withTrustStore(trustStore)
             .build();
 ```
 #### Tomcat
+
 ```java
-        // org.glassfish.jersey.client.ClientConfig
+        // import org.glassfish.jersey.client.ClientConfig
         ClientConfig clientConfig = new ClientConfig()
         clientConfig.property(ClientProperties.PROXY_URI, "192.168.1.254:8080");
         MidClient client = MidClient.newBuilder()
             .withHostUrl("https://tsp.demo.sk.ee/mid-api")
             .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
             .withRelyingPartyName("DEMO")
+            .withTrustStore(trustStore)
             .withwithNetworkConnectionConfig(clientConfig)
             .build();
 ```
@@ -130,11 +254,12 @@ Under the hood operations as signing and authentication consist of 2 request ste
 Session status request by default is a long poll method, meaning it might not return until a timeout expires.
 The caller can tune the request parameters inside the bounds set by a service operator by using the `withLongPollingTimeoutSeconds(int)`:
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentClientWithLongPollingTimeout() -->
 ```java
-    MidClient client = MidClient.newBuilder()
-        // set hostUrl, relyingPartyUUID, relyingPartyName
-        .withLongPollingTimeoutSeconds(60)
-        .build();
+        MidClient client = MidClient.newBuilder()
+            // set hostUrl, relyingPartyUUID, relyingPartyName and trustStore/trustSslContext
+            .withLongPollingTimeoutSeconds(60)
+            .build();
 ```
 
 > Check [Long polling](https://github.com/SK-EID/MID#334-long-polling) documentation chapter for more information.
@@ -147,11 +272,12 @@ This makes a request to Application Provider, the response is returned immediate
 and if the session is not completed the client performs a sleep for configured amount of seconds
 before making a new request.
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentWithPollingSleepTimeoutSeconds() -->
 ```java
-    MidClient client = MidClient.newBuilder()
-        // set hostUrl, hRelyingParty UUID & Name
-        .withPollingSleepTimeoutSeconds(2)
-        .build();
+        MidClient client = MidClient.newBuilder()
+            // set hostUrl, relyingPartyUUID, relyingPartyName and trustStore/trustSslContext
+            .withPollingSleepTimeoutSeconds(2)
+            .build();
 ```
 
 If you don't set a positive value either to longPollingTimeoutSeconds or pollingSleepTimeoutSeconds
@@ -162,16 +288,16 @@ then pollingSleepTimeoutSeconds defaults to value 3 seconds.
 In order to create signed container one needs to know the certificate of the user
 which can be obtained with a separate request:
  
-
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentRetrieveCert() -->
 ```java
     MidCertificateRequest request = MidCertificateRequest.newBuilder()
-        .withPhoneNumber("+37060000666")
-        .withNationalIdentityNumber("60001019906")
+        .withPhoneNumber("+37200000266")
+        .withNationalIdentityNumber("60001019939")
         .build();
-    
+
     MidCertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
-    
-    X509Certificate certificate =   client.createMobileIdCertificate(response);
+
+    X509Certificate certificate = client.createMobileIdCertificate(response);
 ```
 
 There are convenience methods to read and validate
@@ -180,12 +306,13 @@ See chapter [Validating user input](#validating-user-input).
 
 ## Creating the signature
 
-### Creating the signature from raw data file.
+### Creating the signature from raw data file
 You can pass raw data to builder of SignableHash and it creates the hash itself internally:
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentCreateFromExistingData() -->
 ```java
     byte[] data = "MY_DATA".getBytes(StandardCharsets.UTF_8);
-
+    
     MidHashToSign hashToSign = MidHashToSign.newBuilder()
         .withDataToHash(data)
         .withHashType( MidHashType.SHA256)
@@ -218,6 +345,8 @@ demonstrates how to create and sign a container with Mobile-ID and
 [digidoc4j](https://github.com/open-eid/digidoc4j) library.
 
 ### Creating the signature from existing hash
+
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentCreateSignatureFromExistingHash() -->
 ```java
     MidHashToSign hashToSign = MidHashToSign.newBuilder()
         .withHashInBase64("AE7S1QxYjqtVv+Tgukv2bMMi9gDCbc9ca2vy/iIG6ug=")
@@ -228,10 +357,11 @@ demonstrates how to create and sign a container with Mobile-ID and
 
 ## Authentication
 
-#### Getting an authentication response
+#### Getting the authentication response
 
 For security reasons, a new hash value must be created for each new authentication request.
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentGetAuthenticationResponse() -->
 ```java
     MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
@@ -262,6 +392,8 @@ and PHP demo application [mid-rest-php-demo](https://github.com/SK-EID/mid-rest-
 demonstrate how to perform authentication and verify the response.
 
 ### Verifying the authentication response
+
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentHowToVerifyAuthenticationResult() -->
 ```java
     MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
     MidAuthenticationResult authenticationResult = validator.validate(authentication);
@@ -274,93 +406,26 @@ When the authentication result is valid a session could be created now within th
 
 When the authentication result is not valid then the reasons for invalidity are obtainable like this:
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentGettingErrors() -->
 ```java
-List<String> errors = authenticationResult.getErrors();
+    List<String> errors = authenticationResult.getErrors();
 ```
 
 `AuthenticationIdentity` could be helpful for obtaining information about the authenticated person when constructing the session.
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentAuthenticationIdentityUsage() -->
 ```java
-MidAuthenticationIdentity authenticationIdentity = authenticationResult.getAuthenticationIdentity();
-String givenName = authenticationIdentity.getGivenName();
-String surName = authenticationIdentity.getSurName();
-String identityCode = authenticationIdentity.getIdentityCode();
-String country = authenticationIdentity.getCountry();
+    MidAuthenticationIdentity authenticationIdentity = authenticationResult.getAuthenticationIdentity();
+    String givenName = authenticationIdentity.getGivenName();
+    String surName = authenticationIdentity.getSurName();
+    String identityCode = authenticationIdentity.getIdentityCode();
+    String country = authenticationIdentity.getCountry();
 ```
 
-### Verifying the ssl connection to SK
-By default the client is configured to trust both Live and Demo Environment ssl certificates
-```java
-    client = MidClient.newBuilder()
-                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
-                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
-                 .withHostUrl(DEMO_HOST_URL)
-                 .build();
-```
-
-Using with only demo environment certificates
-```java
-client = MidClient.newBuilder()
-                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
-                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
-                 .withHostUrl(DEMO_HOST_URL)
-                 .withDemoEnvCertificates()
-                 .build();
-```
-
-Using with only live environment certificates
-```java
-client = MidClient.newBuilder()
-                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
-                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
-                 .withHostUrl(DEMO_HOST_URL)
-                 .withLiveEnvCertificates()
-                 .build();
-```
-
-Using with custom certificates
-```java
-client = MidClient.newBuilder()
-                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
-                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
-                 .withHostUrl(DEMO_HOST_URL)
-                 .withSslCertificates("Pem encoded cert 1", "Pem encoded cert 2")
-                 .build();
-```
-
-Using with custom keystore
-```java
-InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/pathToKeystore");
-KeyStore keyStore = KeyStore.getInstance("JKS");
-keyStore.load(is, "changeit".toCharArray());
-
-client = MidClient.newBuilder()
-                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
-                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
-                 .withHostUrl(DEMO_HOST_URL)
-                 .withSslKeyStore(keyStore)
-                 .build();
-```
-
-Using with custom ssl context
-```java
-...
-SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
-trustManagerFactory.init(keyStore);
-sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
-
-client = MidClient.newBuilder()
-                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
-                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
-                 .withHostUrl(DEMO_HOST_URL)
-                 .withSslContext(sslContext)
-                 .build();
-```
 
 ## Handling negative scenarios
 
-If user cancels operation or the phone is unreachable then specific exceptions are thrown.
+If user cancels the operation or the phone is unreachable then specific exceptions are thrown.
 These can be caught and handled locally.
 
 Following exceptions indicate problems with integration or configuration on Relying Party (integrator) side:
@@ -370,8 +435,9 @@ Following exceptions indicate problems with integration or configuration on Rely
 
 ### Handling authentication and signing exceptions
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentCatchingErrors() -->
 ```java
-    try {
+   try {
         // perform authentication or signing
     }
     catch (MidUserCancellationException e) {
@@ -412,6 +478,7 @@ Following exceptions indicate problems with integration or configuration on Rely
 
 If you request signing certificate in a separate try block then you need to handle following exceptions separately:
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentCatchingCertificateRequestErrors() -->
 ```java
     try {
         // request user signing certificates
@@ -432,6 +499,7 @@ If you request signing certificate in a separate try block then you need to hand
 This library comes with convenience methods to validate user input.
 You can use the methods also to clean input from whitespaces.
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.documentValidateUserInput() -->
 ```java
     try {
         String nationalIdentityNumber = MidInputUtil.getValidatedNationalIdentityNumber("<national identity number entered by user>");

@@ -52,5 +52,5 @@ public interface MidConnector {
 
     MidSessionStatus getSignatureSessionStatus(MidSessionStatusRequest request) throws MidSessionNotFoundException;
 
-    void setSslContext(SSLContext sslContext);
+    void setSslTrustContext(SSLContext sslContext);
 }

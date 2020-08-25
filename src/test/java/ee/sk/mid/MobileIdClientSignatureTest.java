@@ -31,6 +31,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectSignatureRequestMade;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertSignatureCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidSignature;
@@ -96,6 +97,7 @@ public class MobileIdClientSignatureTest {
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(LOCALHOST_URL)
+            .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
             .build();
         stubRequestWithResponse("/signature", "requests/signatureRequest.json",
             "responses/signatureResponse.json");
@@ -299,6 +301,7 @@ public class MobileIdClientSignatureTest {
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(LOCALHOST_URL)
+            .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
             .withPollingSleepTimeoutSeconds(2)
             .build();
 
@@ -320,6 +323,7 @@ public class MobileIdClientSignatureTest {
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(LOCALHOST_URL)
+            .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
             .withNetworkConnectionConfig(clientConfig)
             .build();
 

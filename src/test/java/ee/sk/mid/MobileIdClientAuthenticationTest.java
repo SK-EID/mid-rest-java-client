@@ -31,6 +31,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectAuthenticationRequestMade;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertMadeCorrectAuthenticationRequesWithSHA256;
@@ -100,6 +101,7 @@ public class MobileIdClientAuthenticationTest {
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .build();
     stubRequestWithResponse("/authentication", "requests/authenticationRequest.json",
         "responses/authenticationResponse.json");
@@ -376,6 +378,7 @@ public class MobileIdClientAuthenticationTest {
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
         .withPollingSleepTimeoutSeconds(2)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .build();
 
     long duration = measureAuthenticationDuration(client);
@@ -403,6 +406,7 @@ public class MobileIdClientAuthenticationTest {
         .withHostUrl(LOCALHOST_URL)
         .withPollingSleepTimeoutSeconds(0)
         .withLongPollingTimeoutSeconds(3)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .build();
 
     MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
@@ -441,6 +445,7 @@ public class MobileIdClientAuthenticationTest {
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
         .withConfiguredClient(configuredClient)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .build();
 
     makeValidAuthenticationRequest(client);
@@ -468,6 +473,7 @@ public class MobileIdClientAuthenticationTest {
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
         .withMobileIdConnector(connector)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .build();
 
     assertThat(client.getMobileIdConnector().getSessionStatus(null, null).getState(), is(mock));

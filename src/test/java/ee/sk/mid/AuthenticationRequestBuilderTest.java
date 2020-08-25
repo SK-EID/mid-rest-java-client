@@ -66,6 +66,41 @@ import org.junit.Test;
 
 public class AuthenticationRequestBuilderTest {
 
+    public static final String SERVER_SSL_CERTIFICATE = "-----BEGIN CERTIFICATE-----\n" +
+            "MIIGCTCCBPGgAwIBAgIQB5CCfJUfCEruWfwaDQQ8ojANBgkqhkiG9w0BAQsFADBN\n" +
+            "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMScwJQYDVQQDEx5E\n" +
+            "aWdpQ2VydCBTSEEyIFNlY3VyZSBTZXJ2ZXIgQ0EwHhcNMjAwMTA0MDAwMDAwWhcN\n" +
+            "MjEwMTE1MTIwMDAwWjBVMQswCQYDVQQGEwJFRTEQMA4GA1UEBxMHVGFsbGlubjEb\n" +
+            "MBkGA1UEChMSU0sgSUQgU29sdXRpb25zIEFTMRcwFQYDVQQDEw50c3AuZGVtby5z\n" +
+            "ay5lZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMEXbF6n3XKvkLKy\n" +
+            "EcnYoPBTvHaqjWIXnguu/aLiEC17ZuELrf4YkwXcQ6mTK6t1H21p7bluWDuhGzy1\n" +
+            "pcf4zSPD7SYBYFDQJZUHEC54TPDRkZkm8vVYrtQ3s/I7VcDF54Gp2jy5QrZ/KKtx\n" +
+            "qT1L3J7VNjNcjHp1qg5nGoNMfMHajaZITVmXUV7MdcVwgXunjK3I4R48TxkfevEO\n" +
+            "QkeJMW4Nj+tuqd/aj3iPxBRC5N9QnwsUFh+GlTvWO7JdN4RgUvrpzYCXITdcR9fb\n" +
+            "+GN62LwUioNar+ixzbx5x4+aKeiZch57mQnnccuAlaJZ50/XB38Pil5aJvSb1cqN\n" +
+            "zhESRGsCAwEAAaOCAtswggLXMB8GA1UdIwQYMBaAFA+AYRyCMWHVLyjnjUY4tCzh\n" +
+            "xtniMB0GA1UdDgQWBBT6vCJtkTvBJNfLz37w57NiN/s+ATAZBgNVHREEEjAQgg50\n" +
+            "c3AuZGVtby5zay5lZTAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUH\n" +
+            "AwEGCCsGAQUFBwMCMGsGA1UdHwRkMGIwL6AtoCuGKWh0dHA6Ly9jcmwzLmRpZ2lj\n" +
+            "ZXJ0LmNvbS9zc2NhLXNoYTItZzYuY3JsMC+gLaArhilodHRwOi8vY3JsNC5kaWdp\n" +
+            "Y2VydC5jb20vc3NjYS1zaGEyLWc2LmNybDBMBgNVHSAERTBDMDcGCWCGSAGG/WwB\n" +
+            "ATAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BTMAgG\n" +
+            "BmeBDAECAjB8BggrBgEFBQcBAQRwMG4wJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3Nw\n" +
+            "LmRpZ2ljZXJ0LmNvbTBGBggrBgEFBQcwAoY6aHR0cDovL2NhY2VydHMuZGlnaWNl\n" +
+            "cnQuY29tL0RpZ2lDZXJ0U0hBMlNlY3VyZVNlcnZlckNBLmNydDAMBgNVHRMBAf8E\n" +
+            "AjAAMIIBAgYKKwYBBAHWeQIEAgSB8wSB8ADuAHUAu9nfvB+KcbWTlCOXqpJ7RzhX\n" +
+            "lQqrUugakJZkNo4e0YUAAAFvcP7EQwAABAMARjBEAiA2fFBYg7BrD8fvSMUPdSIk\n" +
+            "CcASBgvqn6ySm//nyYT7jgIgDl3+FTpQJyLXTqzurjna9AnbNZkGiaoxEdCL6iBW\n" +
+            "s2YAdQBElGUusO7Or8RAB9io/ijA2uaCvtjLMbU/0zOWtbaBqAAAAW9w/sPdAAAE\n" +
+            "AwBGMEQCIBXEX2dbwSUQJfo6pP0Uf/YLVC200QfIdO+1oESfxLIMAiAWGLVR4MTe\n" +
+            "H2+iOK+Hndbo9LkDdMibWTyIIByLCyHKhzANBgkqhkiG9w0BAQsFAAOCAQEAWOWm\n" +
+            "sTfs3TSDd04c3GvB0b+x5xu34SYG8OCYfpTbdU5X8+7mk3+XR9yqBZpN/WSBBk0f\n" +
+            "Vx+ukpON3z1v/TOMMHSOykxxw3yQsNB+NZ/a6d7ns4OBsRY4/TLu1DI1Ey7jkE0m\n" +
+            "erqbzCAgx3nrHwo49bUNLtkgnUHoKNoLYreLQvAjW7PeiPmT/xkvz7MC3jE5P/hA\n" +
+            "rZ5xvV/ZxpiRVDuDT0G+uCoIuBjY4HpvMgOJdsqxKtK1NI1dodPyjxVmMdjG6+1X\n" +
+            "Kd5GtbPeaLRx1Kpe/NkfGAruW4TCvuUm2G1zHs71ePmYSPJjE6FDOnWWqjtQIgXg\n" +
+            "OauLK5GGqW/2PvCWXA==\n" +
+            "-----END CERTIFICATE-----\n";
     private MobileIdConnectorSpy connector;
 
     @Before
@@ -300,6 +335,7 @@ public class AuthenticationRequestBuilderTest {
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(LOCALHOST_URL)
+                .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
                 .build();
 
         client.createMobileIdAuthentication(sessionStatus, authenticationHash);

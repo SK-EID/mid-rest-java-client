@@ -30,6 +30,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCertificateCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeValidCertificateRequest;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
@@ -70,6 +71,7 @@ public class MobileIdClientCertificateTest {
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .build();
     stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json",
         "responses/certificateChoiceResponse.json");
@@ -86,13 +88,6 @@ public class MobileIdClientCertificateTest {
   public void getCertificate_whenCertificateNotPresent_shouldThrowException() {
     stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json",
         "responses/certificateChoiceResponseWhenCertificateNotFound.json");
-    makeValidCertificateRequest(client);
-  }
-
-  @Test(expected = MidNotMidClientException.class)
-  public void getCertificate_whenInactiveCertificateFound_shouldThrowException() {
-    stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json",
-        "responses/certificateChoiceResponseWhenInactiveCertificateFound.json");
     makeValidCertificateRequest(client);
   }
 
@@ -135,6 +130,7 @@ public class MobileIdClientCertificateTest {
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .withNetworkConnectionConfig(clientConfig)
         .build();
 

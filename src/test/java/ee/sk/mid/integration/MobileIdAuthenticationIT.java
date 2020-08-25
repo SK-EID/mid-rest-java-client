@@ -26,6 +26,8 @@ package ee.sk.mid.integration;
  * #L%
  */
 
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
+import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT_EXPIRATION_DATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createAndSendAuthentication;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeAuthenticationRequest;
@@ -64,6 +66,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import ee.sk.mid.*;
 import ee.sk.mid.MidLanguage;
@@ -84,6 +87,9 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.io.File;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.time.LocalDate;
 
 @Category({IntegrationTest.class})
 public class MobileIdAuthenticationIT {
@@ -96,6 +102,7 @@ public class MobileIdAuthenticationIT {
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
+                .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
                 .build();
     }
 
@@ -249,24 +256,37 @@ public class MobileIdAuthenticationIT {
     }
 
     @Test(expected = MidUnauthorizedException.class)
-    public void authenticate_withUnknownRelyingPartyUUID_shouldThrowException() {
+    public void authenticate_withUnknownRelyingPartyUUID_shouldThrowException()  throws Exception {
+        assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
+
+        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(is, "changeit".toCharArray());
 
         MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
+            .withTrustStore(keyStore)
             .build();
 
         makeAuthenticationRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
 
     @Test(expected = MidUnauthorizedException.class)
-    public void authenticate_withUnknownRelyingPartyName_shouldThrowException() {
+    public void authenticate_withUnknownRelyingPartyName_shouldThrowException()  throws Exception {
+        assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
+
+        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(is, "changeit".toCharArray());
+
 
         MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
+            .withTrustStore(keyStore)
             .build();
 
         makeAuthenticationRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);

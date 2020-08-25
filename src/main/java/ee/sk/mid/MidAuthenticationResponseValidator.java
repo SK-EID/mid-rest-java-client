@@ -153,12 +153,12 @@ public class MidAuthenticationResponseValidator {
 
     private void initializeTrustedCACertificatesFromKeyStore() {
         try (InputStream is = MidAuthenticationResponseValidator.class.getResourceAsStream("/trusted_certificates.jks")) {
-            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keystore.load(is, "changeit".toCharArray());
-            Enumeration<String> aliases = keystore.aliases();
+            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            trustStore.load(is, "changeit".toCharArray());
+            Enumeration<String> aliases = trustStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                X509Certificate certificate = (X509Certificate) keystore.getCertificate(alias);
+                X509Certificate certificate = (X509Certificate) trustStore.getCertificate(alias);
                 logger.error(certificate.toString());
                 addTrustedCACertificate(certificate);
             }

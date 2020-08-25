@@ -76,7 +76,7 @@ public class MidRestConnector implements MidConnector {
     private String relyingPartyUUID;
     private String relyingPartyName;
 
-    private SSLContext sslContext;
+    private SSLContext trustSslContext;
 
     public MidRestConnector(String endpointUrl) {
         this.endpointUrl = endpointUrl;
@@ -100,7 +100,7 @@ public class MidRestConnector implements MidConnector {
         this.configuredClient = mobileIdRestConnectorBuilder.configuredClient;
         this.relyingPartyName = mobileIdRestConnectorBuilder.relyingPartyName;
         this.relyingPartyUUID = mobileIdRestConnectorBuilder.relyingPartyUUID;
-        this.sslContext = mobileIdRestConnectorBuilder.sslContext;
+        this.trustSslContext = mobileIdRestConnectorBuilder.sslContext;
     }
 
     @Override
@@ -236,8 +236,8 @@ public class MidRestConnector implements MidConnector {
             if (null != this.clientConfig) {
                 clientBuilder.withConfig(this.clientConfig);
             }
-            if (null != this.sslContext) {
-                clientBuilder.sslContext(this.sslContext);
+            if (null != this.trustSslContext) {
+                clientBuilder.sslContext(this.trustSslContext);
             }
             client = clientBuilder.build();
         }
@@ -256,7 +256,7 @@ public class MidRestConnector implements MidConnector {
     }
 
     @Override
-    public void setSslContext(SSLContext sslContext) {
-        this.sslContext = sslContext;
+    public void setSslTrustContext(SSLContext trustSslContext) {
+        this.trustSslContext = trustSslContext;
     }
 }

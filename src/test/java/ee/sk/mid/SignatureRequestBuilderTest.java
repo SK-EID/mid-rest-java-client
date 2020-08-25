@@ -26,6 +26,7 @@ package ee.sk.mid;
  * #L%
  */
 
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.mock.SessionStatusDummy.createDeliveryErrorStatus;
 import static ee.sk.mid.mock.SessionStatusDummy.createInvalidCardResponseStatus;
 import static ee.sk.mid.mock.SessionStatusDummy.createMIDNotReadyStatus;
@@ -319,6 +320,7 @@ public class SignatureRequestBuilderTest {
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(LOCALHOST_URL)
+                .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
                 .build();
 
         client.createMobileIdSignature(sessionStatus);
