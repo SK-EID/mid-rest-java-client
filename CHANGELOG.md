@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     - withSslKeyStore() -> withTrustStore()
     - withSslCertificates() -> withTrustedCertificates()
     - withSslContext() -> withTrustSslContext
+- Removed handling "NOT_ACTIVE" certificate status as it is never return by MID API
 
 ## [1.2] - 2020-07-06
 

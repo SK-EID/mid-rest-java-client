@@ -26,9 +26,13 @@ package ee.sk.mid.rest;
  * #L%
  */
 
-import org.glassfish.jersey.message.MessageUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.nio.charset.Charset;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.ClientRequestContext;
@@ -38,9 +42,10 @@ import javax.ws.rs.client.ClientResponseFilter;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.WriterInterceptor;
 import javax.ws.rs.ext.WriterInterceptorContext;
-import java.io.*;
-import java.net.URI;
-import java.nio.charset.Charset;
+
+import org.glassfish.jersey.message.MessageUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MidLoggingFilter implements ClientRequestFilter, ClientResponseFilter, WriterInterceptor {
 

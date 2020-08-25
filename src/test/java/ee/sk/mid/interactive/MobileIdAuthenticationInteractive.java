@@ -36,18 +36,38 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 import ee.sk.mid.*;
 import ee.sk.mid.MidAuthenticationIdentity;
+import ee.sk.mid.integration.MobileIdSSL_IT;
 
 
 public class MobileIdAuthenticationInteractive {
+
+    private static KeyStore keystoreWithDemoServerCertificate;
+
+    static {
+        try {
+            InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+            keystoreWithDemoServerCertificate = KeyStore.getInstance("JKS");
+            keystoreWithDemoServerCertificate.load(is, "changeit".toCharArray());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
+                .withTrustStore(keystoreWithDemoServerCertificate)
                 .build();
 
 
@@ -79,8 +99,15 @@ public class MobileIdAuthenticationInteractive {
     }
 
     private static void assertAuthenticationResultValid(MidAuthenticationResult authenticationResult) {
-        assertThat(authenticationResult.isValid(), is(true));
-        assertThat(authenticationResult.getErrors().isEmpty(), is(true));
+        assertThat(authenticationResult.isValid(), is(false)); // When running against production, change to "true"
+
+        if (!authenticationResult.getErrors().isEmpty()) {
+            System.out.println(authenticationResult.getErrors().get(0));
+        }
+
+        assertThat(authenticationResult.getErrors().isEmpty(), is(false)); // When running against production, there should be no errors
+        assertThat(authenticationResult.getErrors().get(0), is("Signer's certificate is not trusted"));
+        assertThat(authenticationResult.getErrors().size(), is(1));
         assertAuthenticationIdentityValid(authenticationResult.getAuthenticationIdentity());
     }
 

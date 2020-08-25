@@ -28,8 +28,8 @@ package ee.sk.mid.rest.dao.request;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

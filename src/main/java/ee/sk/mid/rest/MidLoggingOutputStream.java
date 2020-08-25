@@ -26,12 +26,12 @@ package ee.sk.mid.rest;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.ByteArrayOutputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.jetbrains.annotations.NotNull;
 
 public class MidLoggingOutputStream extends FilterOutputStream {
 

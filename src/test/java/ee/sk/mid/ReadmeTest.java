@@ -300,6 +300,7 @@ public class ReadmeTest {
         }
         catch (MidInvalidUserConfigurationException e) {
             logger.info("Mobile-ID configuration on user's SIM card differs from what is configured on service provider's side. User needs to contact his/her mobile operator.");
+            logger.info("In case of DEMO the user needs to re-import MID certificate at https://demo.sk.ee/MIDCertsReg/");
             // display error
         }
         catch (MidSessionNotFoundException | MidMissingOrInvalidParameterException | MidUnauthorizedException e) {

@@ -29,8 +29,8 @@ package ee.sk.mid.rest.dao.request;
 import ee.sk.mid.MidDisplayTextFormat;
 import ee.sk.mid.MidHashToSign;
 import ee.sk.mid.MidLanguage;
-import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 
 public class MidSignatureRequestBuilder extends MidAbstractAuthSignRequestBuilder {
 

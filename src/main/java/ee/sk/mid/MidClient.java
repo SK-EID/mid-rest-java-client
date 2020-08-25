@@ -26,23 +26,11 @@ package ee.sk.mid;
  * #L%
  */
 
-import ee.sk.mid.exception.*;
-import ee.sk.mid.rest.MidConnector;
-import ee.sk.mid.rest.MidRestConnector;
-import ee.sk.mid.rest.MidSessionStatusPoller;
-import ee.sk.mid.rest.dao.MidSessionSignature;
-import ee.sk.mid.rest.dao.MidSessionStatus;
-import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Configuration;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.*;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -54,10 +42,25 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Configuration;
+
+import ee.sk.mid.exception.MidException;
+import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidSslException;
+import ee.sk.mid.rest.MidConnector;
+import ee.sk.mid.rest.MidRestConnector;
+import ee.sk.mid.rest.MidSessionStatusPoller;
+import ee.sk.mid.rest.dao.MidSessionSignature;
+import ee.sk.mid.rest.dao.MidSessionStatus;
+import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MidClient {
 

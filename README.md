@@ -175,14 +175,15 @@ Import it into Java keystore:
 `keytool -import -file truststoreCert.pem -alias alias -keystore truststore.jks`
 
 If you want you can then convert the Java keystore to a P12 key store and use it instead
+
 `keytool -importkeystore -srckeystore production_server_trusted_ssl_certs.jks -destkeystore production_server_trusted_ssl_certs.p12 -srcstoretype JKS -deststoretype PKCS12`
 
 Read next chapter how to obtain demo environment server SSL certificate.
 
 
-#### Updating certs in tests
+#### Updating certs in tests of mid-rest-java-client
 
-Integration tests (MobileIdSSL_IT.class and others) that check the validity of server are configured not to run after server's certificate expiration.
+Integration tests (*_IT.java) that check the validity of server are configured not to run after server's certificate expiration.
 When server (either production server or demo server) certificate has expired
 then to make the tests run again one needs to replace certificate value in respective constant and import it into the trust store.
 Here is the process that needs to be followed.
@@ -210,7 +211,14 @@ LIVE:
 password: changeit
 trust this certificate: yes
 
-After following this process the tests should pass again and a Pull Request could be submitted.
+5. If it was production server's certificate that expired you also need to convert JKS keyestore to P12 keystore:
+
+```
+    cd src/test/resources
+    keytool -importkeystore -srckeystore production_server_trusted_ssl_certs.jks -destkeystore production_server_trusted_ssl_certs.p12 -srcstoretype JKS -deststoretype PKCS12
+```
+
+After following this process the tests (that were ignored programmatically) should run again and a Pull Request could be submitted.
 
 ### Configuring a proxy
 #### JBoss and WildFly
@@ -462,6 +470,7 @@ Following exceptions indicate problems with integration or configuration on Rely
     }
     catch (MidInvalidUserConfigurationException e) {
         logger.info("Mobile-ID configuration on user's SIM card differs from what is configured on service provider's side. User needs to contact his/her mobile operator.");
+        logger.info("In case of DEMO the user needs to re-import MID certificate at https://demo.sk.ee/MIDCertsReg/");
         // display error
     }
     catch (MidSessionNotFoundException | MidMissingOrInvalidParameterException | MidUnauthorizedException e) {

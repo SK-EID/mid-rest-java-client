@@ -26,9 +26,9 @@ package ee.sk.mid.rest.dao.response;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MidCertificateChoiceResponse implements Serializable {
