@@ -36,7 +36,22 @@ import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import ee.sk.mid.exception.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
+import ee.sk.mid.exception.MidDeliveryException;
+import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MidInvalidNationalIdentityNumberException;
+import ee.sk.mid.exception.MidInvalidPhoneNumberException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidSessionNotFoundException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MidSslException;
+import ee.sk.mid.exception.MidUnauthorizedException;
+import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.integration.MobileIdSSL_IT;
 import ee.sk.mid.mock.TestData;
 import ee.sk.mid.rest.dao.MidSessionStatus;
@@ -50,9 +65,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 
 /**
  * These tests contain snippets used in Readme.md
@@ -73,14 +85,14 @@ public class ReadmeTest {
     @Before
     public void setUp() throws Exception {
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         client = MidClient.newBuilder()
             .withHostUrl("https://tsp.demo.sk.ee/mid-api")
             .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
             .withRelyingPartyName("DEMO")
-            .withTrustStore(keyStore)
+            .withTrustStore(trustStore)
             .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
@@ -145,7 +157,7 @@ public class ReadmeTest {
     }
 
     @Test(expected = MidSslException.class)
-    public void documentConfigureTheClientWithTrustedCertificatesList() throws Exception {
+    public void documentConfigureTheClientWithTrustedCertificatesList() {
 
         client = MidClient.newBuilder()
                 .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
@@ -272,6 +284,7 @@ public class ReadmeTest {
         String country = authenticationIdentity.getCountry();
     }
 
+    @SuppressWarnings("EmptyTryBlock")
     @Test
     public void documentCatchingErrors() {
 
@@ -314,6 +327,7 @@ public class ReadmeTest {
 
     }
 
+    @SuppressWarnings("EmptyTryBlock")
     @Test
     public void documentCatchingCertificateRequestErrors() {
 

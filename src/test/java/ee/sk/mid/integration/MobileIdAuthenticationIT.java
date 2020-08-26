@@ -68,15 +68,27 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeTrue;
 
-import ee.sk.mid.*;
+import java.io.File;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.time.LocalDate;
+
+import ee.sk.mid.MidAuthentication;
+import ee.sk.mid.MidAuthenticationHashToSign;
+import ee.sk.mid.MidAuthenticationIdentity;
+import ee.sk.mid.MidAuthenticationResponseValidator;
+import ee.sk.mid.MidAuthenticationResult;
+import ee.sk.mid.MidClient;
+import ee.sk.mid.MidDisplayTextFormat;
+import ee.sk.mid.MidHashType;
 import ee.sk.mid.MidLanguage;
 import ee.sk.mid.categories.IntegrationTest;
 import ee.sk.mid.exception.MidDeliveryException;
 import ee.sk.mid.exception.MidInvalidUserConfigurationException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
@@ -85,11 +97,6 @@ import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import java.io.File;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.time.LocalDate;
 
 @Category({IntegrationTest.class})
 public class MobileIdAuthenticationIT {
@@ -260,14 +267,14 @@ public class MobileIdAuthenticationIT {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
-            .withTrustStore(keyStore)
+            .withTrustStore(trustStore)
             .build();
 
         makeAuthenticationRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
@@ -278,15 +285,15 @@ public class MobileIdAuthenticationIT {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
 
         MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
-            .withTrustStore(keyStore)
+            .withTrustStore(trustStore)
             .build();
 
         makeAuthenticationRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);

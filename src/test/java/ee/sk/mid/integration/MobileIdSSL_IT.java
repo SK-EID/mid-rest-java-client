@@ -111,14 +111,14 @@ public class MobileIdSSL_IT {
     @Test(expected = ProcessingException.class)
     public void makeRequestToGoogleApi_useDefaultSSLContext_sslHandshakeFailsAndThrowsException() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl("www.google.com")
-             .withTrustStore(keyStore)
+             .withTrustStore(trustStore)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -187,14 +187,14 @@ public class MobileIdSSL_IT {
         assumeTrue("new certificate of mid.sk.ee server needs to imported into file production_server_trusted_ssl_certs.jks", LIVE_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/production_server_trusted_ssl_certs.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl("https://mid.sk.ee/mid-api")
-             .withTrustStore(keyStore)
+             .withTrustStore(trustStore)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -216,15 +216,15 @@ public class MobileIdSSL_IT {
         assumeTrue("new certificate of mid.sk.ee server needs to imported into file production_server_trusted_ssl_certs.p12", LIVE_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/production_server_trusted_ssl_certs.p12");
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("PKCS12");
+        trustStore.load(is, "changeit".toCharArray());
         is.close();
 
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl("https://mid.sk.ee/mid-api")
-             .withTrustStore(keyStore)
+             .withTrustStore(trustStore)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -246,14 +246,14 @@ public class MobileIdSSL_IT {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl(DEMO_HOST_URL)
-             .withTrustStore(keyStore)
+             .withTrustStore(trustStore)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -272,14 +272,14 @@ public class MobileIdSSL_IT {
 
     @Test(expected = ProcessingException.class)
     public void makeRequestToApi_loadSslContextFromKeyStore_emptyKeystore_sslHandshakeFailsAndThrowsException() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(null, null);
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(null, null);
 
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl(DEMO_HOST_URL)
-             .withTrustStore(keyStore)
+             .withTrustStore(trustStore)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -299,14 +299,14 @@ public class MobileIdSSL_IT {
     @Test(expected = ProcessingException.class)
     public void makeRequestToApi_loadSslContextFromKeyStore_wrongSslCert_sslHandshakeFailsAndThrowsException() throws Exception {
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/wrong_ssl_cert.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
              .withHostUrl(DEMO_HOST_URL)
-             .withTrustStore(keyStore)
+             .withTrustStore(trustStore)
              .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -326,12 +326,12 @@ public class MobileIdSSL_IT {
     @Test(expected = ProcessingException.class)
     public void makeRequestToApi_buildWithSSLContext_wrongSslCert_sslHandshakeFailsAndThrowsException() throws Exception {
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/wrong_ssl_cert.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
-        trustManagerFactory.init(keyStore);
+        trustManagerFactory.init(trustStore);
         sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
 
         client = MidClient.newBuilder()
@@ -357,12 +357,12 @@ public class MobileIdSSL_IT {
 
     @Test(expected = ProcessingException.class)
     public void makeRequestToApi_buildWithSSLContext_emptyKeyStore_sslHandshakeFailsAndThrowsException() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(null, null);
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(null, null);
 
         SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
-        trustManagerFactory.init(keyStore);
+        trustManagerFactory.init(trustStore);
         sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
 
         client = MidClient.newBuilder()
@@ -391,12 +391,12 @@ public class MobileIdSSL_IT {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
-        trustManagerFactory.init(keyStore);
+        trustManagerFactory.init(trustStore);
         sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
 
         client = MidClient.newBuilder()

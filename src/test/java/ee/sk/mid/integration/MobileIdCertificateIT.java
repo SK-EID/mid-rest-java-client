@@ -148,14 +148,14 @@ public class MobileIdCertificateIT {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(is, "changeit".toCharArray());
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
-                .withTrustStore(keyStore)
+                .withTrustStore(trustStore)
                 .build();
 
         makeCertificateRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
