@@ -27,8 +27,10 @@ package ee.sk.mid.integration;
  */
 
 import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
+import static ee.sk.mid.TestUtil.fileToX509Certificate;
 import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT_EXPIRATION_DATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCanCallValidate;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createAndSendAuthentication;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeAuthenticationRequest;
 import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertAuthenticationPolled;
@@ -68,10 +70,11 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
+import java.util.Collections;
 
 import ee.sk.mid.MidAuthentication;
 import ee.sk.mid.MidAuthenticationHashToSign;
@@ -124,15 +127,16 @@ public class MobileIdAuthenticationIT {
 
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
 
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
 
-        File caCertificateFile = new File(MobileIdAuthenticationIT.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
-        validator.addTrustedCACertificate(caCertificateFile);
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertAuthenticationResultValid(authenticationResult);
     }
+
+
 
     @Test
     public void authenticate_withDisplayText() {
@@ -155,6 +159,8 @@ public class MobileIdAuthenticationIT {
 
         MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
+        assertCanCallValidate(authentication, client.getTrustStore());
+
     }
 
     @Test
@@ -178,6 +184,7 @@ public class MobileIdAuthenticationIT {
 
         MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
+        assertCanCallValidate(authentication, client.getTrustStore());
     }
 
     @Test(expected = MidNotMidClientException.class)

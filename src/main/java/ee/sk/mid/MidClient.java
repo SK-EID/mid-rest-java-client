@@ -26,25 +26,13 @@ package ee.sk.mid;
  * #L%
  */
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Configuration;
 
@@ -52,7 +40,6 @@ import ee.sk.mid.exception.MidException;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
-import ee.sk.mid.exception.MidSslException;
 import ee.sk.mid.rest.MidConnector;
 import ee.sk.mid.rest.MidRestConnector;
 import ee.sk.mid.rest.MidSessionStatusPoller;
@@ -74,7 +61,7 @@ public class MidClient {
     private MidConnector connector;
     private MidSessionStatusPoller sessionStatusPoller;
     private SSLContext trustSslContext;
-    private final List<String> trustedCertificates;
+    private KeyStore trustStore;
 
     private MidClient(MobileIdClientBuilder builder) {
         this.relyingPartyUUID = builder.relyingPartyUUID;
@@ -83,8 +70,8 @@ public class MidClient {
         this.networkConnectionConfig = builder.networkConnectionConfig;
         this.configuredClient = builder.configuredClient;
         this.connector = builder.connector;
-        this.trustedCertificates = builder.trustedCertificates;
-        this.trustSslContext = builder.sslTrustContext == null ? createSslContext() : builder.sslTrustContext;
+        this.trustSslContext = builder.trustSslContext;
+        this.trustStore = builder.trustStore;
 
         this.sessionStatusPoller = MidSessionStatusPoller.newBuilder()
             .withConnector(this.getMobileIdConnector())
@@ -101,7 +88,7 @@ public class MidClient {
                 .withClientConfig(networkConnectionConfig)
                 .withRelyingPartyUUID(relyingPartyUUID)
                 .withRelyingPartyName(relyingPartyName)
-                .withSslContext(trustSslContext)
+                .withSslContext(getTrustSslContext())
                 .build();
         }
         return connector;
@@ -119,6 +106,13 @@ public class MidClient {
         return relyingPartyName;
     }
 
+    public SSLContext getTrustSslContext() {
+        return trustSslContext != null ? trustSslContext : MidTrustUtil.createSslContext(trustStore);
+    }
+
+    public KeyStore getTrustStore() {
+        return trustStore;
+    }
 
     public X509Certificate createMobileIdCertificate(MidCertificateChoiceResponse certificateChoiceResponse) {
         validateCertificateResult(certificateChoiceResponse.getResult());
@@ -175,26 +169,6 @@ public class MidClient {
         }
     }
 
-    public SSLContext createSslContext() {
-        try {
-            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-            KeyStore trustStore = KeyStore.getInstance("JKS");
-            trustStore.load(null, "".toCharArray());
-            CertificateFactory factory = CertificateFactory.getInstance("X509");
-            int i = 0;
-            for (String sslCertificate : this.trustedCertificates) {
-                Certificate certificate = factory.generateCertificate(new ByteArrayInputStream(sslCertificate.getBytes(UTF_8)));
-                trustStore.setCertificateEntry("mid_api_ssl_cert" + (++i), certificate);
-            }
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
-            trustManagerFactory.init(trustStore);
-            sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
-            return sslContext;
-        } catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-            throw new MidSslException(e.getMessage());
-        }
-    }
-
     public static MobileIdClientBuilder newBuilder() {
         return new MobileIdClientBuilder();
     }
@@ -208,8 +182,9 @@ public class MidClient {
         private int pollingSleepTimeoutSeconds;
         private int longPollingTimeoutSeconds;
         private MidConnector connector;
-        private SSLContext sslTrustContext;
-        private List<String> trustedCertificates = new ArrayList<>();
+        private SSLContext trustSslContext;
+        private KeyStore trustStore;
+
 
         private MobileIdClientBuilder() {}
 
@@ -259,8 +234,11 @@ public class MidClient {
             return withTrustSslContext(sslContext);
         }
 
-        public MobileIdClientBuilder withTrustSslContext(SSLContext sslTrustContext) {
-            this.sslTrustContext = sslTrustContext;
+        public MobileIdClientBuilder withTrustSslContext(SSLContext trustSslContext) {
+            if (this.trustSslContext != null) {
+                throw new MidMissingOrInvalidParameterException("You can call only one of withTrustStore(), withTrustedCertificates() or withTrustSslContext()");
+            }
+            this.trustSslContext = trustSslContext;
             return this;
         }
 
@@ -271,8 +249,7 @@ public class MidClient {
         }
 
         public MobileIdClientBuilder withTrustedCertificates(String... trustedCertificate) {
-            this.trustedCertificates = new ArrayList<>(Arrays.asList(trustedCertificate));
-            return this;
+            return withTrustStore(MidTrustUtil.createTrustStore(Arrays.asList(trustedCertificate)));
         }
 
         @Deprecated
@@ -282,16 +259,7 @@ public class MidClient {
         }
 
         public MobileIdClientBuilder withTrustStore(KeyStore trustStore) {
-            try {
-                SSLContext sslTrustContext = SSLContext.getInstance("TLSv1.2");
-                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
-                trustManagerFactory.init(trustStore);
-                sslTrustContext.init(null, trustManagerFactory.getTrustManagers(), null);
-                this.sslTrustContext = sslTrustContext;
-            }
-            catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-                throw new MidSslException(e.getMessage());
-            }
+            this.trustStore = trustStore;
             return this;
         }
 
@@ -307,8 +275,8 @@ public class MidClient {
             if (this.longPollingTimeoutSeconds < 0) {
                 throw new MidMissingOrInvalidParameterException("longPollingTimeoutSeconds must be non-negative number");
             }
-            if (this.trustedCertificates.isEmpty() && this.sslTrustContext == null) {
-                throw new MidMissingOrInvalidParameterException("You need to provide 'sslContext' or 'sslKeyStore' or 'sslCertificates' parameter with certificates of servers that are trusted");
+            if ( this.trustSslContext == null && this.trustStore == null || this.trustSslContext != null && this.trustStore != null) {
+                throw new MidMissingOrInvalidParameterException("Provide certificates of servers that are trusted by calling exactly one of 'withTrustSslContext()', 'withTrustStore()' or 'withTrustedCertificates()'");
             }
         }
     }

@@ -29,19 +29,11 @@ package ee.sk.mid;
 import static ee.sk.mid.MidSignatureVerifier.verifyWithECDSA;
 import static ee.sk.mid.MidSignatureVerifier.verifyWithRSA;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,6 +45,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,10 +53,27 @@ public class MidAuthenticationResponseValidator {
 
     private static final Logger logger = LoggerFactory.getLogger( MidAuthenticationResponseValidator.class);
 
-    private List<X509Certificate> trustedCACertificates = new ArrayList<>();
+    private List<X509Certificate> trustedCACertificates /* = new ArrayList<>()*/;
 
-    public MidAuthenticationResponseValidator() {
-        initializeTrustedCACertificatesFromKeyStore();
+    public MidAuthenticationResponseValidator(MidClient client) {
+
+        KeyStore trustStore = client.getTrustStore();
+        if (trustStore == null) {
+            throw new MidMissingOrInvalidParameterException("You need to add a trust store to client ");
+        }
+
+        initializeTrustedCACertificatesFromTrustStore(trustStore);
+    }
+
+    public MidAuthenticationResponseValidator(KeyStore trustStore) {
+        if (trustStore == null) {
+            throw new MidMissingOrInvalidParameterException("trustStore cannot be null");
+        }
+        initializeTrustedCACertificatesFromTrustStore(trustStore);
+    }
+
+    public MidAuthenticationResponseValidator(List<X509Certificate> trustedCACertificates) {
+        this.trustedCACertificates = trustedCACertificates;
     }
 
     public MidAuthenticationResult validate(MidAuthentication authentication) {
@@ -156,35 +166,23 @@ public class MidAuthenticationResponseValidator {
         }
     }
 
-    private void initializeTrustedCACertificatesFromKeyStore() {
-        try (InputStream is = MidAuthenticationResponseValidator.class.getResourceAsStream("/trusted_certificates.jks")) {
-            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            trustStore.load(is, "changeit".toCharArray());
+    private void initializeTrustedCACertificatesFromTrustStore(KeyStore trustStore) {
+        List<X509Certificate> certificatesFromTrustStore = new ArrayList<>();
+
+        try {
             Enumeration<String> aliases = trustStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 X509Certificate certificate = (X509Certificate) trustStore.getCertificate(alias);
                 logger.error(certificate.toString());
-                addTrustedCACertificate(certificate);
+                certificatesFromTrustStore.add(certificate);
             }
-        } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
+        } catch (KeyStoreException e) {
             logger.error("Error initializing trusted CA certificates", e);
             throw new MidInternalErrorException("Error initializing trusted CA certificates", e);
         }
-    }
+        this.trustedCACertificates = certificatesFromTrustStore;
 
-    public void addTrustedCACertificate(File certificateFile) throws IOException, CertificateException {
-        addTrustedCACertificate(Files.readAllBytes(certificateFile.toPath()));
-    }
-
-    public void addTrustedCACertificate(byte[] certificateBytes) throws CertificateException {
-        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-        X509Certificate caCertificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certificateBytes));
-        addTrustedCACertificate(caCertificate);
-    }
-
-    public void addTrustedCACertificate(X509Certificate certificate) {
-        trustedCACertificates.add(certificate);
     }
 
     private boolean isCertificateValid(X509Certificate certificate) {

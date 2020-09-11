@@ -41,10 +41,17 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
+import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
-import ee.sk.mid.*;
+import ee.sk.mid.MidAuthentication;
+import ee.sk.mid.MidAuthenticationHashToSign;
+import ee.sk.mid.MidAuthenticationResponseValidator;
+import ee.sk.mid.MidClient;
+import ee.sk.mid.MidHashToSign;
+import ee.sk.mid.MidHashType;
 import ee.sk.mid.MidLanguage;
+import ee.sk.mid.MidSignature;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
 import ee.sk.mid.rest.dao.request.MidCertificateRequest;
@@ -268,8 +275,10 @@ public class MobileIdRestServiceRequestDummy {
         assertThat(authentication.getCertificate(), is(notNullValue()));
         assertThat(authentication.getSignedHashInBase64(), is(expectedHashToSignInBase64));
         assertThat(authentication.getHashType(), Matchers.is( MidHashType.SHA256));
+    }
 
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
-        validator.validate(authentication);
+    public static void assertCanCallValidate(MidAuthentication authentication, KeyStore trustStore) {
+        new MidAuthenticationResponseValidator(trustStore).validate(authentication);
+
     }
 }

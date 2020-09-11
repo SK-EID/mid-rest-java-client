@@ -30,9 +30,13 @@ import static ee.sk.mid.mock.TestData.VALID_SIGNATURE_IN_BASE64;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -261,8 +265,12 @@ public class ReadmeTest {
 
 
     @Test(expected = MidInternalErrorException.class)
-    public void documentHowToVerifyAuthenticationResult() {
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+    public void documentHowToVerifyAuthenticationResult() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(trustStore);
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(true));

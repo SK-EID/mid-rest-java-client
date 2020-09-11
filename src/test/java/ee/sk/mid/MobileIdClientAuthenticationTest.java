@@ -33,6 +33,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCanCallValidate;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectAuthenticationRequestMade;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertMadeCorrectAuthenticationRequesWithSHA256;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createAndSendAuthentication;
@@ -54,7 +55,11 @@ import static ee.sk.mid.mock.TestData.SHA256_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SHA512_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,14 +67,17 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.rest.MidConnector;
@@ -83,9 +91,6 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 
 public class MobileIdClientAuthenticationTest {
 
@@ -140,7 +145,7 @@ public class MobileIdClientAuthenticationTest {
     assertThat(authentication.getCertificate(), is(notNullValue()));
     assertThat(authentication.getHashType(), Matchers.is( MidHashType.SHA256));
 
-    MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+    MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(client.getTrustStore());
     MidAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
 
     assertThat(mobileIdAuthenticationResult.isValid(), is(false));
@@ -203,7 +208,7 @@ public class MobileIdClientAuthenticationTest {
     assertThat(authentication.getSignedHashInBase64(), is(hashToSign.getHashInBase64()));
     assertThat(authentication.getHashType(), Matchers.is( MidHashType.SHA512));
 
-    MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+    MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(client.getTrustStore());
     MidAuthenticationResult mobileIdAuthenticationResult = validator.validate(authentication);
 
     assertThat(mobileIdAuthenticationResult.isValid(), is(false));
@@ -240,6 +245,7 @@ public class MobileIdClientAuthenticationTest {
 
     MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
     assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
+    assertCanCallValidate(authentication, client.getTrustStore());
   }
 
   @Test
@@ -267,6 +273,7 @@ public class MobileIdClientAuthenticationTest {
 
     MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
     assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
+    assertCanCallValidate(authentication, client.getTrustStore());
   }
 
   @Test(expected = MidSessionTimeoutException.class)

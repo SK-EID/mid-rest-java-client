@@ -18,7 +18,7 @@ Mobile-ID Java client is a Java library that can be used for easy integration wi
 
 # Requirements
 * Java 1.8 
-* Internet access to Mobile-ID demo environment (to run integration tests)
+* Access to Mobile-ID demo environment (to run integration tests)
 
 # Maven
 You can use the library as a dependency from the Maven Central (http://mvnrepository.com/artifact/ee.sk.mid/mid-rest-java-client)
@@ -107,11 +107,11 @@ request to enter your PIN to phone.
 
 ### Verifying the SSL connection to Application Provider (SK)
 
-Relying Party needs to verify that it is connecting to MID API it trusts.
+The Relying Party needs to verify that it is connecting to MID API it trusts.
 More info about this requirement can be found from [MID Documentation](https://github.com/SK-EID/MID#28-api-endpoint-authentication).
 
 Server SSL certificates are valid for limited time and thus replaced regularly (about once in every 3 years).
-If a new certificate is issued, Relying Parties are notified in advance by Application Provider, and the new certificate needs to be imported
+Every time a new certificate is issued, Relying Parties are notified in advance by Application Provider, and the new certificate needs to be imported
 into the Service Provider's system, or the code starts to throw errors after server certificate becomes invalid.
 
 Following options are available to set trusted certificates:
@@ -403,14 +403,30 @@ demonstrate how to perform authentication and verify the response.
 
 <!-- Do not change code samples here but instead copy from ReadmeTest.documentHowToVerifyAuthenticationResult() -->
 ```java
-    MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
-    MidAuthenticationResult authenticationResult = validator.validate(authentication);
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+        
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(trustStore);
+        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
-    assertThat(authenticationResult.isValid(), is(true));
-    assertThat(authenticationResult.getErrors().isEmpty(), is(true));
+        assertThat(authenticationResult.isValid(), is(true));
+        assertThat(authenticationResult.getErrors().isEmpty(), is(true));
 ```
 
-When the authentication result is valid a session could be created now within the e-service or application. As the session logic is dependent on the implementation and may vary from system to system, this is something integrator has to do himself.
+When the authentication result is valid a session could be created now within the e-service or application.
+
+#### Validate returned certificate is a trusted MID certificate
+
+To avoid man-in-the-middle attacks you need to make sure that the authentication certificate returned by MID API is issued by Application Provider (SK ID Solutions AS).
+For this you need to keep a trust store that trusts certificates taken from here: https://www.skidsolutions.eu/en/repository/certs/
+
+For testing you need to import certificates for testing:  https://www.skidsolutions.eu/en/repository/certs/certificates-for-testing
+
+You can use the same trust store file where you keep trusted server certificates.
+
+
+
 
 When the authentication result is not valid then the reasons for invalidity are obtainable like this:
 

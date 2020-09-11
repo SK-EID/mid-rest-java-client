@@ -36,16 +36,16 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.time.LocalDate;
 import java.util.Scanner;
 
-import ee.sk.mid.*;
+import ee.sk.mid.MidAuthentication;
+import ee.sk.mid.MidAuthenticationHashToSign;
 import ee.sk.mid.MidAuthenticationIdentity;
+import ee.sk.mid.MidAuthenticationResponseValidator;
+import ee.sk.mid.MidAuthenticationResult;
+import ee.sk.mid.MidClient;
 import ee.sk.mid.integration.MobileIdSSL_IT;
 
 
@@ -92,7 +92,7 @@ public class MobileIdAuthenticationInteractive {
 
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
 
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(client.getTrustStore());
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertAuthenticationResultValid(authenticationResult);

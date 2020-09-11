@@ -26,6 +26,7 @@ package ee.sk.mid;
  * #L%
  */
 
+import static ee.sk.mid.TestUtil.fileToX509Certificate;
 import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_EE;
 import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_LT;
 import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_LV;
@@ -35,33 +36,30 @@ import static ee.sk.mid.mock.TestData.SIGNED_ECC_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SIGNED_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.VALID_ECC_SIGNATURE_IN_BASE64;
 import static ee.sk.mid.mock.TestData.VALID_SIGNATURE_IN_BASE64;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.Date;
 
 import ee.sk.mid.exception.MidInternalErrorException;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 public class AuthenticationResponseValidatorTest {
 
-    private MidAuthenticationResponseValidator validator;
-
-    @Before
-    public void setUp() {
-        validator = new MidAuthenticationResponseValidator();
-    }
 
     @Test
     public void validate_whenRSA_shouldReturnValidAuthenticationResult() throws Exception{
-        File caCertificateFile = new File(AuthenticationResponseValidatorTest.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
-        validator.addTrustedCACertificate(caCertificateFile);
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
 
         MidAuthentication authentication = createValidMobileIdAuthentication();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
@@ -72,8 +70,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_whenECC_shouldReturnValidAuthenticationResult() throws Exception{
-        File caCertificateFile = new File(AuthenticationResponseValidatorTest.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt").getFile());
-        validator.addTrustedCACertificate(caCertificateFile);
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthentication authentication = createMobileIdAuthenticationWithECC();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
@@ -92,6 +90,8 @@ public class AuthenticationResponseValidatorTest {
                 .withHashType( MidHashType.SHA512)
                 .build();
 
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
@@ -108,8 +108,8 @@ public class AuthenticationResponseValidatorTest {
                 .withHashType( MidHashType.SHA512)
                 .build();
 
-        File caCertificateFile = new File(AuthenticationResponseValidatorTest.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
-        validator.addTrustedCACertificate(caCertificateFile);
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
@@ -119,8 +119,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_whenResultNotOk_shouldReturnInvalidAuthenticationResult() throws Exception {
-        File caCertificateFile = new File(AuthenticationResponseValidatorTest.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
-        validator.addTrustedCACertificate(caCertificateFile);
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthentication authentication = createMobileIdAuthenticationWithInvalidResult();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
@@ -129,17 +129,20 @@ public class AuthenticationResponseValidatorTest {
         assertThat(authenticationResult.getErrors(), contains("Response result verification failed"));
     }
 
-    @Test
-    public void validate_whenSignatureVerificationFails_shouldReturnInvalidAuthenticationResult() {
+    @Test(expected = MidInternalErrorException.class)
+    public void validate_whenSignatureVerificationFails_shouldThrowException() {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         MidAuthentication authentication = createMobileIdAuthenticationWithInvalidSignature();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
-
-        assertThat(authenticationResult.isValid(), is(false));
-        assertThat(authenticationResult.getErrors(), hasItem(equalTo("Signature verification failed")));
     }
 
     @Test
     public void validate_whenSignersCertExpired_shouldReturnInvalidAuthenticationResult() {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         MidAuthentication authentication = createMobileIdAuthenticationWithExpiredCertificate();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
@@ -148,7 +151,10 @@ public class AuthenticationResponseValidatorTest {
     }
 
     @Test
-    public void validate_shouldReturnValidIdentity() {
+    public void validate_shouldReturnValidIdentity() throws Exception {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         MidAuthentication authentication = createValidMobileIdAuthentication();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
@@ -159,7 +165,10 @@ public class AuthenticationResponseValidatorTest {
     }
 
     @Test(expected = MidInternalErrorException.class)
-    public void validate_whenCertificateIsNull_shouldThrowException() {
+    public void validate_whenCertificateIsNull_shouldThrowException() throws Exception {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64(VALID_SIGNATURE_IN_BASE64)
@@ -173,6 +182,9 @@ public class AuthenticationResponseValidatorTest {
 
     @Test(expected = MidInternalErrorException.class)
     public void validate_whenSignatureIsEmpty_shouldThrowException() {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64("")
@@ -186,6 +198,9 @@ public class AuthenticationResponseValidatorTest {
 
     @Test(expected = MidInternalErrorException.class)
     public void validate_whenHashTypeIsNull_shouldThrowException() {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         MidAuthentication authentication = MidAuthentication.newBuilder()
                 .withResult("OK")
                 .withSignatureValueInBase64(VALID_SIGNATURE_IN_BASE64)
@@ -244,6 +259,9 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void constructAuthenticationIdentity_withEECertificate() {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         X509Certificate certificateEe = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE);
         MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateEe);
 
@@ -255,6 +273,9 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void constructAuthenticationIdentity_withLVCertificate() {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         X509Certificate certificateLv = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_LV);
         MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateLv);
 
@@ -266,6 +287,9 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void constructAuthenticationIdentity_withLTCertificate() {
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
+
         X509Certificate certificateLt = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_LT);
         MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateLt);
 
