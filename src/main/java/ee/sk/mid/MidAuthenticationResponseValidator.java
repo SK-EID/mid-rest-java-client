@@ -152,7 +152,7 @@ public class MidAuthenticationResponseValidator {
     }
 
     private void initializeTrustedCACertificatesFromKeyStore() {
-        try (InputStream is = MidAuthenticationResponseValidator.class.getResourceAsStream("/trusted_certificates.jks")) {
+        try (InputStream is = MidAuthenticationResponseValidator.class.getResourceAsStream("/trusted_certificates.mid.jks")) {
             KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
             keystore.load(is, "changeit".toCharArray());
             Enumeration<String> aliases = keystore.aliases();
