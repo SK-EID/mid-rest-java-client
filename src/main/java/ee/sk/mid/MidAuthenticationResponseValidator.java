@@ -182,7 +182,6 @@ public class MidAuthenticationResponseValidator {
             throw new MidInternalErrorException("Error initializing trusted CA certificates", e);
         }
         this.trustedCACertificates = certificatesFromTrustStore;
-
     }
 
     private boolean isCertificateValid(X509Certificate certificate) {
