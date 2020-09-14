@@ -159,7 +159,9 @@ public class MidAuthenticationResponseValidator {
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 X509Certificate certificate = (X509Certificate) keystore.getCertificate(alias);
-                logger.error(certificate.toString());
+
+                logger.debug("adding trusted ca certificate: {}", certificate);
+
                 addTrustedCACertificate(certificate);
             }
         } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
