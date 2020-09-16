@@ -8,7 +8,7 @@ Mobile-ID Java client is a Java library that can be used for easy integration wi
 
 * [Features](#features)
 * [Requirements](#requirements)
-* [Maven](#maven)
+* [Adding as a dependency](#adding-as-a-dependency)
 * [Usage](#usage)
 * [License](#license)
 
@@ -20,7 +20,7 @@ Mobile-ID Java client is a Java library that can be used for easy integration wi
 * Java 1.8 
 * Access to Mobile-ID demo environment (to run integration tests)
 
-# Maven
+# Adding as a dependency
 You can use the library as a dependency from the Maven Central (http://mvnrepository.com/artifact/ee.sk.mid/mid-rest-java-client)
 
 ## Maven configuration
@@ -42,11 +42,19 @@ compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: 'INSERT_VERSI
 # Usage
 * [Running Unit tests](#running-unit-tests)
 * [Running against Demo environment](#running-against-demo-environment)
-* [Configure the client](#client-configuration)
-  - [Verifying the SSL connection to SK](#verifying-the-ssl-connection-to-sk)
+* [How to forward requests to your phone](#how-to-forward-requests-to-your-phone)
+* [Client configuration](#client-configuration)
+  - [Verifying the SSL connection to SK](#verifying-the-ssl-connection-to-application-provider-sk)
+    - [Keeping the trusted certificates in a Trust Store file](#keeping-the-trusted-certificates-in-a-trust-store-file)
+    - [Using with custom ssl context](#using-with-custom-ssl-context)
+    - [Specifying trusted certificates as string list](#specifying-trusted-certificates-as-string-list)
+  - [How to create a trust store](#how-to-create-a-trust-store)
+    - [Updating certs in tests of mid-rest-java-client](#updating-certs-in-tests-of-mid-rest-java-client)
   - [Configuring a proxy](#configuring-a-proxy)
     - [JBoss and WildFly](#jboss-and-wildfly)
     - [Tomcat](#tomcat)
+  - [Long-polling configuration](#long-polling-configuration)
+  - [Calling without long polling](#calling-without-long-polling)
 * [Retrieving signing certificate](#retrieving-signing-certificate)
 * [Creating the signature](#creating-the-signature)
   - [Creating the signature from raw data file](#creating-the-signature-from-raw-data-file)
@@ -54,6 +62,7 @@ compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: 'INSERT_VERSI
 * [Authentication](#authentication)
   - [Getting the authentication response](#getting-the-authentication-response)
   - [Verifying the authentication response](#verifying-the-authentication-response)
+    - [Validate returned certificate is a trusted MID certificate](#validate-returned-certificate-is-a-trusted-mid-certificate)
 * [Handling negative scenarios](#handling-negative-scenarios)
   - [Handling authentication and signing exceptions](#handling-authentication-and-signing-exceptions)
   - [Handling certificate retrieval exceptions](#handling-certificate-retrieval-exceptions)
@@ -426,13 +435,14 @@ When the authentication result is valid a session could be created now within th
 #### Validate returned certificate is a trusted MID certificate
 
 To avoid man-in-the-middle attacks you need to make sure that the authentication certificate returned by MID API is issued by Application Provider (SK ID Solutions AS).
-For this you need to keep a trust store that trusts certificates taken from here: https://www.skidsolutions.eu/en/repository/certs/
+You can read more about this requirement from [MID API documentation](https://github.com/SK-EID/MID#336-verifying-the-authentication-response).
+
+You need to keep a Trust Store that trusts certificates taken from [SK Certificate Repository](https://www.skidsolutions.eu/en/repository/certs/)
 
 For testing you need to import certificates for testing:  https://www.skidsolutions.eu/en/repository/certs/certificates-for-testing
 
-You can use the same trust store file where you keep trusted server certificates.
-
-
+You can use the same Trust Store file that you keep trusted SSL server certificates (see chapter 
+[Verifying the SSL connection to Application Provider (SK)](#verifying-the-ssl-connection-to-application-provider-sk)).
 
 
 When the authentication result is not valid then the reasons for invalidity are obtainable like this:
