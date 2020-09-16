@@ -40,7 +40,6 @@ public class MidInputUtil {
         return MidNationalIdentificationCodeValidator.isValid(nationalIdentityNumber);
     }
 
-
     public static void validatePhoneNumber(String phoneNumber) {
         if (!isPhoneNumberValid(phoneNumber)) {
             throw new MidInvalidPhoneNumberException(phoneNumber);
@@ -51,11 +50,6 @@ public class MidInputUtil {
         if (!isNationalIdentityNumberValid(nationalIdentityNumber)) {
             throw new MidInvalidNationalIdentityNumberException(nationalIdentityNumber);
         }
-    }
-
-    public static void validateUserInput(String phoneNumber, String nationalIdentityNumber) {
-        validatePhoneNumber(phoneNumber);
-        validateNationalIdentityNumber(nationalIdentityNumber);
     }
 
     public static String getValidatedPhoneNumber(String phoneNumberInput) {
@@ -73,11 +67,5 @@ public class MidInputUtil {
 
         return cleanedNationalIdentityNumber;
     }
-
-
-    public static boolean isUserInputValid(String phoneNumber, String nationalIdentityNumber) {
-        return isPhoneNumberValid(phoneNumber) && isNationalIdentityNumberValid(nationalIdentityNumber);
-    }
-
 
 }

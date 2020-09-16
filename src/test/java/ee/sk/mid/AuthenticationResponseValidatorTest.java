@@ -129,13 +129,16 @@ public class AuthenticationResponseValidatorTest {
         assertThat(authenticationResult.getErrors(), contains("Response result verification failed"));
     }
 
-    @Test(expected = MidInternalErrorException.class)
+    @Test
     public void validate_whenSignatureVerificationFails_shouldThrowException() {
         X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
         MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthentication authentication = createMobileIdAuthenticationWithInvalidSignature();
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
+
+        assertThat(authenticationResult.isValid(), is(false));
+        assertThat(authenticationResult.getErrors().get(0), is("Signature verification failed"));
     }
 
     @Test

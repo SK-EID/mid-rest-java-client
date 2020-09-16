@@ -44,6 +44,7 @@ import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubServiceUnavailableErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubSessionStatusWithState;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
 import static ee.sk.mid.mock.TestData.AUTHENTICATION_SESSION_PATH;
@@ -77,6 +78,7 @@ import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
 import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
@@ -348,8 +350,13 @@ public class MobileIdClientAuthenticationTest {
 
   @Test(expected = MidInternalErrorException.class)
   public void authenticate_whenGettingResponseFailed_shouldThrowException() {
-    stubInternalServerErrorResponse("/authentication",
-        "requests/authenticationRequest.json");
+    stubInternalServerErrorResponse("/authentication", "requests/authenticationRequest.json");
+    makeValidAuthenticationRequest(client);
+  }
+
+  @Test(expected = MidServiceUnavailableException.class)
+  public void authenticate_when503responseCode_shouldThrowException() {
+    stubServiceUnavailableErrorResponse("/authentication", "requests/authenticationRequest.json");
     makeValidAuthenticationRequest(client);
   }
 

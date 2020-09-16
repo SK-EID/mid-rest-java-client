@@ -34,6 +34,7 @@ import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubServiceUnavailableErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
@@ -53,6 +54,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.ClientRequestHeaderFilter;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.rest.dao.request.MidCertificateRequest;
 import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
@@ -103,6 +105,17 @@ public class MobileIdRestConnectorCertificateTest {
             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
             .build();
 
+        connector.getCertificate(request);
+    }
+
+    @Test(expected = MidServiceUnavailableException.class)
+    public void getCertificate_whenHttpStatusCode503_shouldThrowException() {
+        stubServiceUnavailableErrorResponse("/certificate", "requests/certificateChoiceRequest.json");
+
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
+             .withPhoneNumber(VALID_PHONE)
+             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
+             .build();
         connector.getCertificate(request);
     }
 

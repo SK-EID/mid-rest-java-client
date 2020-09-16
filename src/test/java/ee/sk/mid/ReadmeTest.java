@@ -51,6 +51,7 @@ import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
 import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidSslException;
@@ -326,6 +327,10 @@ public class ReadmeTest {
         }
         catch (MidSessionNotFoundException | MidMissingOrInvalidParameterException | MidUnauthorizedException e) {
             logger.error("Integrator-side error with MID integration or configuration", e);
+            // navigate to error page
+        }
+        catch (MidServiceUnavailableException e) {
+            logger.warn("MID service is currently unavailable. Please try again later.");
             // navigate to error page
         }
         catch (MidInternalErrorException e) {

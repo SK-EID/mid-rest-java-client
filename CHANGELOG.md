@@ -2,7 +2,9 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.3] - 2020-XX-XX
+## [1.3] - 2020-09-XX
+
+### Changed
 - Relying Party must keep the list of trusted server certificates and supply them to mid-rest-java-client
     - recommended way is to create a trust store (ehiter JKS or P12 format) and load trusted certificates into it
     (and update this file when new certificates are published and eventually replaced by Application Provider (SK)
@@ -12,12 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     - withSslCertificates() -> withTrustedCertificates()
     - withSslContext() -> withTrustSslContext
 - MidAuthenticationResponseValidator now takes trusted certificates info as constructor parameter.
-See
 
+### Added
+- handling 503 (Service Unavailable) exceptions
 
-TODO
-
-- Removed handling "NOT_ACTIVE" certificate status as it is never return by MID API
+### Removed
+- Removed handling "NOT_ACTIVE" certificate status as it is never return by MID API (API always returns NOT_MID_CLIENT instead)
 
 ## [1.2.1] - 2020-09-11
 - trusted_certificates renamed trusted_certificates_mid

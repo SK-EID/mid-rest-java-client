@@ -114,9 +114,11 @@ Server SSL certificates are valid for limited time and thus replaced regularly (
 Every time a new certificate is issued, Relying Parties are notified in advance by Application Provider, and the new certificate needs to be imported
 into the Service Provider's system, or the code starts to throw errors after server certificate becomes invalid.
 
-Following options are available to set trusted certificates:
+Following options are available to set trusted certificates.
 
-Keeping the trusted certificates in a trust store file and providing this to mid-rest-java-client (recommended):
+#### Keeping the trusted certificates in a Trust Store file 
+
+Trust Store file is passed to mid-rest-java-client (recommended):
 
 <!-- Do not change code samples here but instead copy from ReadmeTest.documentConfigureTheClientTrustStore() -->
 ```java
@@ -131,9 +133,14 @@ Keeping the trusted certificates in a trust store file and providing this to mid
                 .withTrustStore(trustStore)
                 .build();
 ```
-You can also use trust store in P12 format. In this case replace "JKS" with "PKCS12".
+> **Note** You can also use trust store in P12 format. In this case replace "JKS" with "PKCS12".
 
-Using with custom ssl context
+Using Trust Store is preferred as you can use the same format
+to keep track which certificates you trust.
+
+Read chapter  [Validate returned certificate is a trusted MID certificate](#Validate-returned-certificate-is-a-trusted-MID-certificate) for more info.
+
+#### Using with custom ssl context
 
 <!-- Do not change code samples here but instead copy from ReadmeTest.documentConfigureTheClientWithTrustSslContext() -->
 ```java
@@ -155,7 +162,7 @@ Using with custom ssl context
                 .build();
 ```
 
-Or specifying trusted certificates as string list
+#### Specifying trusted certificates as string list
 
 <!-- Do not change code samples here but instead copy from ReadmeTest.documentConfigureTheClientWithTrustedCertificatesList() -->
 ```java
@@ -167,7 +174,7 @@ Or specifying trusted certificates as string list
                 .build();
 ```
 
-#### How to create a trust store
+### How to create a trust store
 
 Download production (mid.sk.ee) certificate in PEM format from here: https://www.skidsolutions.eu/en/repository/certs/
 
@@ -491,6 +498,10 @@ Following exceptions indicate problems with integration or configuration on Rely
     }
     catch (MidSessionNotFoundException | MidMissingOrInvalidParameterException | MidUnauthorizedException e) {
         logger.error("Integrator-side error with MID integration or configuration", e);
+        // navigate to error page
+    }
+    catch (MidServiceUnavailableException e) {
+        logger.warn("MID service is currently unavailable. Please try again later.");
         // navigate to error page
     }
     catch (MidInternalErrorException e) {

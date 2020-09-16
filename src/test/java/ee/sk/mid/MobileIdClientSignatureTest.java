@@ -41,6 +41,7 @@ import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubServiceUnavailableErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubSessionStatusWithState;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
 import static ee.sk.mid.mock.TestData.DATA_TO_SIGN;
@@ -61,12 +62,13 @@ import java.util.Map;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
@@ -266,6 +268,12 @@ public class MobileIdClientSignatureTest {
     @Test(expected = MidInternalErrorException.class)
     public void sign_whenGettingResponseFailed_shouldThrowException() {
         stubInternalServerErrorResponse("/signature", "requests/signatureRequest.json");
+        makeValidSignatureRequest(client);
+    }
+
+    @Test(expected = MidServiceUnavailableException.class)
+    public void sign_whenHttpStatusCode503_shouldThrowException() {
+        stubServiceUnavailableErrorResponse("/signature", "requests/signatureRequest.json");
         makeValidSignatureRequest(client);
     }
 

@@ -36,20 +36,6 @@ public class MidTrustUtil {
         }
     }
 
-    public static SSLContext createSslContext(List<String> trustedCertificates) {
-        try {
-            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-            KeyStore trustStore = createTrustStore(trustedCertificates);
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
-            trustManagerFactory.init(trustStore);
-            sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
-            return sslContext;
-        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-            throw new MidSslException(e.getMessage());
-        }
-    }
-
-
     public static SSLContext createSslContext(KeyStore trustStore) {
 
         try {

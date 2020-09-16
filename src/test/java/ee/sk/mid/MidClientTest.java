@@ -25,4 +25,30 @@ public class MidClientTest {
                 .withHostUrl(DEMO_HOST_URL)
                 .build();
     }
+
+    @Test
+    public void buildClient_negativeLongPollingTimeoutSeconds_shouldThrowException() {
+        expectedEx.expect( MidMissingOrInvalidParameterException.class);
+        expectedEx.expectMessage("longPollingTimeoutSeconds must be non-negative number");
+
+        MidClient.newBuilder()
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
+                .withHostUrl(DEMO_HOST_URL)
+                .withLongPollingTimeoutSeconds(-1)
+                .build();
+    }
+
+    @Test
+    public void buildClient_negativePollingSleepTimeoutSeconds_shouldThrowException() {
+        expectedEx.expect( MidMissingOrInvalidParameterException.class);
+        expectedEx.expectMessage("pollingSleepTimeoutSeconds must be non-negative number");
+
+        MidClient.newBuilder()
+                .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
+                .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
+                .withHostUrl(DEMO_HOST_URL)
+                .withPollingSleepTimeoutSeconds(-100)
+                .build();
+    }
 }

@@ -36,6 +36,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -48,6 +49,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import ee.sk.mid.exception.MidException;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
 import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
@@ -204,19 +206,27 @@ public class MidRestConnector implements MidConnector {
         try {
             Entity<V> requestEntity = Entity.entity(request, MediaType.APPLICATION_JSON);
             return prepareClient(uri).post(requestEntity, responseType);
-        } catch (InternalServerErrorException e) {
+        }
+        catch (InternalServerErrorException e) {
             logger.error("Error getting response from cert-store/MSSP for URI " + uri + ": " + e.getMessage());
             throw new MidInternalErrorException("Error getting response from cert-store/MSSP for URI " + uri + ": " + e.getMessage());
-        } catch (NotFoundException e) {
+        }
+        catch (NotFoundException e) {
             logger.error("Response not found for URI " + uri + ": " + e.getMessage());
             throw new MidInternalErrorException("MID internal error");
-        } catch (BadRequestException e) {
+        }
+        catch (BadRequestException e) {
             String errorMessage = readErrorMessageFromBody(e);
             logger.error("MID rejected our input with message: " + errorMessage);
             throw new MidMissingOrInvalidParameterException(errorMessage);
-        } catch (NotAuthorizedException e) {
+        }
+        catch (NotAuthorizedException e) {
             logger.error("Request is unauthorized for URI " + uri + ": " + e.getMessage());
             throw new MidUnauthorizedException("Request is unauthorized for URI " + uri + ": " + e.getMessage());
+        }
+        catch (ServiceUnavailableException e) {
+            logger.error("MID server returned 503 - service unavailable", e);
+            throw new MidServiceUnavailableException("MID service is currently unavailable. Please try again later.");
         }
     }
 
