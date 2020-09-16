@@ -95,7 +95,7 @@ public class AuthenticationResponseValidatorTest {
 
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
-        assertThat(authenticationResult.getErrors(), hasItem(equalTo("Signer's certificate is not trusted")));
+        assertThat(authenticationResult.getErrors(), hasItem(equalTo("Certificate that was returned is not signed by CA that is configured as trusted in mid-rest-java-client")));
     }
 
     @Test

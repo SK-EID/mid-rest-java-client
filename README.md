@@ -85,6 +85,8 @@ You can run only integration tests with:
 
 `mvn failsafe:integration-test`
 
+As a quick start you can also run `MobileIdAuthenticationInteractive.class` from command line
+or with your IDE by running its main method.
 
 ## How to forward requests to your phone
 
@@ -437,7 +439,7 @@ When the authentication result is valid a session could be created now within th
 To avoid man-in-the-middle attacks you need to make sure that the authentication certificate returned by MID API is issued by Application Provider (SK ID Solutions AS).
 You can read more about this requirement from [MID API documentation](https://github.com/SK-EID/MID#336-verifying-the-authentication-response).
 
-You need to keep a Trust Store that trusts certificates taken from [SK Certificate Repository](https://www.skidsolutions.eu/en/repository/certs/)
+You need to keep a Trust Store that trusts certificates taken from [SK Certificate Repository](https://www.skidsolutions.eu/en/repository/certs/).
 
 For testing you need to import certificates for testing:  https://www.skidsolutions.eu/en/repository/certs/certificates-for-testing
 
@@ -445,12 +447,15 @@ You can use the same Trust Store file that you keep trusted SSL server certifica
 [Verifying the SSL connection to Application Provider (SK)](#verifying-the-ssl-connection-to-application-provider-sk)).
 
 
-When the authentication result is not valid then the reasons for invalidity are obtainable like this:
+When the authentication result is not valid or the returned certificate is not signed by a CA that we trust then the reasons for invalidity are obtainable like this:
 
 <!-- Do not change code samples here but instead copy from ReadmeTest.documentGettingErrors() -->
 ```java
     List<String> errors = authenticationResult.getErrors();
 ```
+
+
+
 
 `AuthenticationIdentity` could be helpful for obtaining information about the authenticated person when constructing the session.
 

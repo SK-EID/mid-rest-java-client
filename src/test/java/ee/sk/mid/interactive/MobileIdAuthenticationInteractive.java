@@ -26,11 +26,13 @@ package ee.sk.mid.interactive;
  * #L%
  */
 
+import static ee.sk.mid.TestUtil.fileToX509Certificate;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createAndSendAuthentication;
 import static ee.sk.mid.mock.TestData.DEMO_HOST_URL;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
@@ -38,6 +40,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.util.Scanner;
 
 import ee.sk.mid.MidAuthentication;
@@ -92,22 +95,30 @@ public class MobileIdAuthenticationInteractive {
 
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
 
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(client.getTrustStore());
+        // WE TRUST BOTH production MID certificates (persons have copied their production
+        // certificate to DEMO and are now using it) and TEST certificates as well (test numbers)
+
+        X509Certificate caCertificateProdEnv1 = fileToX509Certificate("/trusted_certificates/ESTEID-SK_2011.pem.crt");
+        X509Certificate caCertificateProdEnv2 = fileToX509Certificate("/trusted_certificates/ESTEID-SK_2015.pem.crt");
+
+        X509Certificate caCertificateTestEnv1 = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt");
+        X509Certificate caCertificateTestEnv2 = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+
+
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(
+             asList(caCertificateProdEnv1, caCertificateProdEnv2, caCertificateTestEnv1, caCertificateTestEnv2));
+
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertAuthenticationResultValid(authenticationResult);
+
+        MidAuthenticationIdentity authenticationIdentity = authenticationResult.getAuthenticationIdentity();
+        System.out.println(String.format("Welcome %s %s!", authenticationIdentity.getGivenName(), authenticationIdentity.getSurName()));
     }
 
     private static void assertAuthenticationResultValid(MidAuthenticationResult authenticationResult) {
-        assertThat(authenticationResult.isValid(), is(false)); // When running against production, change to "true"
-
-        if (!authenticationResult.getErrors().isEmpty()) {
-            System.out.println(authenticationResult.getErrors().get(0));
-        }
-
-        assertThat(authenticationResult.getErrors().isEmpty(), is(false)); // When running against production, there should be no errors
-        assertThat(authenticationResult.getErrors().get(0), is("Signer's certificate is not trusted"));
-        assertThat(authenticationResult.getErrors().size(), is(1));
+        assertThat(authenticationResult.isValid(), is(true));
+        assertThat(authenticationResult.getErrors().isEmpty(), is(true));
         assertAuthenticationIdentityValid(authenticationResult.getAuthenticationIdentity());
     }
 
