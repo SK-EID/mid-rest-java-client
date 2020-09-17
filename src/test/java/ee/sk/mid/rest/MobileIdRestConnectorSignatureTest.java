@@ -35,6 +35,7 @@ import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubServiceUnavailableErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
 import static ee.sk.mid.mock.TestData.LOCALHOST_URL;
 import static org.hamcrest.Matchers.is;
@@ -48,6 +49,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.ClientRequestHeaderFilter;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.rest.dao.request.MidSignatureRequest;
 import ee.sk.mid.rest.dao.response.MidSignatureResponse;
@@ -112,6 +114,17 @@ public class MobileIdRestConnectorSignatureTest {
             .build();
 
         stubInternalServerErrorResponse("/signature", "requests/signatureRequest.json");
+        MidSignatureRequest request = createValidSignatureRequest();
+        connector.sign(request);
+    }
+
+    @Test(expected = MidServiceUnavailableException.class)
+    public void authenticate_whenHttpStatusCode503_shouldThrowException() {
+        MidConnector connector = MidRestConnector.newBuilder()
+             .withEndpointUrl(LOCALHOST_URL)
+             .build();
+
+        stubServiceUnavailableErrorResponse("/signature", "requests/signatureRequest.json");
         MidSignatureRequest request = createValidSignatureRequest();
         connector.sign(request);
     }

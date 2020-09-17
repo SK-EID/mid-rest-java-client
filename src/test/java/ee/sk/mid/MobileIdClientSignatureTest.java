@@ -31,6 +31,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectSignatureRequestMade;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertSignatureCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidSignature;
@@ -40,6 +41,7 @@ import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubServiceUnavailableErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubSessionStatusWithState;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
 import static ee.sk.mid.mock.TestData.DATA_TO_SIGN;
@@ -60,12 +62,13 @@ import java.util.Map;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
@@ -96,6 +99,7 @@ public class MobileIdClientSignatureTest {
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(LOCALHOST_URL)
+            .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
             .build();
         stubRequestWithResponse("/signature", "requests/signatureRequest.json",
             "responses/signatureResponse.json");
@@ -267,6 +271,12 @@ public class MobileIdClientSignatureTest {
         makeValidSignatureRequest(client);
     }
 
+    @Test(expected = MidServiceUnavailableException.class)
+    public void sign_whenHttpStatusCode503_shouldThrowException() {
+        stubServiceUnavailableErrorResponse("/signature", "requests/signatureRequest.json");
+        makeValidSignatureRequest(client);
+    }
+
     @Test(expected = MidInternalErrorException.class)
     public void sign_whenResponseNotFound_shouldThrowException() {
         stubNotFoundResponse("/signature", "requests/signatureRequest.json");
@@ -299,6 +309,7 @@ public class MobileIdClientSignatureTest {
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(LOCALHOST_URL)
+            .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
             .withPollingSleepTimeoutSeconds(2)
             .build();
 
@@ -320,6 +331,7 @@ public class MobileIdClientSignatureTest {
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(LOCALHOST_URL)
+            .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
             .withNetworkConnectionConfig(clientConfig)
             .build();
 

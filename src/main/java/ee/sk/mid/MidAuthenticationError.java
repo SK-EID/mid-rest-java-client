@@ -31,7 +31,7 @@ public enum MidAuthenticationError {
     INVALID_RESULT("Response result verification failed"),
     SIGNATURE_VERIFICATION_FAILURE("Signature verification failed"),
     CERTIFICATE_EXPIRED("Signer's certificate expired"),
-    CERTIFICATE_NOT_TRUSTED("Signer's certificate is not trusted");
+    CERTIFICATE_NOT_TRUSTED("Certificate that was returned is not signed by CA that is configured as trusted in mid-rest-java-client");
 
     private String message;
 

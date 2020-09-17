@@ -26,7 +26,11 @@ package ee.sk.mid.integration;
  * #L%
  */
 
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
+import static ee.sk.mid.TestUtil.fileToX509Certificate;
+import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT_EXPIRATION_DATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
+import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCanCallValidate;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createAndSendAuthentication;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeAuthenticationRequest;
 import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertAuthenticationPolled;
@@ -64,16 +68,30 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeTrue;
 
-import ee.sk.mid.*;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
+import java.time.LocalDate;
+import java.util.Collections;
+
+import ee.sk.mid.MidAuthentication;
+import ee.sk.mid.MidAuthenticationHashToSign;
+import ee.sk.mid.MidAuthenticationIdentity;
+import ee.sk.mid.MidAuthenticationResponseValidator;
+import ee.sk.mid.MidAuthenticationResult;
+import ee.sk.mid.MidClient;
+import ee.sk.mid.MidDisplayTextFormat;
+import ee.sk.mid.MidHashType;
 import ee.sk.mid.MidLanguage;
 import ee.sk.mid.categories.IntegrationTest;
 import ee.sk.mid.exception.MidDeliveryException;
 import ee.sk.mid.exception.MidInvalidUserConfigurationException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
@@ -82,8 +100,6 @@ import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import java.io.File;
 
 @Category({IntegrationTest.class})
 public class MobileIdAuthenticationIT {
@@ -96,6 +112,7 @@ public class MobileIdAuthenticationIT {
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
+                .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
                 .build();
     }
 
@@ -110,15 +127,16 @@ public class MobileIdAuthenticationIT {
 
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
 
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
 
-        File caCertificateFile = new File(MobileIdAuthenticationIT.class.getResource("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt").getFile());
-        validator.addTrustedCACertificate(caCertificateFile);
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertAuthenticationResultValid(authenticationResult);
     }
+
+
 
     @Test
     public void authenticate_withDisplayText() {
@@ -141,6 +159,8 @@ public class MobileIdAuthenticationIT {
 
         MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
+        assertCanCallValidate(authentication, client.getTrustStore());
+
     }
 
     @Test
@@ -164,6 +184,7 @@ public class MobileIdAuthenticationIT {
 
         MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
+        assertCanCallValidate(authentication, client.getTrustStore());
     }
 
     @Test(expected = MidNotMidClientException.class)
@@ -249,24 +270,37 @@ public class MobileIdAuthenticationIT {
     }
 
     @Test(expected = MidUnauthorizedException.class)
-    public void authenticate_withUnknownRelyingPartyUUID_shouldThrowException() {
+    public void authenticate_withUnknownRelyingPartyUUID_shouldThrowException()  throws Exception {
+        assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
+
+        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
+            .withTrustStore(trustStore)
             .build();
 
         makeAuthenticationRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
 
     @Test(expected = MidUnauthorizedException.class)
-    public void authenticate_withUnknownRelyingPartyName_shouldThrowException() {
+    public void authenticate_withUnknownRelyingPartyName_shouldThrowException()  throws Exception {
+        assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
+
+        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
 
         MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
+            .withTrustStore(trustStore)
             .build();
 
         makeAuthenticationRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);

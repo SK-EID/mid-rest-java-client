@@ -90,6 +90,10 @@ public class MobileIdRestServiceStub {
         stubErrorResponse(url, requestFile, 500);
     }
 
+    public static void stubServiceUnavailableErrorResponse(String url, String requestFile) {
+        stubErrorResponse(url, requestFile, 503);
+    }
+
     public static void stubNotFoundResponse(String url, String requestFile) {
         stubErrorResponse(url, requestFile, 404);
     }

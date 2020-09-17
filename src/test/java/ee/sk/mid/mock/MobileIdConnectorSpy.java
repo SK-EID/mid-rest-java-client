@@ -103,7 +103,7 @@ public class MobileIdConnectorSpy implements MidConnector {
     }
 
     @Override
-    public void setSslContext(SSLContext sslContext) {
+    public void setSslTrustContext(SSLContext sslContext) {
 
     }
 }

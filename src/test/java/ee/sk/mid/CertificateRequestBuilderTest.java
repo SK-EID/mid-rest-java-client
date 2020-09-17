@@ -26,6 +26,7 @@ package ee.sk.mid;
  * #L%
  */
 
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_EE;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
@@ -159,6 +160,7 @@ public class CertificateRequestBuilderTest {
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(LOCALHOST_URL)
+            .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
             .build();
 
         client.createMobileIdCertificate(response);

@@ -26,6 +26,7 @@ package ee.sk.mid.integration;
  * #L%
  */
 
+import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT_EXPIRATION_DATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCorrectSignatureRequestMade;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertSignatureCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createValidSignature;
@@ -61,16 +62,24 @@ import static ee.sk.mid.mock.TestData.WRONG_RELYING_PARTY_UUID;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeTrue;
 
-import ee.sk.mid.*;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.time.LocalDate;
+
+import ee.sk.mid.MidClient;
+import ee.sk.mid.MidHashToSign;
+import ee.sk.mid.MidHashType;
 import ee.sk.mid.MidLanguage;
+import ee.sk.mid.MidSignature;
 import ee.sk.mid.categories.IntegrationTest;
 import ee.sk.mid.exception.MidDeliveryException;
 import ee.sk.mid.exception.MidInvalidUserConfigurationException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
@@ -91,11 +100,19 @@ public class MobileIdSignatureIT {
     public ExpectedException expectedEx = ExpectedException.none();
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception{
+        assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
+
+        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
+
         client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
+                .withTrustStore(trustStore)
                 .build();
     }
 
@@ -227,22 +244,37 @@ public class MobileIdSignatureIT {
     }
 
     @Test(expected = MidUnauthorizedException.class)
-    public void sign_withUnknownRelyingPartyUUID_shouldThrowException() {
+    public void sign_withUnknownRelyingPartyUUID_shouldThrowException() throws Exception{
+        assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
+
+        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
+
         MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(UNKNOWN_RELYING_PARTY_UUID)
             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
+            .withTrustStore(trustStore)
             .build();
 
         makeSignatureRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
 
     @Test(expected = MidUnauthorizedException.class)
-    public void sign_withUnknownRelyingPartyName_shouldThrowException() {
+    public void sign_withUnknownRelyingPartyName_shouldThrowException() throws Exception{
+        assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
+
+        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
         MidClient client = MidClient.newBuilder()
             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
             .withRelyingPartyName(UNKNOWN_RELYING_PARTY_NAME)
             .withHostUrl(DEMO_HOST_URL)
+            .withTrustStore(trustStore)
             .build();
 
         makeSignatureRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);

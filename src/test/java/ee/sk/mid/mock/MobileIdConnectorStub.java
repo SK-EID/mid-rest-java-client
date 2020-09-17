@@ -93,7 +93,7 @@ public class MobileIdConnectorStub implements MidConnector {
     }
 
     @Override
-    public void setSslContext(SSLContext sslContext) {
+    public void setSslTrustContext(SSLContext trustSslContext) {
 
     }
 }

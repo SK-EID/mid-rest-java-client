@@ -36,19 +36,21 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.Configuration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionNotFoundException;
-import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidException;
+import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
+import ee.sk.mid.exception.MidSessionNotFoundException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidAbstractRequest;
@@ -76,7 +78,7 @@ public class MidRestConnector implements MidConnector {
     private String relyingPartyUUID;
     private String relyingPartyName;
 
-    private SSLContext sslContext;
+    private SSLContext trustSslContext;
 
     public MidRestConnector(String endpointUrl) {
         this.endpointUrl = endpointUrl;
@@ -100,7 +102,7 @@ public class MidRestConnector implements MidConnector {
         this.configuredClient = mobileIdRestConnectorBuilder.configuredClient;
         this.relyingPartyName = mobileIdRestConnectorBuilder.relyingPartyName;
         this.relyingPartyUUID = mobileIdRestConnectorBuilder.relyingPartyUUID;
-        this.sslContext = mobileIdRestConnectorBuilder.sslContext;
+        this.trustSslContext = mobileIdRestConnectorBuilder.sslContext;
     }
 
     @Override
@@ -204,19 +206,27 @@ public class MidRestConnector implements MidConnector {
         try {
             Entity<V> requestEntity = Entity.entity(request, MediaType.APPLICATION_JSON);
             return prepareClient(uri).post(requestEntity, responseType);
-        } catch (InternalServerErrorException e) {
+        }
+        catch (InternalServerErrorException e) {
             logger.error("Error getting response from cert-store/MSSP for URI " + uri + ": " + e.getMessage());
             throw new MidInternalErrorException("Error getting response from cert-store/MSSP for URI " + uri + ": " + e.getMessage());
-        } catch (NotFoundException e) {
+        }
+        catch (NotFoundException e) {
             logger.error("Response not found for URI " + uri + ": " + e.getMessage());
             throw new MidInternalErrorException("MID internal error");
-        } catch (BadRequestException e) {
+        }
+        catch (BadRequestException e) {
             String errorMessage = readErrorMessageFromBody(e);
             logger.error("MID rejected our input with message: " + errorMessage);
             throw new MidMissingOrInvalidParameterException(errorMessage);
-        } catch (NotAuthorizedException e) {
+        }
+        catch (NotAuthorizedException e) {
             logger.error("Request is unauthorized for URI " + uri + ": " + e.getMessage());
             throw new MidUnauthorizedException("Request is unauthorized for URI " + uri + ": " + e.getMessage());
+        }
+        catch (ServiceUnavailableException e) {
+            logger.error("MID server returned 503 - service unavailable", e);
+            throw new MidServiceUnavailableException("MID service is currently unavailable. Please try again later.");
         }
     }
 
@@ -236,8 +246,8 @@ public class MidRestConnector implements MidConnector {
             if (null != this.clientConfig) {
                 clientBuilder.withConfig(this.clientConfig);
             }
-            if (null != this.sslContext) {
-                clientBuilder.sslContext(this.sslContext);
+            if (null != this.trustSslContext) {
+                clientBuilder.sslContext(this.trustSslContext);
             }
             client = clientBuilder.build();
         }
@@ -256,7 +266,7 @@ public class MidRestConnector implements MidConnector {
     }
 
     @Override
-    public void setSslContext(SSLContext sslContext) {
-        this.sslContext = sslContext;
+    public void setSslTrustContext(SSLContext trustSslContext) {
+        this.trustSslContext = trustSslContext;
     }
 }

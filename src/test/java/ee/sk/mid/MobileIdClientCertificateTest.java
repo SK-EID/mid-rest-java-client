@@ -30,12 +30,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCertificateCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeValidCertificateRequest;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubBadRequestResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubInternalServerErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubNotFoundResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
+import static ee.sk.mid.mock.MobileIdRestServiceStub.stubServiceUnavailableErrorResponse;
 import static ee.sk.mid.mock.MobileIdRestServiceStub.stubUnauthorizedResponse;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
@@ -49,6 +51,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.mock.MobileIdRestServiceRequestDummy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
@@ -70,6 +73,7 @@ public class MobileIdClientCertificateTest {
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .build();
     stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json",
         "responses/certificateChoiceResponse.json");
@@ -89,17 +93,15 @@ public class MobileIdClientCertificateTest {
     makeValidCertificateRequest(client);
   }
 
-  @Test(expected = MidNotMidClientException.class)
-  public void getCertificate_whenInactiveCertificateFound_shouldThrowException() {
-    stubRequestWithResponse("/certificate", "requests/certificateChoiceRequest.json",
-        "responses/certificateChoiceResponseWhenInactiveCertificateFound.json");
+  @Test(expected = MidInternalErrorException.class)
+  public void getCertificate_whenGettingResponseFailed_shouldThrowException() {
+    stubInternalServerErrorResponse("/certificate", "requests/certificateChoiceRequest.json");
     makeValidCertificateRequest(client);
   }
 
-  @Test(expected = MidInternalErrorException.class)
-  public void getCertificate_whenGettingResponseFailed_shouldThrowException() {
-    stubInternalServerErrorResponse("/certificate",
-        "requests/certificateChoiceRequest.json");
+  @Test(expected = MidServiceUnavailableException.class)
+  public void getCertificate_when503responseCode_shouldThrowException() {
+    stubServiceUnavailableErrorResponse("/certificate", "requests/certificateChoiceRequest.json");
     makeValidCertificateRequest(client);
   }
 
@@ -135,6 +137,7 @@ public class MobileIdClientCertificateTest {
         .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
         .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
         .withHostUrl(LOCALHOST_URL)
+        .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
         .withNetworkConnectionConfig(clientConfig)
         .build();
 

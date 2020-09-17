@@ -30,21 +30,35 @@ import static ee.sk.mid.mock.TestData.VALID_SIGNATURE_IN_BASE64;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import ee.sk.mid.exception.MidDeliveryException;
+import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidInvalidNationalIdentityNumberException;
 import ee.sk.mid.exception.MidInvalidPhoneNumberException;
 import ee.sk.mid.exception.MidInvalidUserConfigurationException;
-import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionNotFoundException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidServiceUnavailableException;
+import ee.sk.mid.exception.MidSessionNotFoundException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MidSslException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
+import ee.sk.mid.integration.MobileIdSSL_IT;
+import ee.sk.mid.mock.TestData;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
 import ee.sk.mid.rest.dao.request.MidCertificateRequest;
@@ -60,7 +74,7 @@ import org.slf4j.LoggerFactory;
 /**
  * These tests contain snippets used in Readme.md
  * This is needed to guarantee that tests compile.
- * If anything changes in this class (ecept setUp method) the changes must be reflected in Readme.md
+ * If anything changes in this class (except setUp method) the changes must be reflected in Readme.md
  * These are not real tests!
  */
 public class ReadmeTest {
@@ -74,11 +88,16 @@ public class ReadmeTest {
     MidAuthenticationResult authenticationResult;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
         client = MidClient.newBuilder()
             .withHostUrl("https://tsp.demo.sk.ee/mid-api")
             .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
             .withRelyingPartyName("DEMO")
+            .withTrustStore(trustStore)
             .build();
 
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
@@ -93,55 +112,83 @@ public class ReadmeTest {
     }
 
     @Test
-    public void documentConfigureTheClient() {
+    public void documentConfigureTheClient() throws Exception {
+
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
 
         MidClient client = MidClient.newBuilder()
             .withHostUrl("https://tsp.demo.sk.ee/mid-api")
             .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
             .withRelyingPartyName("DEMO")
+            .withTrustStore(trustStore)
             .build();
     }
 
+    @Test
+    public void documentConfigureTheClientTrustStore() throws Exception {
+
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+                .withRelyingPartyName("DEMO")
+                .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+                .withTrustStore(trustStore)
+                .build();
+    }
 
     @Test
+    public void documentConfigureTheClientWithTrustSslContext() throws Exception {
+
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
+        SSLContext trustSslContext = SSLContext.getInstance("TLSv1.2");
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
+        trustManagerFactory.init(trustStore);
+        trustSslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+                .withRelyingPartyName("DEMO")
+                .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+                .withTrustSslContext(trustSslContext)
+                .build();
+    }
+
+    @Test(expected = MidSslException.class)
+    public void documentConfigureTheClientWithTrustedCertificatesList() {
+
+        client = MidClient.newBuilder()
+                .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+                .withRelyingPartyName("DEMO")
+                .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+                .withTrustedCertificates("PEM encoded cert 1", "PEM encoded cert 2")
+                .build();
+    }
+
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void documentClientWithLongPollingTimeout() {
 
         MidClient client = MidClient.newBuilder()
-            // set hostUrl, hRelyingParty UUID & Name
+            // set hostUrl, relyingPartyUUID, relyingPartyName and trustStore/trustSslContext
             .withLongPollingTimeoutSeconds(60)
             .build();
     }
 
-    @Test
+    @Test(expected = MidMissingOrInvalidParameterException.class)
     public void documentWithPollingSleepTimeoutSeconds() {
 
         MidClient client = MidClient.newBuilder()
-            // set hostUrl, hRelyingParty UUID & Name
+            // set hostUrl, relyingPartyUUID, relyingPartyName and trustStore/trustSslContext
             .withPollingSleepTimeoutSeconds(2)
             .build();
     }
-
-
-    @Test
-    public void documentValidateUserInput() {
-
-
-        try {
-            String nationalIdentityNumber = MidInputUtil.getValidatedNationalIdentityNumber("<national identity number entered by user>");
-            String phoneNumber = MidInputUtil.getValidatedPhoneNumber("<phone number entered by user>");
-        }
-        catch (MidInvalidNationalIdentityNumberException e) {
-            logger.info("User entered invalid national identity number");
-            // display error
-        }
-        catch (MidInvalidPhoneNumberException e) {
-            logger.info("User entered invalid phone number");
-            // display error
-        }
-
-
-    }
-
 
     @Test(expected = MidNotMidClientException.class)
     public void documentRetrieveCert() {
@@ -153,9 +200,8 @@ public class ReadmeTest {
 
         MidCertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
 
-        client.createMobileIdCertificate(response);
+        X509Certificate certificate = client.createMobileIdCertificate(response);
     }
-
 
     @Test
     public void documentCreateFromExistingData() {
@@ -220,8 +266,12 @@ public class ReadmeTest {
 
 
     @Test(expected = MidInternalErrorException.class)
-    public void documentHowToVerifyAuthenticationResult() {
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+    public void documentHowToVerifyAuthenticationResult() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        InputStream is = TestData.class.getResourceAsStream("/path/to/truststore.jks");
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(is, "changeit".toCharArray());
+
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(trustStore);
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.isValid(), is(true));
@@ -243,6 +293,7 @@ public class ReadmeTest {
         String country = authenticationIdentity.getCountry();
     }
 
+    @SuppressWarnings("EmptyTryBlock")
     @Test
     public void documentCatchingErrors() {
 
@@ -271,10 +322,15 @@ public class ReadmeTest {
         }
         catch (MidInvalidUserConfigurationException e) {
             logger.info("Mobile-ID configuration on user's SIM card differs from what is configured on service provider's side. User needs to contact his/her mobile operator.");
+            logger.info("In case of DEMO the user needs to re-import MID certificate at https://demo.sk.ee/MIDCertsReg/");
             // display error
         }
         catch (MidSessionNotFoundException | MidMissingOrInvalidParameterException | MidUnauthorizedException e) {
             logger.error("Integrator-side error with MID integration or configuration", e);
+            // navigate to error page
+        }
+        catch (MidServiceUnavailableException e) {
+            logger.warn("MID service is currently unavailable. Please try again later.");
             // navigate to error page
         }
         catch (MidInternalErrorException e) {
@@ -284,6 +340,7 @@ public class ReadmeTest {
 
     }
 
+    @SuppressWarnings("EmptyTryBlock")
     @Test
     public void documentCatchingCertificateRequestErrors() {
 
@@ -298,6 +355,23 @@ public class ReadmeTest {
         }
         catch (MidInternalErrorException e) {
             logger.warn("MID service returned internal error that cannot be handled locally.");
+        }
+    }
+
+    @Test
+    public void documentValidateUserInput() {
+
+        try {
+            String nationalIdentityNumber = MidInputUtil.getValidatedNationalIdentityNumber("<national identity number entered by user>");
+            String phoneNumber = MidInputUtil.getValidatedPhoneNumber("<phone number entered by user>");
+        }
+        catch (MidInvalidNationalIdentityNumberException e) {
+            logger.info("User entered invalid national identity number");
+            // display error
+        }
+        catch (MidInvalidPhoneNumberException e) {
+            logger.info("User entered invalid phone number");
+            // display error
         }
 
 

@@ -26,28 +26,51 @@ package ee.sk.mid.interactive;
  * #L%
  */
 
+import static ee.sk.mid.TestUtil.fileToX509Certificate;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createAndSendAuthentication;
 import static ee.sk.mid.mock.TestData.DEMO_HOST_URL;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.util.Scanner;
 
-import ee.sk.mid.*;
+import ee.sk.mid.MidAuthentication;
+import ee.sk.mid.MidAuthenticationHashToSign;
 import ee.sk.mid.MidAuthenticationIdentity;
+import ee.sk.mid.MidAuthenticationResponseValidator;
+import ee.sk.mid.MidAuthenticationResult;
+import ee.sk.mid.MidClient;
+import ee.sk.mid.integration.MobileIdSSL_IT;
 
 
 public class MobileIdAuthenticationInteractive {
+
+    private static KeyStore keystoreWithDemoServerCertificate;
+
+    static {
+        try {
+            InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+            keystoreWithDemoServerCertificate = KeyStore.getInstance("JKS");
+            keystoreWithDemoServerCertificate.load(is, "changeit".toCharArray());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static MidClient client = MidClient.newBuilder()
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
+                .withTrustStore(keystoreWithDemoServerCertificate)
                 .build();
 
 
@@ -72,10 +95,25 @@ public class MobileIdAuthenticationInteractive {
 
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
 
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator();
+        // WE TRUST BOTH production MID certificates (persons have copied their production
+        // certificate to DEMO and are now using it) and TEST certificates as well (test numbers)
+
+        X509Certificate caCertificateProdEnv1 = fileToX509Certificate("/trusted_certificates/ESTEID-SK_2011.pem.crt");
+        X509Certificate caCertificateProdEnv2 = fileToX509Certificate("/trusted_certificates/ESTEID-SK_2015.pem.crt");
+
+        X509Certificate caCertificateTestEnv1 = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt");
+        X509Certificate caCertificateTestEnv2 = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+
+
+        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(
+             asList(caCertificateProdEnv1, caCertificateProdEnv2, caCertificateTestEnv1, caCertificateTestEnv2));
+
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertAuthenticationResultValid(authenticationResult);
+
+        MidAuthenticationIdentity authenticationIdentity = authenticationResult.getAuthenticationIdentity();
+        System.out.println(String.format("Welcome %s %s!", authenticationIdentity.getGivenName(), authenticationIdentity.getSurName()));
     }
 
     private static void assertAuthenticationResultValid(MidAuthenticationResult authenticationResult) {
