@@ -26,11 +26,11 @@ package ee.sk.mid.mock;
  * #L%
  */
 
-import ee.sk.mid.rest.dao.MidSessionStatus;
-
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+
+import ee.sk.mid.rest.dao.MidSessionStatus;
 
 public class SessionStatusDummy {
 

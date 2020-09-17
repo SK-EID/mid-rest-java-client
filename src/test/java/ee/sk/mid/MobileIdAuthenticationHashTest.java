@@ -27,9 +27,9 @@ package ee.sk.mid;
  */
 
 import static ee.sk.mid.mock.TestData.SHA512_HASH_IN_BASE64;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 import java.security.SecureRandom;
 

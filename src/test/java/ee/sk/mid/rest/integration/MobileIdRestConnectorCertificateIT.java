@@ -36,11 +36,11 @@ import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
 import static ee.sk.mid.mock.TestData.WRONG_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.WRONG_PHONE;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 import ee.sk.mid.categories.IntegrationTest;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;

@@ -36,11 +36,11 @@ import static ee.sk.mid.mock.TestData.SIGNED_ECC_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SIGNED_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.VALID_ECC_SIGNATURE_IN_BASE64;
 import static ee.sk.mid.mock.TestData.VALID_SIGNATURE_IN_BASE64;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 

@@ -41,15 +41,15 @@ import static ee.sk.mid.mock.SessionStatusDummy.createTimeoutSessionStatus;
 import static ee.sk.mid.mock.SessionStatusDummy.createUserCancellationStatus;
 import static ee.sk.mid.mock.TestData.AUTHENTICATION_SESSION_PATH;
 import static ee.sk.mid.mock.TestData.SESSION_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.mock.MobileIdConnectorStub;
 import ee.sk.mid.rest.dao.MidSessionStatus;

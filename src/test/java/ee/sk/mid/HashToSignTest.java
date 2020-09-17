@@ -31,8 +31,8 @@ import static ee.sk.mid.mock.TestData.HASH_TO_SIGN;
 import static ee.sk.mid.mock.TestData.SHA256_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SHA384_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SHA512_HASH_IN_BASE64;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import org.apache.commons.codec.binary.Base64;

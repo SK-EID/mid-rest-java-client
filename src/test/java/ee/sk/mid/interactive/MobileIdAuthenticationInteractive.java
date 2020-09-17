@@ -33,10 +33,10 @@ import static ee.sk.mid.mock.TestData.DEMO_HOST_URL;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_NAME;
 import static ee.sk.mid.mock.TestData.DEMO_RELYING_PARTY_UUID;
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
 import java.security.KeyStore;
