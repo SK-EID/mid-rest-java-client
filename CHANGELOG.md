@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.3] - 2020-09-XX
+## [1.3] - 2020-09-17
 
 ### Changed
 - Relying Party must keep the list of trusted server certificates and supply them to mid-rest-java-client
