@@ -48,6 +48,7 @@ compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: 'INSERT_VERSI
     - [Keeping the trusted certificates in a Trust Store file](#keeping-the-trusted-certificates-in-a-trust-store-file)
     - [Using with custom ssl context](#using-with-custom-ssl-context)
     - [Specifying trusted certificates as string list](#specifying-trusted-certificates-as-string-list)
+  - [How to obtain server certificate](#how-to-obtain-server-certificate]
   - [How to create a trust store](#how-to-create-a-trust-store)
     - [Updating certs in tests of mid-rest-java-client](#updating-certs-in-tests-of-mid-rest-java-client)
   - [Configuring a proxy](#configuring-a-proxy)

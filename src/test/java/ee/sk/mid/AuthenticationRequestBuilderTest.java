@@ -26,6 +26,7 @@ package ee.sk.mid;
  * #L%
  */
 
+import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT;
 import static ee.sk.mid.mock.SessionStatusDummy.createDeliveryErrorStatus;
 import static ee.sk.mid.mock.SessionStatusDummy.createInvalidCardResponseStatus;
 import static ee.sk.mid.mock.SessionStatusDummy.createMIDNotReadyStatus;
@@ -46,12 +47,12 @@ import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
 
 import ee.sk.mid.exception.MidDeliveryException;
-import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidInternalErrorException;
-import ee.sk.mid.exception.MidSessionTimeoutException;
+import ee.sk.mid.exception.MidInvalidUserConfigurationException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidNotMidClientException;
 import ee.sk.mid.exception.MidPhoneNotAvailableException;
+import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidUserCancellationException;
 import ee.sk.mid.mock.MobileIdConnectorSpy;
 import ee.sk.mid.rest.MidConnector;
@@ -335,7 +336,7 @@ public class AuthenticationRequestBuilderTest {
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(LOCALHOST_URL)
-                .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
+                .withTrustedCertificates(DEMO_SERVER_CERT)
                 .build();
 
         client.createMobileIdAuthentication(sessionStatus, authenticationHash);
