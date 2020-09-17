@@ -52,10 +52,10 @@ import static ee.sk.mid.mock.TestData.SHA256_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SIGNATURE_SESSION_PATH;
 import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;

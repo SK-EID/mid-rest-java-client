@@ -17,7 +17,18 @@
             <name>MIT License</name>
         </license>
     </licenses>
-
+    <developers>
+        <developer>
+            <name>Juhan Aasaru</name>
+            <organization>Nortal</organization>
+            <organizationUrl>http://www.nortal.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Andreas Valdma</name>
+            <organization>Nortal</organization>
+            <organizationUrl>http://www.nortal.com</organizationUrl>
+        </developer>
+    </developers>
     <scm>
         <connection>scm:git:git://github.com/SK-EID/mid-rest-java-client.git</connection>
         <url>https://github.com/SK-EID/mid-rest-java-client/tree/master</url>

@@ -28,8 +28,8 @@ package ee.sk.mid;
 
 import static ee.sk.mid.mock.TestData.AUTH_CERTIFICATE_EE;
 import static ee.sk.mid.mock.TestData.SIGNED_HASH_IN_BASE64;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateEncodingException;

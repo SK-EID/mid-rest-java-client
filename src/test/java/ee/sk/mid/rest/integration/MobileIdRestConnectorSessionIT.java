@@ -34,9 +34,9 @@ import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertAuthenticati
 import static ee.sk.mid.mock.MobileIdRestServiceResponseDummy.assertSignaturePolled;
 import static ee.sk.mid.mock.TestData.DEMO_HOST_URL;
 import static ee.sk.mid.mock.TestData.SESSION_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 
 import ee.sk.mid.categories.IntegrationTest;
 import ee.sk.mid.exception.MidSessionNotFoundException;

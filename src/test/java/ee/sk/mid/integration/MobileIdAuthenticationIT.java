@@ -26,8 +26,8 @@ package ee.sk.mid.integration;
  * #L%
  */
 
-import static ee.sk.mid.AuthenticationRequestBuilderTest.SERVER_SSL_CERTIFICATE;
 import static ee.sk.mid.TestUtil.fileToX509Certificate;
+import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT;
 import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT_EXPIRATION_DATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCanCallValidate;
@@ -61,13 +61,13 @@ import static ee.sk.mid.mock.TestData.WRONG_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.WRONG_PHONE;
 import static ee.sk.mid.mock.TestData.WRONG_RELYING_PARTY_NAME;
 import static ee.sk.mid.mock.TestData.WRONG_RELYING_PARTY_UUID;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.InputStream;
@@ -112,7 +112,7 @@ public class MobileIdAuthenticationIT {
                 .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
                 .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
                 .withHostUrl(DEMO_HOST_URL)
-                .withTrustedCertificates(SERVER_SSL_CERTIFICATE)
+                .withTrustedCertificates(DEMO_SERVER_CERT)
                 .build();
     }
 
@@ -136,8 +136,6 @@ public class MobileIdAuthenticationIT {
         assertAuthenticationResultValid(authenticationResult);
     }
 
-
-
     @Test
     public void authenticate_withDisplayText() {
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
@@ -160,7 +158,6 @@ public class MobileIdAuthenticationIT {
         MidAuthentication authentication = client.createMobileIdAuthentication(sessionStatus, authenticationHash);
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
         assertCanCallValidate(authentication, client.getTrustStore());
-
     }
 
     @Test

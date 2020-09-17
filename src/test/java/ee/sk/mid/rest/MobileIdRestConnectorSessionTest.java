@@ -31,10 +31,10 @@ import static ee.sk.mid.mock.MobileIdRestServiceStub.stubRequestWithResponse;
 import static ee.sk.mid.mock.SessionStatusDummy.assertErrorSessionStatus;
 import static ee.sk.mid.mock.SessionStatusDummy.assertSuccessfulSessionStatus;
 import static ee.sk.mid.mock.TestData.LOCALHOST_URL;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.StringStartsWith.startsWith;
-import static org.junit.Assert.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import ee.sk.mid.exception.MidSessionNotFoundException;
