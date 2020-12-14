@@ -13,8 +13,8 @@ Mobile-ID Java client is a Java library that can be used for easy integration wi
 * [License](#license)
 
 # Features
-* Simple interface for user authentication
-* Simple interface for digital signature services
+* A simple interface for user authentication
+* A simple interface for digital signature services
 
 # Requirements
 * Java 1.8 
@@ -90,14 +90,7 @@ As a quick start you can also run `MobileIdAuthenticationInteractive.class` from
 or with your IDE by running its main method.
 
 ## How to forward requests to your phone
-
-If you have Estonian or Lithuanian Mobile ID then you can run real-life tests with your
-own phone if you register your Mobile ID certificates [SK Demo environment](https://demo.sk.ee/MIDCertsReg/).
-It is also possible to change the status of the certificates from there.
-
-You can run `MobileIdAuthenticationInteractive` main method to test it out 
-(enter your own phone number and national identity code), and you should get a
-request to enter your PIN to phone.
+Forwarding requests to a real phone is no longer possible with demo environment.
 
 
 ## Client configuration
@@ -437,7 +430,7 @@ When the authentication result is valid a session could be created now within th
 
 #### Validate returned certificate is a trusted MID certificate
 
-To avoid man-in-the-middle attacks you need to make sure that the authentication certificate returned by MID API is issued by Application Provider (SK ID Solutions AS).
+To avoid man-in-the-middle attacks you need to make sure the authentication certificate returned by MID API is issued by Application Provider (SK ID Solutions AS).
 You can read more about this requirement from [MID API documentation](https://github.com/SK-EID/MID#336-verifying-the-authentication-response).
 
 You need to keep a Trust Store that trusts certificates taken from [SK Certificate Repository](https://www.skidsolutions.eu/en/repository/certs/).
