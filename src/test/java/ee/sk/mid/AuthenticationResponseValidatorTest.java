@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -135,10 +136,16 @@ public class AuthenticationResponseValidatorTest {
         MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthentication authentication = createMobileIdAuthenticationWithInvalidSignature();
-        MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
-        assertThat(authenticationResult.isValid(), is(false));
-        assertThat(authenticationResult.getErrors().get(0), is("Signature verification failed"));
+        Exception e = null;
+        try {
+            validator.validate(authentication);
+        }
+        catch (MidInternalErrorException miee) {
+            e = miee;
+        }
+
+        assertThat(e, is(notNullValue()));
     }
 
     @Test
