@@ -36,6 +36,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -51,6 +52,7 @@ import ee.sk.mid.exception.MidInternalErrorException;
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import ee.sk.mid.exception.MidServiceUnavailableException;
 import ee.sk.mid.exception.MidSessionNotFoundException;
+import ee.sk.mid.exception.MidSslException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidAbstractRequest;
@@ -227,6 +229,15 @@ public class MidRestConnector implements MidConnector {
         catch (ServiceUnavailableException e) {
             logger.error("MID server returned 503 - service unavailable", e);
             throw new MidServiceUnavailableException("MID service is currently unavailable. Please try again later.");
+        }
+        catch (ProcessingException p) {
+            if (p.getCause() != null &&
+                 p.getCause().getMessage() != null
+                 && p.getCause().getMessage().contains("unable to find valid certification path to requested target")) {
+                logger.error("SSL certificate not trusted");
+                throw new MidSslException("MID-REST client is not configured to trust SSL certificate of MID API host");
+            }
+            throw new MidInternalErrorException("Unknown error when connecting to Host", p);
         }
     }
 
