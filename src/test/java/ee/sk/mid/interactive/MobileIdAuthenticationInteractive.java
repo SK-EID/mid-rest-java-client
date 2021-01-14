@@ -81,6 +81,7 @@ public class MobileIdAuthenticationInteractive {
 
         Scanner scanner = new Scanner( System.in );
 
+        System.out.println( "Use phone numbers and id-codes taken from here: https://github.com/SK-EID/MID/wiki/Test-number-for-automated-testing-in-DEMO");
         System.out.println( "Enter your phone number (starting +37...: ");
         String phoneNr = scanner.nextLine();
         System.out.println( "phone = " + phoneNr );
@@ -90,30 +91,30 @@ public class MobileIdAuthenticationInteractive {
         System.out.println( "idCode = " + idCode);
 
         System.out.println("Verification code is " + verificationCode);
+        System.out.println("waiting for user input... (most test numbers have a small delay to simulate actual user behaviour)\n");
 
         MidAuthentication authentication = createAndSendAuthentication(client, phoneNr, idCode, authenticationHash);
 
         assertAuthenticationCreated(authentication, authenticationHash.getHashInBase64());
 
-        // WE TRUST BOTH production MID certificates (persons have copied their production
-        // certificate to DEMO and are now using it) and TEST certificates as well (test numbers)
-
-        X509Certificate caCertificateProdEnv1 = fileToX509Certificate("/trusted_certificates/ESTEID-SK_2011.pem.crt");
-        X509Certificate caCertificateProdEnv2 = fileToX509Certificate("/trusted_certificates/ESTEID-SK_2015.pem.crt");
+        // WE ONLY TRUST certificates from TEST chain (as we only use test numbers here).
+        // To run this against production system you should use production chain here (like ESTEID-SK_2011 and ESTEID-SK_2015)
 
         X509Certificate caCertificateTestEnv1 = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt");
         X509Certificate caCertificateTestEnv2 = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
+        X509Certificate caCertificateTestEnv3 = fileToX509Certificate("/trusted_certificates/TEST_of_EID-SK_2016.pem.crt");
 
 
         MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(
-             asList(caCertificateProdEnv1, caCertificateProdEnv2, caCertificateTestEnv1, caCertificateTestEnv2));
+             asList(caCertificateTestEnv1, caCertificateTestEnv2, caCertificateTestEnv3));
 
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertAuthenticationResultValid(authenticationResult);
 
         MidAuthenticationIdentity authenticationIdentity = authenticationResult.getAuthenticationIdentity();
-        System.out.println(String.format("Welcome %s %s!", authenticationIdentity.getGivenName(), authenticationIdentity.getSurName()));
+        System.out.println("AUTHENTICATION COMPLETED");
+        System.out.printf("Welcome %s %s!%n", authenticationIdentity.getGivenName(), authenticationIdentity.getSurName());
     }
 
     private static void assertAuthenticationResultValid(MidAuthenticationResult authenticationResult) {
