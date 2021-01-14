@@ -182,10 +182,7 @@ Read chapter  [Validate returned certificate is a trusted MID certificate](#Vali
 ### How to obtain server certificate
 
 Production server (mid.sk.ee) certificate will be available here:  https://www.skidsolutions.eu/en/repository/certs/
-Demo server (tsp.demo.sk.ee) certificate can be obtained by running:
- 
-`openssl s_client -showcerts -servername tsp.demo.sk.ee -connect tsp.demo.sk.ee:443 </dev/null`
-(copy first certificate in chain and save to file new.tsp.demo.sk.ee.certificate.cer)
+Demo server (tsp.demo.sk.ee) certificate will be available here: https://www.skidsolutions.eu/en/Repository/certs/certificates-for-testing
 
 ### How to create a trust store
 
@@ -204,7 +201,7 @@ When server (either production server or demo server) certificate has expired
 then to make the tests run again one needs to replace certificate value in respective constant and import it into the trust store.
 Here is the process that needs to be followed.
 
-1. Obtain the new certificate. 
+1. Obtain the new certificate (see a few chapters above for where to download)
 
 2. Replace the certificate value in LIVE_SERVER_CERT or in DEMO_SERVER_CERT constant.
 
