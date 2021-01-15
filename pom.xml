@@ -286,7 +286,7 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>6.0.5</version>
                 <configuration>
-                    <failBuildOnCVSS>9</failBuildOnCVSS>
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
                 </configuration>
                 <executions>
                     <execution>
