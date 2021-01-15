@@ -33,7 +33,6 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PublicKey;
-import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,7 +58,7 @@ public class MidAuthenticationResponseValidator {
 
         KeyStore trustStore = client.getTrustStore();
         if (trustStore == null) {
-            throw new MidMissingOrInvalidParameterException("You need to add a trust store to client ");
+            throw new MidMissingOrInvalidParameterException("You need to add a trust store to client");
         }
 
         initializeTrustedCACertificatesFromTrustStore(trustStore);
@@ -193,11 +192,8 @@ public class MidAuthenticationResponseValidator {
             try {
                 certificate.verify(trustedCACertificate.getPublicKey());
                 return true;
-            } catch (SignatureException e) {
-                continue;
             } catch (GeneralSecurityException e) {
                 logger.warn("Error verifying signer's certificate: " + certificate.getSubjectDN() + " against CA certificate: " + trustedCACertificate.getSubjectDN(), e);
-                continue;
             }
         }
         return false;

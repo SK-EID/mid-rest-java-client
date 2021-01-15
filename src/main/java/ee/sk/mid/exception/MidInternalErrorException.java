@@ -26,6 +26,9 @@ package ee.sk.mid.exception;
  * #L%
  */
 
+/**
+ * Thrown if there is problem with MID configuration
+ */
 public class MidInternalErrorException extends MidException {
 
     public MidInternalErrorException(String message) {

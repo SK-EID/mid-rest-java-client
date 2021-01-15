@@ -17,13 +17,13 @@ import java.time.LocalDate;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import javax.ws.rs.ProcessingException;
 
 import ee.sk.mid.MidAuthenticationHashToSign;
 import ee.sk.mid.MidClient;
 import ee.sk.mid.MidDisplayTextFormat;
 import ee.sk.mid.MidLanguage;
 import ee.sk.mid.exception.MidInternalErrorException;
+import ee.sk.mid.exception.MidSslException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
 import org.junit.Test;
@@ -71,44 +71,45 @@ public class MobileIdSSL_IT {
             "s/OHdPfZDLVzkZJA4Vl/GqmJpFAUF+FtG/oFT5gmRw==\n" +
             "-----END CERTIFICATE-----\n";
 
-    public static final LocalDate DEMO_SERVER_CERT_EXPIRATION_DATE = LocalDate.of(2021, 1, 15);
-    public static final String DEMO_SERVER_CERT = "-----BEGIN CERTIFICATE-----\n" +
-            "MIIGCTCCBPGgAwIBAgIQB5CCfJUfCEruWfwaDQQ8ojANBgkqhkiG9w0BAQsFADBN\n" +
-            "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMScwJQYDVQQDEx5E\n" +
-            "aWdpQ2VydCBTSEEyIFNlY3VyZSBTZXJ2ZXIgQ0EwHhcNMjAwMTA0MDAwMDAwWhcN\n" +
-            "MjEwMTE1MTIwMDAwWjBVMQswCQYDVQQGEwJFRTEQMA4GA1UEBxMHVGFsbGlubjEb\n" +
-            "MBkGA1UEChMSU0sgSUQgU29sdXRpb25zIEFTMRcwFQYDVQQDEw50c3AuZGVtby5z\n" +
-            "ay5lZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMEXbF6n3XKvkLKy\n" +
-            "EcnYoPBTvHaqjWIXnguu/aLiEC17ZuELrf4YkwXcQ6mTK6t1H21p7bluWDuhGzy1\n" +
-            "pcf4zSPD7SYBYFDQJZUHEC54TPDRkZkm8vVYrtQ3s/I7VcDF54Gp2jy5QrZ/KKtx\n" +
-            "qT1L3J7VNjNcjHp1qg5nGoNMfMHajaZITVmXUV7MdcVwgXunjK3I4R48TxkfevEO\n" +
-            "QkeJMW4Nj+tuqd/aj3iPxBRC5N9QnwsUFh+GlTvWO7JdN4RgUvrpzYCXITdcR9fb\n" +
-            "+GN62LwUioNar+ixzbx5x4+aKeiZch57mQnnccuAlaJZ50/XB38Pil5aJvSb1cqN\n" +
-            "zhESRGsCAwEAAaOCAtswggLXMB8GA1UdIwQYMBaAFA+AYRyCMWHVLyjnjUY4tCzh\n" +
-            "xtniMB0GA1UdDgQWBBT6vCJtkTvBJNfLz37w57NiN/s+ATAZBgNVHREEEjAQgg50\n" +
-            "c3AuZGVtby5zay5lZTAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUH\n" +
-            "AwEGCCsGAQUFBwMCMGsGA1UdHwRkMGIwL6AtoCuGKWh0dHA6Ly9jcmwzLmRpZ2lj\n" +
-            "ZXJ0LmNvbS9zc2NhLXNoYTItZzYuY3JsMC+gLaArhilodHRwOi8vY3JsNC5kaWdp\n" +
-            "Y2VydC5jb20vc3NjYS1zaGEyLWc2LmNybDBMBgNVHSAERTBDMDcGCWCGSAGG/WwB\n" +
-            "ATAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BTMAgG\n" +
-            "BmeBDAECAjB8BggrBgEFBQcBAQRwMG4wJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3Nw\n" +
-            "LmRpZ2ljZXJ0LmNvbTBGBggrBgEFBQcwAoY6aHR0cDovL2NhY2VydHMuZGlnaWNl\n" +
-            "cnQuY29tL0RpZ2lDZXJ0U0hBMlNlY3VyZVNlcnZlckNBLmNydDAMBgNVHRMBAf8E\n" +
-            "AjAAMIIBAgYKKwYBBAHWeQIEAgSB8wSB8ADuAHUAu9nfvB+KcbWTlCOXqpJ7RzhX\n" +
-            "lQqrUugakJZkNo4e0YUAAAFvcP7EQwAABAMARjBEAiA2fFBYg7BrD8fvSMUPdSIk\n" +
-            "CcASBgvqn6ySm//nyYT7jgIgDl3+FTpQJyLXTqzurjna9AnbNZkGiaoxEdCL6iBW\n" +
-            "s2YAdQBElGUusO7Or8RAB9io/ijA2uaCvtjLMbU/0zOWtbaBqAAAAW9w/sPdAAAE\n" +
-            "AwBGMEQCIBXEX2dbwSUQJfo6pP0Uf/YLVC200QfIdO+1oESfxLIMAiAWGLVR4MTe\n" +
-            "H2+iOK+Hndbo9LkDdMibWTyIIByLCyHKhzANBgkqhkiG9w0BAQsFAAOCAQEAWOWm\n" +
-            "sTfs3TSDd04c3GvB0b+x5xu34SYG8OCYfpTbdU5X8+7mk3+XR9yqBZpN/WSBBk0f\n" +
-            "Vx+ukpON3z1v/TOMMHSOykxxw3yQsNB+NZ/a6d7ns4OBsRY4/TLu1DI1Ey7jkE0m\n" +
-            "erqbzCAgx3nrHwo49bUNLtkgnUHoKNoLYreLQvAjW7PeiPmT/xkvz7MC3jE5P/hA\n" +
-            "rZ5xvV/ZxpiRVDuDT0G+uCoIuBjY4HpvMgOJdsqxKtK1NI1dodPyjxVmMdjG6+1X\n" +
-            "Kd5GtbPeaLRx1Kpe/NkfGAruW4TCvuUm2G1zHs71ePmYSPJjE6FDOnWWqjtQIgXg\n" +
-            "OauLK5GGqW/2PvCWXA==\n" +
-            "-----END CERTIFICATE-----";
+    public static final LocalDate DEMO_SERVER_CERT_EXPIRATION_DATE = LocalDate.of(2022, 2, 10);
+    public static final String DEMO_SERVER_CERT = "-----BEGIN CERTIFICATE-----\n"
+         + "MIIGMDCCBRigAwIBAgIQA5xbiUE+ydsAl33/XsbLUDANBgkqhkiG9w0BAQsFADBP\n"
+         + "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMSkwJwYDVQQDEyBE\n"
+         + "aWdpQ2VydCBUTFMgUlNBIFNIQTI1NiAyMDIwIENBMTAeFw0yMTAxMDgwMDAwMDBa\n"
+         + "Fw0yMjAyMDgyMzU5NTlaMFUxCzAJBgNVBAYTAkVFMRAwDgYDVQQHEwdUYWxsaW5u\n"
+         + "MRswGQYDVQQKExJTSyBJRCBTb2x1dGlvbnMgQVMxFzAVBgNVBAMTDnRzcC5kZW1v\n"
+         + "LnNrLmVlMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmmcxbeqoO15G\n"
+         + "WCeT8gXsvjKTEs17+JRiZTwLmoWtCx1BN+KkozLfibt0BV4qddGg4q4piEIDWnxH\n"
+         + "z7Mpcm+/tXoF2RaGcgOzJsruSMKKdklmGJN75QhxYMqm9qNABx7GT42XDb3xB7rD\n"
+         + "9u6VMISVHkYZzowtloKJ98V7qyWKWfV1MOk5d/OrcYr02AmpsDGxtAwvnzsIPXwe\n"
+         + "WkSgw9RQh6xG7KWbXVfmxwI8he8yIXiaMMQq6mtMwU/2N5vKP8UuHIl9HKbukcI7\n"
+         + "qVaFDOppdiSiLrAbE7mYEY0tehrwtUJw3w4xd47oQnFNRVGg3zLYHfLGti5ZJ+lG\n"
+         + "MsCcr++pkwIDAQABo4IDADCCAvwwHwYDVR0jBBgwFoAUt2ui6qiqhIx56rTaD5iy\n"
+         + "xZV2ufQwHQYDVR0OBBYEFJegSAv63zxIV7bAsOfejPx4gkIvMBkGA1UdEQQSMBCC\n"
+         + "DnRzcC5kZW1vLnNrLmVlMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEF\n"
+         + "BQcDAQYIKwYBBQUHAwIwgYsGA1UdHwSBgzCBgDA+oDygOoY4aHR0cDovL2NybDMu\n"
+         + "ZGlnaWNlcnQuY29tL0RpZ2lDZXJ0VExTUlNBU0hBMjU2MjAyMENBMS5jcmwwPqA8\n"
+         + "oDqGOGh0dHA6Ly9jcmw0LmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydFRMU1JTQVNIQTI1\n"
+         + "NjIwMjBDQTEuY3JsMEsGA1UdIAREMEIwNgYJYIZIAYb9bAEBMCkwJwYIKwYBBQUH\n"
+         + "AgEWG2h0dHA6Ly93d3cuZGlnaWNlcnQuY29tL0NQUzAIBgZngQwBAgIwfQYIKwYB\n"
+         + "BQUHAQEEcTBvMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5jb20w\n"
+         + "RwYIKwYBBQUHMAKGO2h0dHA6Ly9jYWNlcnRzLmRpZ2ljZXJ0LmNvbS9EaWdpQ2Vy\n"
+         + "dFRMU1JTQVNIQTI1NjIwMjBDQTEuY3J0MAwGA1UdEwEB/wQCMAAwggEGBgorBgEE\n"
+         + "AdZ5AgQCBIH3BIH0APIAdwApeb7wnjk5IfBWc59jpXflvld9nGAK+PlNXSZcJV3H\n"
+         + "hAAAAXbinLNjAAAEAwBIMEYCIQCLRptzJcdFwx4Ejy23m9/WUi8KYZpDMLGTJfKW\n"
+         + "w+WvawIhAMe/36Lvka4G26F5fgbYhAbhHAc3g9xqZ7x2o7gvV0QYAHcAIkVFB1lV\n"
+         + "JFaWP6Ev8fdthuAjJmOtwEt/XcaDXG7iDwIAAAF24pyzswAABAMASDBGAiEAxnq3\n"
+         + "JvwCEZ8yDXCPi+H/pcO8nbrYGBnKVVRniDMSICYCIQC707vnF8cGAy+2v/vmA8uP\n"
+         + "PpKJRKjuzWg+/TPprKgYdDANBgkqhkiG9w0BAQsFAAOCAQEAmidHLPU5hnQIsmZX\n"
+         + "Hh+rOWizoFe1KywyMYwX3vHrsBMk2nKiNje9PIlYjq0frfyhyxGvCGF9AN6l1Hyf\n"
+         + "7HnunjUpJ4HGSmNaeABXeYhtzpCzjxXCQ5bo2Agdv2fOm9LVODU+0U2Wq6bFSydF\n"
+         + "rbjo9MARb1++Pu6ojwnxV2Fc0/nqwWDXIPt9IKYO1TPikCsqhjb7QEotG+rEHa8a\n"
+         + "KjZ5LzPttDy6AuKq/jtHg8z5mxiAMT0cAkT6xQCtXlSNfe/VSYPZl5rrThhmwq4+\n"
+         + "jDGx9SiZGDgSEqTKHXDjtnXEzdpZGWVYxcZnq63yiogeCpzwN6x2eIUpUCeNFMIs\n"
+         + "L7cAvQ==\n"
+         + "-----END CERTIFICATE-----\n";
 
-    @Test(expected = ProcessingException.class)
+    @Test(expected = MidSslException.class)
     public void makeRequestToGoogleApi_useDefaultSSLContext_sslHandshakeFailsAndThrowsException() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
@@ -117,7 +118,7 @@ public class MobileIdSSL_IT {
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
              .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
-             .withHostUrl("www.google.com")
+             .withHostUrl("https://www.google.com")
              .withTrustStore(trustStore)
              .build();
 
@@ -135,30 +136,7 @@ public class MobileIdSSL_IT {
         client.getMobileIdConnector().authenticate(midAuthRequest);
     }
 
-    @Test(expected = MidInternalErrorException.class)
-    public void makeRequestToWrongApi_addWrongApiSslCertificate_sslHandshakeShouldSucceedButRequestsReturns404andMIEEisThrown() {
-        client = MidClient.newBuilder()
-             .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
-             .withRelyingPartyName(DEMO_RELYING_PARTY_NAME)
-             .withHostUrl("https://sid.demo.sk.ee/smart-id-rp/v1/")
-             .withTrustedCertificates("-----BEGIN CERTIFICATE-----\nMIIFIjCCBAqgAwIBAgIQBH3ZvDVJl5qtCPwQJSruujANBgkqhkiG9w0BAQsFADBNMQswCQYDVQQG\nEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMScwJQYDVQQDEx5EaWdpQ2VydCBTSEEyIFNlY3Vy\nZSBTZXJ2ZXIgQ0EwHhcNMTcwODAxMDAwMDAwWhcNMjAxMDAyMTIwMDAwWjB0MQswCQYDVQQGEwJF\nRTEQMA4GA1UEBxMHVGFsbGlubjEbMBkGA1UEChMSU0sgSUQgU29sdXRpb25zIEFTMR0wGwYDVQQL\nExRWYWx1ZS1hZGRlZCBTZXJ2aWNlczEXMBUGA1UEAxMOc2lkLmRlbW8uc2suZWUwggEiMA0GCSqG\nSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDGFOOk4KzH95NP2dWUuPIvv4RGj3Zvk/Y3ZwavDaPzUkKS\nY9jgiI8EHYIiKde10bqfMeZ1N4No2orwzTtzMP2rqLwGd8ZYSFyF8pymxx0TY0w4yP1MWOq+MQ/6\n5fdBOgOXyhEoIHVWbbAJMmJaH0ozyKwXSKElHNzvKemDTHt7i/NKRG6oBexl3y6KEzKU37mg+scV\nr1i9hPlSO+ymvVUN+VCr1GteNuiFcpRdToVl9rXjvD2mqZfokD5VOuwPwuOecIIqjTpd87kzlgka\nlQfijx1jOBwVx2Hx+wgASiMy2cfHqXlkBvpvi4HTvjK/DMv4C2AqKJHlwjShceuESCH7AgMBAAGj\nggHVMIIB0TAfBgNVHSMEGDAWgBQPgGEcgjFh1S8o541GOLQs4cbZ4jAdBgNVHQ4EFgQUvTSpJnBN\ntfuuL2YY3AKaIPxXljMwGQYDVR0RBBIwEIIOc2lkLmRlbW8uc2suZWUwDgYDVR0PAQH/BAQDAgWg\nMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjBrBgNVHR8EZDBiMC+gLaArhilodHRwOi8v\nY3JsMy5kaWdpY2VydC5jb20vc3NjYS1zaGEyLWcxLmNybDAvoC2gK4YpaHR0cDovL2NybDQuZGln\naWNlcnQuY29tL3NzY2Etc2hhMi1nMS5jcmwwTAYDVR0gBEUwQzA3BglghkgBhv1sAQEwKjAoBggr\nBgEFBQcCARYcaHR0cHM6Ly93d3cuZGlnaWNlcnQuY29tL0NQUzAIBgZngQwBAgIwfAYIKwYBBQUH\nAQEEcDBuMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5jb20wRgYIKwYBBQUHMAKG\nOmh0dHA6Ly9jYWNlcnRzLmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydFNIQTJTZWN1cmVTZXJ2ZXJDQS5j\ncnQwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0BAQsFAAOCAQEAtr3K/2vKMH75bbEKrEorjxEsEOQo\npcIhBU5mOVVU5XO+xlrL6NvjyCV47Z9N+uEq4X59YTki23/NGMS85Mm+gl1wq8oPRdNSpNAVhrNY\nNYSFYkvVdFELKmVkep53D2YiB0ygOWghk9JI6UX/kWxBr5N2Qc4+eRKAjlm3vf/HGmOaG2LRbSLL\nPmp6VDQebv2P53rqYdzUpR/qQWHyMtTnku/i0eCY1UCkZHoxLV5vbztAT9kWS0s1d38yDqfljGSW\n/jbdu3P2jkR6PhH5Lupe24SN7jpKDfQJ8oDx6RTM8op7BvL67e6bVW8PzYZCI5BW7ZxEq85+2zIL\nwcEt/pk+DA==\n-----END CERTIFICATE-----")
-             .build();
-
-        MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
-
-        MidAuthenticationRequest midAuthRequest = MidAuthenticationRequest.newBuilder()
-             .withPhoneNumber(VALID_PHONE)
-             .withNationalIdentityNumber(VALID_NAT_IDENTITY)
-             .withHashToSign(authenticationHash)
-             .withLanguage(MidLanguage.EST)
-             .withDisplayText("Log into internet banking system")
-             .withDisplayTextFormat(MidDisplayTextFormat.GSM7)
-             .build();
-
-        client.getMobileIdConnector().authenticate(midAuthRequest);
-    }
-
-    @Test(expected = ProcessingException.class)
+    @Test(expected = MidSslException.class)
     public void makeRequestToWrongApi_shouldThrowException() {
 
         client = MidClient.newBuilder()
@@ -270,7 +248,7 @@ public class MobileIdSSL_IT {
         client.getMobileIdConnector().authenticate(midAuthRequest);
     }
 
-    @Test(expected = ProcessingException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void makeRequestToApi_loadSslContextFromKeyStore_emptyKeystore_sslHandshakeFailsAndThrowsException() throws Exception {
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(null, null);
@@ -296,7 +274,7 @@ public class MobileIdSSL_IT {
         client.getMobileIdConnector().authenticate(midAuthRequest);
     }
 
-    @Test(expected = ProcessingException.class)
+    @Test(expected = MidSslException.class)
     public void makeRequestToApi_loadSslContextFromKeyStore_wrongSslCert_sslHandshakeFailsAndThrowsException() throws Exception {
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/wrong_ssl_cert.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
@@ -323,7 +301,7 @@ public class MobileIdSSL_IT {
         client.getMobileIdConnector().authenticate(midAuthRequest);
     }
 
-    @Test(expected = ProcessingException.class)
+    @Test(expected = MidSslException.class)
     public void makeRequestToApi_buildWithSSLContext_wrongSslCert_sslHandshakeFailsAndThrowsException() throws Exception {
         InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/wrong_ssl_cert.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
@@ -355,7 +333,7 @@ public class MobileIdSSL_IT {
         client.getMobileIdConnector().authenticate(midAuthRequest);
     }
 
-    @Test(expected = ProcessingException.class)
+    @Test(expected = MidInternalErrorException.class)
     public void makeRequestToApi_buildWithSSLContext_emptyKeyStore_sslHandshakeFailsAndThrowsException() throws Exception {
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(null, null);
@@ -447,7 +425,7 @@ public class MobileIdSSL_IT {
         client.getMobileIdConnector().authenticate(midAuthRequest);
     }
 
-    @Test(expected = ProcessingException.class)
+    @Test(expected = MidSslException.class)
     public void makeRequestToLiveApi_withDemoEnvCertificates_sslHandshakeFails() {
         client = MidClient.newBuilder()
              .withRelyingPartyUUID(DEMO_RELYING_PARTY_UUID)
