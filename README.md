@@ -432,13 +432,11 @@ You can read more about this requirement from [MID API documentation](https://gi
 
 You need to keep a Trust Store that trusts certificates taken from [SK Certificate Repository](https://www.skidsolutions.eu/en/repository/certs/). You need the following certificates:
 
-* ESTEID-SK_2011.pem.crt
 * ESTEID-SK_2015.pem.crt
 
 For testing you need to import [certificates for testing](https://www.skidsolutions.eu/en/repository/certs/certificates-for-testing). You need the following certificates: 
 
 * TEST_of_EID-SK_2016.pem.crt
-* TEST_of_ESTEID-SK_2011.pem.crt
 * TEST_of_ESTEID-SK_2015.pem.crt
 
 
