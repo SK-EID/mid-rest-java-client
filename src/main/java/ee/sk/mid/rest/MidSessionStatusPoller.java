@@ -97,7 +97,7 @@ public class MidSessionStatusPoller {
             MidSessionStatusRequest request = new MidSessionStatusRequest(sessionId, this.longPollingTimeoutSeconds);
             sessionStatus = connector.getSessionStatus(request, path);
 
-            if (equalsIgnoreCase("COMPLETE", sessionStatus.getState())) {
+            if (sessionStatus != null && equalsIgnoreCase("COMPLETE", sessionStatus.getState())) {
                 break;
             }
             logger.debug("Sleeping for " + pollingSleepTimeoutSeconds + " seconds");
