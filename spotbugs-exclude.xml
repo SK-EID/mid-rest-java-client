@@ -1,0 +1,15 @@
+<FindBugsFilter>
+    <Match>
+        <Or>
+            <Class name="~.*\.Test" />
+        </Or>
+    </Match>
+
+    <Match>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
+</FindBugsFilter>

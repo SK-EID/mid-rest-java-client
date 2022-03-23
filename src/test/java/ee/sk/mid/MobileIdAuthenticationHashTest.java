@@ -31,8 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-import java.security.SecureRandom;
-
 import ee.sk.mid.exception.MidMissingOrInvalidParameterException;
 import org.junit.Test;
 
@@ -87,7 +85,6 @@ public class MobileIdAuthenticationHashTest {
     @Test(expected = MidMissingOrInvalidParameterException.class)
     public void authenticate_withHash_withoutHashType_shouldThrowException() {
         byte[] randomBytes = new byte[MidHashType.SHA256.getLengthInBytes()];
-        new SecureRandom().nextBytes(randomBytes);
 
         MidAuthenticationHashToSign.newBuilder()
             .withHash(randomBytes)

@@ -58,7 +58,7 @@ public class MidSessionStatus implements Serializable {
     }
 
     public MidSessionSignature getSignature() {
-        return signature;
+        return signature == null ?null :signature.clone();
     }
 
     public void setSignature(MidSessionSignature signature) {

@@ -32,6 +32,8 @@ import java.security.SecureRandom;
 
 public class MidAuthenticationHashToSign extends MidHashToSign {
 
+    public static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     private MidAuthenticationHashToSign(MobileIdAuthenticationHashToSignBuilder builder) {
         super(builder);
     }
@@ -56,7 +58,7 @@ public class MidAuthenticationHashToSign extends MidHashToSign {
 
     private static byte[] getRandomBytes(int lengthInBytes) {
         byte[] randomBytes = new byte[lengthInBytes];
-        new SecureRandom().nextBytes(randomBytes);
+        SECURE_RANDOM.nextBytes(randomBytes);
         return randomBytes;
     }
 

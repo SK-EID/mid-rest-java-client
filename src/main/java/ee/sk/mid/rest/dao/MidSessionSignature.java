@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MidSessionSignature implements Serializable {
+public class MidSessionSignature implements Serializable, Cloneable {
 
     private static final Long serialVersionUID = 1L;
 
@@ -53,6 +53,16 @@ public class MidSessionSignature implements Serializable {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public MidSessionSignature clone() {
+        try {
+            return (MidSessionSignature) super.clone();
+        }
+        catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
