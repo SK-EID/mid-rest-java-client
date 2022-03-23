@@ -33,8 +33,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Configuration;
 
 import ee.sk.mid.exception.MidException;
 import ee.sk.mid.exception.MidInternalErrorException;
@@ -46,6 +44,8 @@ import ee.sk.mid.rest.MidSessionStatusPoller;
 import ee.sk.mid.rest.dao.MidSessionSignature;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

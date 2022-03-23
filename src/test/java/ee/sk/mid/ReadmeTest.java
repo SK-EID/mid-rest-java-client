@@ -57,7 +57,7 @@ import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidSslException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
-import ee.sk.mid.integration.MobileIdSSL_IT;
+import ee.sk.mid.integration.MobileIdSsIT;
 import ee.sk.mid.mock.TestData;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
@@ -89,7 +89,7 @@ public class ReadmeTest {
 
     @Before
     public void setUp() throws Exception {
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 

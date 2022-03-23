@@ -27,8 +27,10 @@ package ee.sk.mid.rest;
  */
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Configuration;
+
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.core.Configuration;
+
 
 public class MidRestConnectorBuilder {
   String endpointUrl;

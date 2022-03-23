@@ -35,11 +35,11 @@ import static ee.sk.mid.mock.TestData.SHA512_HASH_IN_BASE64;
 import static ee.sk.mid.mock.TestData.SIGNATURE_SESSION_PATH;
 import static ee.sk.mid.mock.TestData.VALID_NAT_IDENTITY;
 import static ee.sk.mid.mock.TestData.VALID_PHONE;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.emptyOrNullString;
 
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
@@ -60,7 +60,6 @@ import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
 import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 import org.apache.commons.codec.binary.Base64;
-import org.hamcrest.Matchers;
 
 public class MobileIdRestServiceRequestDummy {
 
@@ -264,17 +263,17 @@ public class MobileIdRestServiceRequestDummy {
 
     public static void assertSignatureCreated(MidSignature signature) {
         assertThat(signature, is(notNullValue()));
-        assertThat(signature.getValueInBase64(), not(isEmptyOrNullString()));
-        assertThat(signature.getAlgorithmName(), not(isEmptyOrNullString()));
+        assertThat(signature.getValueInBase64(), not(org.hamcrest.text.IsEmptyString.isEmptyOrNullString()));
+        assertThat(signature.getAlgorithmName(), not(emptyOrNullString()));
     }
 
     public static void assertAuthenticationCreated(MidAuthentication authentication, String expectedHashToSignInBase64) {
         assertThat(authentication, is(notNullValue()));
-        assertThat(authentication.getResult(), not(isEmptyOrNullString()));
-        assertThat(authentication.getSignatureValueInBase64(), not(isEmptyOrNullString()));
+        assertThat(authentication.getResult(), not(emptyOrNullString()));
+        assertThat(authentication.getSignatureValueInBase64(), not(emptyOrNullString()));
         assertThat(authentication.getCertificate(), is(notNullValue()));
         assertThat(authentication.getSignedHashInBase64(), is(expectedHashToSignInBase64));
-        assertThat(authentication.getHashType(), Matchers.is( MidHashType.SHA256));
+        assertThat(authentication.getHashType(), is( MidHashType.SHA256));
     }
 
     public static void assertCanCallValidate(MidAuthentication authentication, KeyStore trustStore) {

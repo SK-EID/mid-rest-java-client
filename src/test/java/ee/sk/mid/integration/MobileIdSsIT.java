@@ -28,11 +28,11 @@ import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
 import org.junit.Test;
 
-public class MobileIdSSL_IT {
+public class MobileIdSsIT {
 
     private MidClient client;
 
-    public static final LocalDate LIVE_SERVER_CERT_EXPIRATION_DATE = LocalDate.of(2021, 3, 25);
+    public static final LocalDate LIVE_SERVER_CERT_EXPIRATION_DATE = LocalDate.of(2023, 3, 12);
     public static final String LIVE_SERVER_CERT = "-----BEGIN CERTIFICATE-----\n" +
             "MIIGezCCBWOgAwIBAgIQBs+E+B8gYnf1I31IIanXXjANBgkqhkiG9w0BAQsFADBN\n" +
             "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMScwJQYDVQQDEx5E\n" +
@@ -71,7 +71,7 @@ public class MobileIdSSL_IT {
             "s/OHdPfZDLVzkZJA4Vl/GqmJpFAUF+FtG/oFT5gmRw==\n" +
             "-----END CERTIFICATE-----\n";
 
-    public static final LocalDate DEMO_SERVER_CERT_EXPIRATION_DATE = LocalDate.of(2022, 2, 10);
+    public static final LocalDate DEMO_SERVER_CERT_EXPIRATION_DATE = LocalDate.of(2023, 3, 12);
     public static final String DEMO_SERVER_CERT = "-----BEGIN CERTIFICATE-----\n"
             + "MIIGnzCCBYegAwIBAgIQBlOQJ8OKOh8bDPa6dZqdgjANBgkqhkiG9w0BAQsFADBP\n"
             + "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMSkwJwYDVQQDEyBE\n"
@@ -113,7 +113,7 @@ public class MobileIdSSL_IT {
 
     @Test(expected = MidSslException.class)
     public void makeRequestToGoogleApi_useDefaultSSLContext_sslHandshakeFailsAndThrowsException() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -166,7 +166,7 @@ public class MobileIdSSL_IT {
     public void makeRequestToLiveEnvApi_useDefaultSslContextRPdoesntExist_sslHandshakeSucceedsButThrowsUnauthorizedException() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         assumeTrue("new certificate of mid.sk.ee server needs to imported into file production_server_trusted_ssl_certs.jks", LIVE_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/production_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/production_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -195,7 +195,7 @@ public class MobileIdSSL_IT {
     public void makeRequestToLiveEnvApi_usePKCS12TrustStoreRpDoesNotExist_sslHandshakeSucceedsButThrowsUnauthorizedException() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         assumeTrue("new certificate of mid.sk.ee server needs to imported into file production_server_trusted_ssl_certs.p12", LIVE_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/production_server_trusted_ssl_certs.p12");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/production_server_trusted_ssl_certs.p12");
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
         trustStore.load(is, "changeit".toCharArray());
         is.close();
@@ -225,7 +225,7 @@ public class MobileIdSSL_IT {
     public void makeRequestToApi_loadSslContextFromKeyStore_sslHandshakeSucceedsAndAuthenticationInitialized() throws Exception {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -278,7 +278,7 @@ public class MobileIdSSL_IT {
 
     @Test(expected = MidSslException.class)
     public void makeRequestToApi_loadSslContextFromKeyStore_wrongSslCert_sslHandshakeFailsAndThrowsException() throws Exception {
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/wrong_ssl_cert.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/wrong_ssl_cert.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -305,7 +305,7 @@ public class MobileIdSSL_IT {
 
     @Test(expected = MidSslException.class)
     public void makeRequestToApi_buildWithSSLContext_wrongSslCert_sslHandshakeFailsAndThrowsException() throws Exception {
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/wrong_ssl_cert.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/wrong_ssl_cert.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -370,7 +370,7 @@ public class MobileIdSSL_IT {
     public void makeRequestToApi_buildWithSSLContext_sslHandshakeSucceedsAndAuthenticationInitiated() throws Exception {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -450,7 +450,7 @@ public class MobileIdSSL_IT {
         client.getMobileIdConnector().authenticate(midAuthRequest);
     }
 
-    @Test(expected = MidUnauthorizedException.class)
+    @Test(expected = MidSslException.class)
     public void makeRequestToLiveApi_withLiveEnvCertificates_sslHandshakeSucceedsButMidUnauthorizedExceptionThrown() {
         assumeTrue("LIVE_SERVER_CERT needs to be updated with the new certificate of mid.sk.ee server", LIVE_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 

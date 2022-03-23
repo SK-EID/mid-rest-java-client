@@ -27,8 +27,8 @@ package ee.sk.mid.integration;
  */
 
 import static ee.sk.mid.TestUtil.fileToX509Certificate;
-import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT;
-import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT_EXPIRATION_DATE;
+import static ee.sk.mid.integration.MobileIdSsIT.DEMO_SERVER_CERT;
+import static ee.sk.mid.integration.MobileIdSsIT.DEMO_SERVER_CERT_EXPIRATION_DATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertAuthenticationCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCanCallValidate;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.createAndSendAuthentication;
@@ -270,7 +270,7 @@ public class MobileIdAuthenticationIT {
     public void authenticate_withUnknownRelyingPartyUUID_shouldThrowException()  throws Exception {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -288,7 +288,7 @@ public class MobileIdAuthenticationIT {
     public void authenticate_withUnknownRelyingPartyName_shouldThrowException()  throws Exception {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 

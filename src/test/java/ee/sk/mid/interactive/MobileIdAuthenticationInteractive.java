@@ -49,7 +49,7 @@ import ee.sk.mid.MidAuthenticationIdentity;
 import ee.sk.mid.MidAuthenticationResponseValidator;
 import ee.sk.mid.MidAuthenticationResult;
 import ee.sk.mid.MidClient;
-import ee.sk.mid.integration.MobileIdSSL_IT;
+import ee.sk.mid.integration.MobileIdSsIT;
 
 
 public class MobileIdAuthenticationInteractive {
@@ -58,7 +58,7 @@ public class MobileIdAuthenticationInteractive {
 
     static {
         try {
-            InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+            InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
             keystoreWithDemoServerCertificate = KeyStore.getInstance("JKS");
             keystoreWithDemoServerCertificate.load(is, "changeit".toCharArray());
         } catch (Exception e) {
