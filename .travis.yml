@@ -1,7 +1,10 @@
 language: java
 jdk:
   - openjdk8
-sudo: false
+  - openjdk11
+  - openjdk17
+sudo: required
+
 cache:
   directories:
     - $HOME/.m2
@@ -13,6 +16,7 @@ before_install:
   - eval $(openssl aes-256-cbc -K $encrypted_key -iv $encrypted_iv -in private.key.enc -out private.key -d)
   - chmod +x travis.sh
   - pip install --user codecov
+install: true
 after_success:
   - codecov
 script:
