@@ -38,7 +38,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -57,7 +56,7 @@ import ee.sk.mid.exception.MidSessionTimeoutException;
 import ee.sk.mid.exception.MidSslException;
 import ee.sk.mid.exception.MidUnauthorizedException;
 import ee.sk.mid.exception.MidUserCancellationException;
-import ee.sk.mid.integration.MobileIdSSL_IT;
+import ee.sk.mid.integration.MobileIdSsIT;
 import ee.sk.mid.mock.TestData;
 import ee.sk.mid.rest.dao.MidSessionStatus;
 import ee.sk.mid.rest.dao.request.MidAuthenticationRequest;
@@ -89,7 +88,7 @@ public class ReadmeTest {
 
     @Before
     public void setUp() throws Exception {
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -98,11 +97,6 @@ public class ReadmeTest {
             .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
             .withRelyingPartyName("DEMO")
             .withTrustStore(trustStore)
-            .build();
-
-        MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
-            .withHashType( MidHashType.SHA512)
-            .withHashInBase64("XXX")
             .build();
 
         authentication = MidAuthentication.newBuilder()
@@ -213,6 +207,7 @@ public class ReadmeTest {
             .build();
 
         String verificationCode = hashToSign.calculateVerificationCode();
+        System.out.println("Verification code is " + verificationCode);
 
         MidSignatureRequest request = MidSignatureRequest.newBuilder()
             .withPhoneNumber("+37200000766")
@@ -229,6 +224,7 @@ public class ReadmeTest {
             "/signature/session/{sessionId}");
 
         MidSignature signature = client.createMobileIdSignature(sessionStatus);
+        System.out.println("Base64 value of created signature: " + signature.getValueInBase64());
     }
 
     @Test
@@ -246,6 +242,7 @@ public class ReadmeTest {
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.generateRandomHashOfDefaultType();
 
         String verificationCode = authenticationHash.calculateVerificationCode();
+        System.out.println("Verification code is " + verificationCode);
 
         MidAuthenticationRequest request = MidAuthenticationRequest.newBuilder()
             .withPhoneNumber("+37200000766")
@@ -280,17 +277,18 @@ public class ReadmeTest {
 
     @Test
     public void documentGettingErrors() {
-        List<String> errors = authenticationResult.getErrors();
-
+        System.out.println("Following errors occurred: " + authenticationResult.getErrors());
     }
 
     @Test(expected = NullPointerException.class)
     public void documentAuthenticationIdentityUsage() {
         MidAuthenticationIdentity authenticationIdentity = authenticationResult.getAuthenticationIdentity();
         String givenName = authenticationIdentity.getGivenName();
-        String surName = authenticationIdentity.getSurName();
+        String surname = authenticationIdentity.getSurName();
         String identityCode = authenticationIdentity.getIdentityCode();
         String country = authenticationIdentity.getCountry();
+
+        System.out.printf("Welcome %s %s (#%s) from %s" , givenName, surname, identityCode, country);
     }
 
     @SuppressWarnings("EmptyTryBlock")

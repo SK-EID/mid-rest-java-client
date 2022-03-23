@@ -196,7 +196,7 @@ If you want you can then convert the Java keystore to a P12 key store and use it
 
 #### Updating certs in tests of mid-rest-java-client
 
-Integration tests (*_IT.java) that check the validity of server are configured not to run after server's certificate expiration.
+Integration tests (*IntegrationTest.java) that check the validity of server are configured not to run after server's certificate expiration.
 When server (either production server or demo server) certificate has expired
 then to make the tests run again one needs to replace certificate value in respective constant and import it into the trust store.
 Here is the process that needs to be followed.
@@ -216,7 +216,7 @@ password: changeit
 trust this certificate: yes
 
 LIVE:
-`keytool -importcert -file new.mid.sk.ee.certificate.cer -keystore production_server_trusted_ssl_certs.jks -alias "mid.sk.ee that expires YYYY-MM-DD" `
+`keytool -importcert -file new.mid.sk.ee.certificate.cer -keystore production_server_trusted_ssl_certs.jks -alias "mid.sk.ee that expires 2023.03.18" `
 password: changeit
 trust this certificate: yes
 
@@ -226,8 +226,20 @@ trust this certificate: yes
     cd src/test/resources
     keytool -importkeystore -srckeystore production_server_trusted_ssl_certs.jks -destkeystore production_server_trusted_ssl_certs.p12 -srcstoretype JKS -deststoretype PKCS12
 ```
+Enter destination keystore password: changeit
+Enter source keystore password: changeit
+Existing entry alias trusted_mid_server_certs exists, overwrite?:  yes
+Existing entry alias mid.sk.ee that expires YYYY-MM_DD exists, overwrite?:  yes
 
-After following this process the tests (that were ignored programmatically) should run again and a Pull Request could be submitted.
+6. You need to add the new expiration dates of the imported certificates into the constants  
+of class ee.sk.mid.integration.MobileIdSsIT
+```
+   LIVE_SERVER_CERT_EXPIRATION_DATE = LocalDate.of(/* add new date of expiry */);
+   DEMO_SERVER_CERT_EXPIRATION_DATE = LocalDate.of(/* add new date of expiry */);
+```
+
+After following this process the tests (that were ignored programmatically) should run again 
+(check that there are no ignored tests) and a Pull Request could be submitted.
 
 ### Configuring a proxy
 #### JBoss and WildFly

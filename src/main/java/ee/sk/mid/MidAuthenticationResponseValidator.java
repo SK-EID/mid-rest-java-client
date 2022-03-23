@@ -72,7 +72,7 @@ public class MidAuthenticationResponseValidator {
     }
 
     public MidAuthenticationResponseValidator(List<X509Certificate> trustedCACertificates) {
-        this.trustedCACertificates = trustedCACertificates;
+        this.trustedCACertificates = new ArrayList<>(trustedCACertificates);
     }
 
     public MidAuthenticationResult validate(MidAuthentication authentication) {

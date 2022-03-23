@@ -26,7 +26,7 @@ package ee.sk.mid;
  * #L%
  */
 
-import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT;
+import static ee.sk.mid.integration.MobileIdSsIT.DEMO_SERVER_CERT;
 import static ee.sk.mid.mock.SessionStatusDummy.createDeliveryErrorStatus;
 import static ee.sk.mid.mock.SessionStatusDummy.createInvalidCardResponseStatus;
 import static ee.sk.mid.mock.SessionStatusDummy.createMIDNotReadyStatus;

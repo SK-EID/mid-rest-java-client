@@ -26,7 +26,7 @@ package ee.sk.mid;
  * #L%
  */
 
-public class MidAuthenticationIdentity {
+public class MidAuthenticationIdentity implements Cloneable {
 
     private String givenName;
     private String surName;
@@ -63,6 +63,16 @@ public class MidAuthenticationIdentity {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    @Override
+    public MidAuthenticationIdentity clone() {
+        try {
+            return (MidAuthenticationIdentity) super.clone();
+        }
+        catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

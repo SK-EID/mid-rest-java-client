@@ -26,7 +26,7 @@ package ee.sk.mid.integration;
  * #L%
  */
 
-import static ee.sk.mid.integration.MobileIdSSL_IT.DEMO_SERVER_CERT_EXPIRATION_DATE;
+import static ee.sk.mid.integration.MobileIdSsIT.DEMO_SERVER_CERT_EXPIRATION_DATE;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.assertCertificateCreated;
 import static ee.sk.mid.mock.MobileIdRestServiceRequestDummy.makeCertificateRequest;
 import static ee.sk.mid.mock.TestData.DEMO_HOST_URL;
@@ -65,7 +65,7 @@ public class MobileIdCertificateIT {
     public void getCertificate() throws Exception {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore keystoreWithDemoServerCertificate = KeyStore.getInstance("JKS");
         keystoreWithDemoServerCertificate.load(is, "changeit".toCharArray());
 
@@ -85,7 +85,7 @@ public class MobileIdCertificateIT {
     public void getCertificate_whenCertificateNotPresent_shouldThrowException() throws Exception {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore keystoreWithDemoServerCertificate = KeyStore.getInstance("JKS");
         keystoreWithDemoServerCertificate.load(is, "changeit".toCharArray());
 
@@ -147,7 +147,7 @@ public class MobileIdCertificateIT {
     public void getCertificate_withUnknownRelyingPartyUUID_shouldThrowException() throws Exception {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
@@ -165,7 +165,7 @@ public class MobileIdCertificateIT {
     public void getCertificate_withUnknownRelyingPartyName_shouldThrowException() throws Exception {
         assumeTrue("demo_server_trusted_ssl_certs.jks needs to be updated with the new certificate of tsp.demo.sk.ee server", DEMO_SERVER_CERT_EXPIRATION_DATE.isAfter(LocalDate.now()));
 
-        InputStream is = MobileIdSSL_IT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
+        InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
         KeyStore trustStoreWithDemoServerCertificate = KeyStore.getInstance("JKS");
         trustStoreWithDemoServerCertificate.load(is, "changeit".toCharArray());
 

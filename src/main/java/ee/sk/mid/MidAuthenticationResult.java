@@ -36,11 +36,11 @@ public class MidAuthenticationResult {
     private List<String> errors = new ArrayList<>();
 
     public MidAuthenticationIdentity getAuthenticationIdentity() {
-        return authenticationIdentity;
+        return authenticationIdentity.clone();
     }
 
     public void setAuthenticationIdentity(MidAuthenticationIdentity authenticationIdentity) {
-        this.authenticationIdentity = authenticationIdentity;
+        this.authenticationIdentity = authenticationIdentity.clone();
     }
 
     public boolean isValid() {
@@ -56,6 +56,6 @@ public class MidAuthenticationResult {
     }
 
     public List<String> getErrors() {
-        return errors;
+        return new ArrayList<>(errors);
     }
 }
