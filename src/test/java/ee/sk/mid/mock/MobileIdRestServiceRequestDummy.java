@@ -62,13 +62,9 @@ import ee.sk.mid.rest.dao.response.MidSignatureResponse;
 import org.apache.commons.codec.binary.Base64;
 
 public class MobileIdRestServiceRequestDummy {
-
-
-
     public static MidSignatureRequest createValidSignatureRequest() {
         return createSignatureRequest(DEMO_RELYING_PARTY_UUID, DEMO_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
     }
-
     public static MidSignatureRequest createSignatureRequest(String UUID, String name, String phoneNumber, String nationalIdentityNumber) {
         MidSignatureRequest request = new MidSignatureRequest();
         request.setRelyingPartyUUID(UUID);
@@ -80,11 +76,9 @@ public class MobileIdRestServiceRequestDummy {
         request.setLanguage( MidLanguage.EST);
         return request;
     }
-
     public static MidAuthenticationRequest createValidAuthenticationRequest() {
         return createAuthenticationRequest(DEMO_RELYING_PARTY_UUID, DEMO_RELYING_PARTY_NAME, VALID_PHONE, VALID_NAT_IDENTITY);
     }
-
     public static MidAuthenticationRequest createAuthenticationRequest(String UUID, String name, String phoneNumber, String nationalIdentityNumber) {
         return MidAuthenticationRequest.newBuilder()
                 .withRelyingPartyUUID(UUID)
@@ -95,7 +89,6 @@ public class MobileIdRestServiceRequestDummy {
                 .withLanguage( MidLanguage.EST)
                 .build();
     }
-
     public static X509Certificate getCertificate(MidClient client) {
         MidCertificateRequest request = MidCertificateRequest.newBuilder()
                 .withPhoneNumber(VALID_PHONE)
@@ -107,11 +100,9 @@ public class MobileIdRestServiceRequestDummy {
         MidCertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
         return client.createMobileIdCertificate(response);
     }
-
     public static MidSignature createValidSignature(MidClient client) {
         return createSignature(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
-
     public static MidSignature createSignature(MidClient client, String phoneNumber, String nationalIdentityNumber) {
         MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA256_HASH_IN_BASE64)
@@ -144,17 +135,14 @@ public class MobileIdRestServiceRequestDummy {
         MidSessionStatus sessionStatus = client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
         return client.createMobileIdAuthentication(sessionStatus, authenticationHash);
     }
-
     public static MidAuthentication sendAuthentication(MidClient client, MidAuthenticationRequest request, MidAuthenticationHashToSign authenticationHash) {
         MidAuthenticationResponse response = client.getMobileIdConnector().authenticate(request);
         MidSessionStatus sessionStatus = client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(), AUTHENTICATION_SESSION_PATH);
         return client.createMobileIdAuthentication(sessionStatus, authenticationHash);
     }
-
     public static void makeValidCertificateRequest(MidClient client) {
         makeCertificateRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
-
     public static void makeCertificateRequest(MidClient client, String phoneNumber, String nationalIdentityNumber) {
         MidCertificateRequest request = MidCertificateRequest.newBuilder()
                 .withRelyingPartyUUID(client.getRelyingPartyUUID())
@@ -166,11 +154,9 @@ public class MobileIdRestServiceRequestDummy {
         MidCertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
         client.createMobileIdCertificate(response);
     }
-
     public static void makeValidSignatureRequest(MidClient client) {
         makeSignatureRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
-
     public static void makeSignatureRequest(MidClient client, String phoneNumber, String nationalIdentityNumber) {
         MidHashToSign hashToSign = MidHashToSign.newBuilder()
             .withHashInBase64(SHA256_HASH_IN_BASE64)
@@ -190,11 +176,9 @@ public class MobileIdRestServiceRequestDummy {
         MidSessionStatus sessionStatus = client.getSessionStatusPoller().fetchFinalSessionStatus(response.getSessionID(), SIGNATURE_SESSION_PATH);
         client.createMobileIdSignature(sessionStatus);
     }
-
     public static void makeValidAuthenticationRequest(MidClient client) {
         makeAuthenticationRequest(client, VALID_PHONE, VALID_NAT_IDENTITY);
     }
-
     public static void makeAuthenticationRequest(MidClient client, String phoneNumber, String nationalIdentityNumber) {
         MidAuthenticationHashToSign authenticationHash = MidAuthenticationHashToSign.newBuilder()
             .withHashInBase64(SHA512_HASH_IN_BASE64)

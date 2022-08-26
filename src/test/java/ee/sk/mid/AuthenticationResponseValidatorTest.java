@@ -265,11 +265,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void constructAuthenticationIdentity_withEECertificate() {
-        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
-
         X509Certificate certificateEe = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_EE);
-        MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateEe);
+        MidAuthenticationIdentity authenticationIdentity = MidAuthenticationResponseValidator.constructAuthenticationIdentity(certificateEe);
 
         assertThat(authenticationIdentity.getGivenName(), is("MARY ÄNN"));
         assertThat(authenticationIdentity.getSurName(), is("O’CONNEŽ-ŠUSLIK TESTNUMBER"));
@@ -279,11 +276,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void constructAuthenticationIdentity_withLVCertificate() {
-        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
-
         X509Certificate certificateLv = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_LV);
-        MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateLv);
+        MidAuthenticationIdentity authenticationIdentity = MidAuthenticationResponseValidator.constructAuthenticationIdentity(certificateLv);
 
         assertThat(authenticationIdentity.getGivenName(), is("FORENAME-010117-21234"));
         assertThat(authenticationIdentity.getSurName(), is("SURNAME-010117-21234"));
@@ -293,11 +287,8 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void constructAuthenticationIdentity_withLTCertificate() {
-        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
-
         X509Certificate certificateLt = MidCertificateParser.parseX509Certificate(AUTH_CERTIFICATE_LT);
-        MidAuthenticationIdentity authenticationIdentity = validator.constructAuthenticationIdentity(certificateLt);
+        MidAuthenticationIdentity authenticationIdentity = MidAuthenticationResponseValidator.constructAuthenticationIdentity(certificateLt);
 
         assertThat(authenticationIdentity.getGivenName(), is("FORENAMEPNOLT-36009067968"));
         assertThat(authenticationIdentity.getSurName(), is("SURNAMEPNOLT-36009067968"));

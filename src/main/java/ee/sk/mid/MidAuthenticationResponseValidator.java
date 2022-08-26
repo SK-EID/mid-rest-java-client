@@ -114,7 +114,7 @@ public class MidAuthenticationResponseValidator {
         }
     }
 
-    MidAuthenticationIdentity constructAuthenticationIdentity(X509Certificate certificate) {
+    public static MidAuthenticationIdentity constructAuthenticationIdentity(X509Certificate certificate) {
         MidAuthenticationIdentity identity = new MidAuthenticationIdentity();
         try {
             LdapName ln = new LdapName(certificate.getSubjectDN().getName());
@@ -144,7 +144,7 @@ public class MidAuthenticationResponseValidator {
         }
     }
 
-    private String getIdentityNumber(String serialNumber) {
+    private static String getIdentityNumber(String serialNumber) {
         return serialNumber.replaceAll("^PNO[A-Z][A-Z]-", "");
     }
 
