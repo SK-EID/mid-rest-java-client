@@ -17,7 +17,7 @@ Mobile-ID Java client is a Java library that can be used for easy integration wi
 * A simple interface for digital signature services
 
 # Requirements
-* Java 1.8 
+* Java 1.8 (or newer)
 * Access to Mobile-ID demo environment (to run integration tests)
 
 # Adding as a dependency
@@ -48,12 +48,12 @@ compile group: 'ee.sk.mid', name: 'mid-rest-java-client', version: 'INSERT_VERSI
     - [Keeping the trusted certificates in a Trust Store file](#keeping-the-trusted-certificates-in-a-trust-store-file)
     - [Using with custom ssl context](#using-with-custom-ssl-context)
     - [Specifying trusted certificates as string list](#specifying-trusted-certificates-as-string-list)
-  - [How to obtain server certificate](#how-to-obtain-server-certificate]
+  - [How to obtain server certificate](#how-to-obtain-server-certificate)
   - [How to create a trust store](#how-to-create-a-trust-store)
     - [Updating certs in tests of mid-rest-java-client](#updating-certs-in-tests-of-mid-rest-java-client)
   - [Configuring a proxy](#configuring-a-proxy)
-    - [JBoss and WildFly](#jboss-and-wildfly)
-    - [Tomcat](#tomcat)
+    - [Configuring a proxy using JBoss Resteasy library](#configuring-a-proxy-using-jboss-resteasy-library)
+    - [Configuring a proxy using Jersey](#configuring-a-proxy-using-jersey)
   - [Long-polling configuration](#long-polling-configuration)
   - [Calling without long polling](#calling-without-long-polling)
 * [Retrieving signing certificate](#retrieving-signing-certificate)
@@ -242,36 +242,41 @@ After following this process the tests (that were ignored programmatically) shou
 (check that there are no ignored tests) and a Pull Request could be submitted.
 
 ### Configuring a proxy
-#### JBoss and WildFly
 
+If you need to access the internet through a proxy (that runs on 127.0.0.1:3128 in the examples)
+you have two alternatives:
+
+#### Configuring a proxy using JBoss Resteasy library 
+
+<!-- Do not change code samples here but instead copy from ReadmeTest.document_setProxy_withJbossRestEasy() -->
 
 ```java
-        // import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder
-        // import org.jboss.resteasy.client.jaxrs.ResteasyClient
-        ResteasyClient resteasyClient = new ResteasyClientBuilder()
-            .defaultProxy("192.168.1.254", 8080, "http")
-            .build();
-        MidClient client = MidClient.newBuilder()
-            .withHostUrl("https://tsp.demo.sk.ee/mid-api")
-            .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
-            .withRelyingPartyName("DEMO")
-            .withConfiguredClient(resteasyClient)
-            .withTrustStore(trustStore)
-            .build();
+  org.jboss.resteasy.client.jaxrs.ResteasyClient resteasyClient =
+    new org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl()
+    .defaultProxy("127.0.0.1", 3128, "http")
+    .build();
+  MidClient client = MidClient.newBuilder()
+    .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+    .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+    .withRelyingPartyName("DEMO")
+    .withConfiguredClient(resteasyClient)
+    .withTrustStore(trustStore)
+    .build();
 ```
-#### Tomcat
+####  Configuring a proxy using Jersey
 
+<!-- Do not change code samples here but instead copy from ReadmeTest.document_setProxy_withJersey() -->
 ```java
-        // import org.glassfish.jersey.client.ClientConfig
-        ClientConfig clientConfig = new ClientConfig()
-        clientConfig.property(ClientProperties.PROXY_URI, "192.168.1.254:8080");
-        MidClient client = MidClient.newBuilder()
-            .withHostUrl("https://tsp.demo.sk.ee/mid-api")
-            .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
-            .withRelyingPartyName("DEMO")
-            .withTrustStore(trustStore)
-            .withwithNetworkConnectionConfig(clientConfig)
-            .build();
+  org.glassfish.jersey.client.ClientConfig clientConfig =
+    new org.glassfish.jersey.client.ClientConfig();
+  clientConfig.property(ClientProperties.PROXY_URI, "127.0.0.1:3128");
+  MidClient client = MidClient.newBuilder()
+    .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+    .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+    .withRelyingPartyName("DEMO")
+    .withTrustStore(trustStore)
+    .withNetworkConnectionConfig(clientConfig)
+    .build();
 ```
 
 ### Long-polling configuration

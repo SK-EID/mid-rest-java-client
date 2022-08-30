@@ -2,7 +2,15 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.5] - March 20222
+
+
+## [1.6] - upcoming
+
+### Changed
+- Added two examples (and unit tests) that show how to use a proxy to acces the server
+- Update versions of dependencies
+
+## [1.5] - March 2022
 
 ### Changed
 - Update versions of dependencies 

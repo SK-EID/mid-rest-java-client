@@ -65,7 +65,9 @@ import ee.sk.mid.rest.dao.request.MidSignatureRequest;
 import ee.sk.mid.rest.dao.response.MidAuthenticationResponse;
 import ee.sk.mid.rest.dao.response.MidCertificateChoiceResponse;
 import ee.sk.mid.rest.dao.response.MidSignatureResponse;
+import org.glassfish.jersey.client.ClientProperties;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,10 +88,12 @@ public class ReadmeTest {
 
     MidAuthenticationResult authenticationResult;
 
+    KeyStore trustStore;
+
     @Before
     public void setUp() throws Exception {
         InputStream is = MobileIdSsIT.class.getResourceAsStream("/demo_server_trusted_ssl_certs.jks");
-        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore = KeyStore.getInstance("JKS");
         trustStore.load(is, "changeit".toCharArray());
 
         client = MidClient.newBuilder()
@@ -374,6 +378,74 @@ public class ReadmeTest {
 
     }
 
+    @Test
+    @Ignore("you need to run a proxy to run this test")
+    public void document_setProxy_withJbossRestEasy() throws Exception {
+        // in order to run this test you can set up a proxy server locally
+        //docker run -d --name squid-container -e TZ=UTC -p 3128:3128 ubuntu/squid:5.2-22.04_beta
 
+
+        // CODE EXAMPLE STARTS HERE
+        org.jboss.resteasy.client.jaxrs.ResteasyClient resteasyClient =
+             new org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl()
+             .defaultProxy("127.0.0.1", 3128, "http")
+             .build();
+        MidClient client = MidClient.newBuilder()
+             .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+             .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+             .withRelyingPartyName("DEMO")
+             .withConfiguredClient(resteasyClient)
+             .withTrustStore(trustStore)
+             .build();
+
+        // CODE EXAMPLE ENDS HERE
+
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
+             .withPhoneNumber("+37200000766")
+             .withNationalIdentityNumber("60001019906")
+             .build();
+
+        MidCertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
+
+        X509Certificate certificate = client.createMobileIdCertificate(response);
+
+        MidAuthenticationIdentity identity = MidAuthenticationResponseValidator.constructAuthenticationIdentity(certificate);
+
+        assertThat(identity.getGivenName(), is("MARY ÄNN"));
+    }
+
+    @Test
+    @Ignore("you need to run a proxy to run this test")
+    public void document_setProxy_withJersey() throws Exception {
+        // in order to run this test you first have to set up a proxy server locally
+        //docker run -d --name squid-container -e TZ=UTC -p 3128:3128 ubuntu/squid:5.2-22.04_beta
+
+        org.glassfish.jersey.client.ClientConfig clientConfig =
+             new org.glassfish.jersey.client.ClientConfig();
+        clientConfig.property(ClientProperties.PROXY_URI, "127.0.0.1:3128");
+        MidClient client = MidClient.newBuilder()
+             .withHostUrl("https://tsp.demo.sk.ee/mid-api")
+             .withRelyingPartyUUID("00000000-0000-0000-0000-000000000000")
+             .withRelyingPartyName("DEMO")
+             .withTrustStore(trustStore)
+             .withNetworkConnectionConfig(clientConfig)
+             .build();
+
+        // CODE EXAMPLE ENDS HERE
+
+        MidCertificateRequest request = MidCertificateRequest.newBuilder()
+             .withPhoneNumber("+37200000766")
+             .withNationalIdentityNumber("60001019906")
+             .build();
+
+        MidCertificateChoiceResponse response = client.getMobileIdConnector().getCertificate(request);
+
+        X509Certificate certificate = client.createMobileIdCertificate(response);
+
+        MidAuthenticationIdentity identity = MidAuthenticationResponseValidator.constructAuthenticationIdentity(certificate);
+
+        assertThat(identity.getGivenName(), is("MARY ÄNN"));
+
+    }
 
 }
