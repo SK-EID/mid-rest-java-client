@@ -181,8 +181,8 @@ Read chapter  [Validate returned certificate is a trusted MID certificate](#Vali
 
 ### How to obtain server certificate
 
-Production server (mid.sk.ee) certificate will be available here:  https://www.skidsolutions.eu/en/repository/certs/
-Demo server (tsp.demo.sk.ee) certificate will be available here: https://www.skidsolutions.eu/en/Repository/certs/certificates-for-testing
+Production server (mid.sk.ee) certificate will be available here: https://www.skidsolutions.eu/resources/certificates/#Other-certificates
+Demo server (tsp.demo.sk.ee) certificate will be available here: https://www.skidsolutions.eu/resources/certificates/#Test-certificates
 
 ### How to create a trust store
 
