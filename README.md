@@ -447,17 +447,17 @@ When the authentication result is valid a session could be created now within th
 To avoid man-in-the-middle attacks you need to make sure the authentication certificate returned by MID API is issued by Application Provider (SK ID Solutions AS).
 You can read more about this requirement from [MID API documentation](https://github.com/SK-EID/MID#336-verifying-the-authentication-response).
 
-You need to keep a Trust Store that trusts certificates taken from [SK Certificate Repository](https://www.skidsolutions.eu/en/repository/certs/). You need the following certificates:
+You need to keep a Trust Store that trusts certificates taken from [SK Certificate Repository](https://www.skidsolutions.eu/resources/certificates/#Intermediate-CAs). You need the following certificates:
 
-* EID_Q_2021E.pem.crt
-* EID-SK_2016.pem.crt
-* ESTEID-SK_2015.pem.crt
+* [EID_Q_2021E.pem.crt](https://c.sk.ee/EID_Q_2021E.pem.crt)
+* [EID-SK_2016.pem.crt](https://www.sk.ee/upload/files/EID-SK_2016.pem.crt)
+* [ESTEID-SK_2015.pem.crt](https://www.skidsolutions.eu/upload/files/ESTEID-SK_2015.pem.crt)
 
-For testing you need to import [certificates for testing](https://www.skidsolutions.eu/en/repository/certs/certificates-for-testing). You need the following certificates: 
+For testing you need to import [certificates for testing](https://www.skidsolutions.eu/resources/certificates/#Test-certificates). You need the following certificates: 
 
-* TEST_EID-Q_2021E.pem.crt
-* TEST_of_EID-SK_2016.pem.crt
-* TEST_of_ESTEID-SK_2015.pem.crt
+* [TEST_EID-Q_2021E.pem.crt](https://www.skidsolutions.eu/upload/files/TEST_EID-Q_2021E.pem.crt)
+* [TEST_of_EID-SK_2016.pem.crt](https://www.skidsolutions.eu/upload/files/TEST%20of%20EID-SK%202016_reissued.pem)
+* [TEST_of_ESTEID-SK_2015.pem.crt](https://www.sk.ee/upload/files/TEST_of_ESTEID-SK_2015.pem.crt)
 
 
 You can use the same Trust Store file that you keep trusted SSL server certificates (see chapter 
