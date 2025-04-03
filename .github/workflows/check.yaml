@@ -1,0 +1,42 @@
+name: Run dependency and spotbugs checks
+
+on:
+  workflow_run:
+    workflows: ["Run tests"]
+    types:
+      - completed
+
+permissions:
+    contents: read
+
+jobs:
+    run-checks:
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          java-version: ['8', '11', '17']
+      name: Run dependency and spotbugs checks with java SDK ${{ matrix.java-version }}
+
+      steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run dependency check
+        run: |
+          ./mvnw org.owasp:dependency-check-maven:check
+
+      - name: Archive dependency report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-report
+          path: target/dependency-check-report.html
+
+      - name: Run spotbugs check
+        run: |
+          ./mvnw spotbugs:check
