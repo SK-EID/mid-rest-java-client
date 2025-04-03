@@ -67,7 +67,7 @@ public class AuthenticationResponseValidatorTest {
 
     @Test
     public void validate_whenECC_shouldReturnValidAuthenticationResult() throws Exception{
-        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt");
+        X509Certificate caCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
         MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Collections.singletonList(caCertificate));
 
         MidAuthentication authentication = createMobileIdAuthenticationWithECC();
