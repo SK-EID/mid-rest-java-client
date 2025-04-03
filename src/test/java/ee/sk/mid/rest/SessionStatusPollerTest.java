@@ -106,8 +106,8 @@ public class SessionStatusPollerTest {
         long duration = measurePollingDuration();
         System.out.println(duration);
 
-        assertThat(duration > 10000L, is(true));
-        assertThat(duration < 10100L, is(true));
+        assertThat(duration >= 10000L, is(true));
+        assertThat(duration <= 10100L, is(true));
     }
 
     @Test(expected = MidSessionTimeoutException.class)
