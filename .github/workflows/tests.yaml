@@ -2,9 +2,9 @@ name: Run tests
 
 on:
     push:
-      branches: [ "github_workflow" ]
+      branches: [ "master" ]
     pull_request:
-      branches: [ "github_workflow" ]
+      branches: [ "master" ]
 
 permissions:
     contents: read
