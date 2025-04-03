@@ -29,7 +29,7 @@ jobs:
 
       - name: Run dependency check
         run: |
-          ./mvn org.owasp:dependency-check-maven:check
+          mvn org.owasp:dependency-check-maven:check
 
       - name: Archive dependency report
         uses: actions/upload-artifact@v4
@@ -39,4 +39,4 @@ jobs:
 
       - name: Run spotbugs check
         run: |
-          ./mvn spotbugs:check
+          mvn spotbugs:check
