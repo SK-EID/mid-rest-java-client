@@ -34,8 +34,8 @@ jobs:
         version=${{ github.event.release.name }}
         artifact=mid-rest-java-client-$version
         echo "[INFO] Artifact name: $artifact"
-        ./mvnw versions:set -DnewVersion="$version"
-        ./mvnw package -DskipTests
+        mvn versions:set -DnewVersion="$version"
+        mvn package -DskipTests
         gpg -ab pom.xml
         cd target
         gpg -ab $artifact.jar
