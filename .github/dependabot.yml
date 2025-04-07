@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/" # change this if your pom.xml is in a subfolder
+    schedule:
+      interval: "daily"
+    ignore:
+      # Latest version (1.70) is already in use; no newer version available"
+      - dependency-name: "org.bouncycastle:bcprov-jdk15on"
+      
