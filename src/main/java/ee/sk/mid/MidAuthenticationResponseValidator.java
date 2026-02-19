@@ -193,7 +193,7 @@ public class MidAuthenticationResponseValidator {
                 certificate.verify(trustedCACertificate.getPublicKey());
                 return true;
             } catch (GeneralSecurityException e) {
-                logger.warn("Error verifying signer's certificate: " + certificate.getSubjectDN() + " against CA certificate: " + trustedCACertificate.getSubjectDN(), e);
+                logger.debug("Error verifying signer's certificate: " + certificate.getSubjectDN() + " against CA certificate: " + trustedCACertificate.getSubjectDN(), e);
             }
         }
         return false;
