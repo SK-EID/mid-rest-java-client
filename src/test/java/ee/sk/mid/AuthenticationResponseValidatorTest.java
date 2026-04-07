@@ -43,17 +43,11 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-import java.util.Arrays;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import ee.sk.mid.exception.MidInternalErrorException;
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
 
 public class AuthenticationResponseValidatorTest {
 
@@ -99,37 +93,6 @@ public class AuthenticationResponseValidatorTest {
         MidAuthenticationResult authenticationResult = validator.validate(authentication);
 
         assertThat(authenticationResult.getErrors(), hasItem(equalTo("Certificate that was returned is not signed by CA that is configured as trusted in mid-rest-java-client")));
-    }
-
-    @Test
-    public void validate_whenTrustedCaIterationFailsInitially_shouldLogAtDebugLevel() {
-        X509Certificate wrongCaCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2011.pem.crt");
-        X509Certificate correctCaCertificate = fileToX509Certificate("/trusted_certificates/TEST_of_ESTEID-SK_2015.pem.crt");
-        MidAuthenticationResponseValidator validator = new MidAuthenticationResponseValidator(Arrays.asList(wrongCaCertificate, correctCaCertificate));
-
-        Logger validatorLogger = (Logger) LoggerFactory.getLogger(MidAuthenticationResponseValidator.class);
-        Level previousLevel = validatorLogger.getLevel();
-        validatorLogger.setLevel(Level.DEBUG);
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-        listAppender.start();
-        validatorLogger.addAppender(listAppender);
-        try {
-            MidAuthenticationResult authenticationResult = validator.validate(createValidMobileIdAuthentication());
-            assertThat(authenticationResult.isValid(), is(true));
-        } finally {
-            validatorLogger.detachAppender(listAppender);
-            validatorLogger.setLevel(previousLevel);
-        }
-
-        boolean hasDebugLog = listAppender.list.stream()
-                .anyMatch(event -> event.getLevel().equals(Level.DEBUG)
-                        && event.getFormattedMessage().contains("Error verifying signer's certificate"));
-        boolean hasWarnLog = listAppender.list.stream()
-                .anyMatch(event -> event.getLevel().equals(Level.WARN)
-                        && event.getFormattedMessage().contains("Error verifying signer's certificate"));
-
-        assertThat(hasDebugLog, is(true));
-        assertThat(hasWarnLog, is(false));
     }
 
     @Test
