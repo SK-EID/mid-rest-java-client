@@ -4,7 +4,7 @@ package ee.sk.mid;
  * #%L
  * Mobile ID sample Java client
  * %%
- * Copyright (C) 2018 - 2019 SK ID Solutions AS
+ * Copyright (C) 2018 - 2026 SK ID Solutions AS
  * %%
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -193,7 +193,7 @@ public class MidAuthenticationResponseValidator {
                 certificate.verify(trustedCACertificate.getPublicKey());
                 return true;
             } catch (GeneralSecurityException e) {
-                logger.warn("Error verifying signer's certificate: " + certificate.getSubjectDN() + " against CA certificate: " + trustedCACertificate.getSubjectDN(), e);
+                logger.debug("Error verifying signer's certificate: " + certificate.getSubjectDN() + " against CA certificate: " + trustedCACertificate.getSubjectDN(), e);
             }
         }
         return false;
